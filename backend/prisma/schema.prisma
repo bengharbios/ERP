@@ -1,9 +1,10 @@
 generator client {
+  previewFeatures = ["driverAdapters"]
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -93,8 +94,8 @@ model AuditLog {
   action       String
   resourceType String?  @map("resource_type")
   resourceId   String?  @map("resource_id")
-  beforeData   Json?    @map("before_data")
-  afterData    Json?    @map("after_data")
+  beforeData   String?    @map("before_data")
+  afterData    String?    @map("after_data")
   ipAddress    String?  @map("ip_address")
   userAgent    String?  @map("user_agent")
   createdAt    DateTime @default(now()) @map("created_at")
@@ -164,7 +165,7 @@ model Unit {
   creditHours         Int?                @map("credit_hours")
   totalLectures       Int                 @map("total_lectures")
   defaultInstructorId String?             @map("default_instructor_id")
-  learningOutcomes    String[]            @map("learning_outcomes")
+  learningOutcomes    String @default("")            @map("learning_outcomes")
   isActive            Boolean             @default(true) @map("is_active")
   createdAt           DateTime            @default(now()) @map("created_at")
   updatedAt           DateTime            @updatedAt @map("updated_at")
@@ -192,8 +193,8 @@ model ProgramUnit {
 model AcademicYear {
   id        String   @id @default(uuid())
   name      String   @unique
-  startDate DateTime @map("start_date") @db.Date
-  endDate   DateTime @map("end_date") @db.Date
+  startDate DateTime @map("start_date") 
+  endDate   DateTime @map("end_date") 
   isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -207,18 +208,18 @@ model Class {
   code               String              @unique
   name               String
   programId          String              @map("program_id")
-  startDate          DateTime            @map("start_date") @db.Date
+  startDate          DateTime            @map("start_date") 
   durationMonths     Int                 @map("duration_months")
-  expectedEndDate    DateTime?           @map("expected_end_date") @db.Date
-  actualEndDate      DateTime?           @map("actual_end_date") @db.Date
+  expectedEndDate    DateTime?           @map("expected_end_date") 
+  actualEndDate      DateTime?           @map("actual_end_date") 
   studyDaysPerWeek   Int?                @map("study_days_per_week")
-  studyDays          String[]            @map("study_days")
-  lectureStartTime   DateTime?           @map("lecture_start_time") @db.Time(6)
-  lectureEndTime     DateTime?           @map("lecture_end_time") @db.Time(6)
+  studyDays          String @default("")            @map("study_days")
+  lectureStartTime   DateTime?           @map("lecture_start_time") 
+  lectureEndTime     DateTime?           @map("lecture_end_time") 
   defaultRoom        String?             @map("default_room")
   maxStudents        Int?                @map("max_students")
   status             String              @default("active")
-  studyMode          StudyMode           @default(IN_PERSON) @map("study_mode")
+  studyMode          String           @default("IN_PERSON") @map("study_mode")
   studyLanguage      String              @default("Arabic") @map("study_language")
   classroom          String?
   building           String?
@@ -242,11 +243,11 @@ model Lecture {
   unitId             String             @map("unit_id")
   instructorId       String?            @map("instructor_id")
   sequenceNumber     Int                @map("sequence_number")
-  scheduledDate      DateTime           @map("scheduled_date") @db.Date
-  scheduledStartTime DateTime           @map("scheduled_start_time") @db.Time(6)
-  scheduledEndTime   DateTime           @map("scheduled_end_time") @db.Time(6)
-  actualStartTime    DateTime?          @map("actual_start_time") @db.Time(6)
-  actualEndTime      DateTime?          @map("actual_end_time") @db.Time(6)
+  scheduledDate      DateTime           @map("scheduled_date") 
+  scheduledStartTime DateTime           @map("scheduled_start_time") 
+  scheduledEndTime   DateTime           @map("scheduled_end_time") 
+  actualStartTime    DateTime?          @map("actual_start_time") 
+  actualEndTime      DateTime?          @map("actual_end_time") 
   room               String?
   topic              String?
   status             String             @default("scheduled")
@@ -276,7 +277,7 @@ model Student {
   lastNameAr                String?                 @map("last_name_ar")
   firstNameEn               String?                 @map("first_name_en")
   lastNameEn                String?                 @map("last_name_en")
-  dateOfBirth               DateTime?               @map("date_of_birth") @db.Date
+  dateOfBirth               DateTime?               @map("date_of_birth") 
   gender                    String?
   nationality               String?
   nationalId                String?                 @map("national_id")
@@ -286,7 +287,7 @@ model Student {
   country                   String?
   emergencyContactName      String?                 @map("emergency_contact_name")
   emergencyContactPhone     String?                 @map("emergency_contact_phone")
-  enrollmentDate            DateTime?               @map("enrollment_date") @db.Date
+  enrollmentDate            DateTime?               @map("enrollment_date") 
   status                    String                  @default("active")
   createdAt                 DateTime                @default(now()) @map("created_at")
   updatedAt                 DateTime                @updatedAt @map("updated_at")
@@ -303,11 +304,11 @@ model Student {
   phone                     String?
   phone2                    String?                 @map("phone2")
   qualificationLevel        String?                 @map("qualification_level")
-  registrationDateAlsalam   DateTime?               @map("registration_date_alsalam") @db.Date
+  registrationDateAlsalam   DateTime?               @map("registration_date_alsalam") 
   registrationNumberPearson String?                 @unique @map("registration_number_pearson")
   specialization            String?
   yearOfAward               String?                 @map("year_of_award")
-  passportExpiryDate        DateTime?               @map("passport_expiry_date") @db.Date
+  passportExpiryDate        DateTime?               @map("passport_expiry_date") 
   attendanceRecords         AttendanceRecord[]
   invoices                  Invoice[]
   receipts                  Receipt[]
@@ -358,10 +359,10 @@ model StudentEnrollment {
   id                  String                @id @default(uuid())
   studentId           String                @map("student_id")
   classId             String                @map("class_id")
-  enrollmentDate      DateTime              @map("enrollment_date") @db.Date
+  enrollmentDate      DateTime              @map("enrollment_date") 
   startUnitId         String?               @map("start_unit_id")
   status              String                @default("active")
-  completionDate      DateTime?             @map("completion_date") @db.Date
+  completionDate      DateTime?             @map("completion_date") 
   createdAt           DateTime              @default(now()) @map("created_at")
   attendanceRecords   AttendanceRecord[]
   studentAssignments  StudentAssignment[]
@@ -379,10 +380,10 @@ model StudentUnitProgress {
   enrollmentId   String            @map("enrollment_id")
   unitId         String            @map("unit_id")
   status         String            @default("not_started")
-  startDate      DateTime?         @map("start_date") @db.Date
-  completionDate DateTime?         @map("completion_date") @db.Date
+  startDate      DateTime?         @map("start_date") 
+  completionDate DateTime?         @map("completion_date") 
   grade          String?
-  gpa            Decimal?          @db.Decimal(3, 2)
+  gpa            Float?          
   createdAt      DateTime          @default(now()) @map("created_at")
   updatedAt      DateTime          @updatedAt @map("updated_at")
   enrollment     StudentEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
@@ -420,9 +421,9 @@ model Assignment {
   briefFileUrl         String?             @map("brief_file_url")
   rubricFileUrl        String?             @map("rubric_file_url")
   totalMarks           Int?                @map("total_marks")
-  passThreshold        Decimal?            @map("pass_threshold") @db.Decimal(5, 2)
-  meritThreshold       Decimal?            @map("merit_threshold") @db.Decimal(5, 2)
-  distinctionThreshold Decimal?            @map("distinction_threshold") @db.Decimal(5, 2)
+  passThreshold        Float?            @map("pass_threshold") 
+  meritThreshold       Float?            @map("merit_threshold") 
+  distinctionThreshold Float?            @map("distinction_threshold") 
   releaseDate          DateTime?           @map("release_date")
   submissionDeadline   DateTime            @map("submission_deadline")
   gracePeriodDays      Int?                @default(0) @map("grace_period_days")
@@ -432,10 +433,10 @@ model Assignment {
   createdBy            String?             @map("created_by")
   createdAt            DateTime            @default(now()) @map("created_at")
   updatedAt            DateTime            @updatedAt @map("updated_at")
-  attachments          String[]            @default([])
+  attachments          String @default("")
   distinctionCriteria  String?             @map("distinction_criteria")
   instructions         String?
-  learningOutcomes     String[]            @default([]) @map("learning_outcomes")
+  learningOutcomes     String @default("") @map("learning_outcomes")
   meritCriteria        String?             @map("merit_criteria")
   passCriteria         String?             @map("pass_criteria")
   unit                 Unit                @relation(fields: [unitId], references: [id])
@@ -451,10 +452,10 @@ model StudentAssignment {
   submissionFileUrl       String?            @map("submission_file_url")
   submissionDate          DateTime?          @map("submission_date")
   isLate                  Boolean            @default(false) @map("is_late")
-  plagiarismScore         Decimal?           @map("plagiarism_score") @db.Decimal(5, 2)
+  plagiarismScore         Float?           @map("plagiarism_score") 
   assessedBy              String?            @map("assessed_by")
   assessedAt              DateTime?          @map("assessed_at")
-  marks                   Decimal?           @db.Decimal(5, 2)
+  marks                   Float?           
   grade                   String?
   assessorFeedback        String?            @map("assessor_feedback")
   assessorFeedbackFileUrl String?            @map("assessor_feedback_file_url")
@@ -466,7 +467,7 @@ model StudentAssignment {
   gradePublishedAt        DateTime?          @map("grade_published_at")
   createdAt               DateTime           @default(now()) @map("created_at")
   updatedAt               DateTime           @updatedAt @map("updated_at")
-  attachments             String[]           @default([])
+  attachments             String @default("")
   content                 String?
   remarks                 String?
   studentEnrollmentId     String?            @map("student_enrollment_id")
@@ -486,7 +487,7 @@ model Notification {
   type      String
   title     String?
   message   String
-  data      Json?
+  data      String?
   isRead    Boolean   @default(false) @map("is_read")
   sentAt    DateTime? @map("sent_at")
   readAt    DateTime? @map("read_at")
@@ -502,8 +503,8 @@ model ClassUnitSchedule {
   id        String   @id @default(uuid())
   classId   String   @map("class_id")
   unitId    String   @map("unit_id")
-  startDate DateTime @map("start_date") @db.Date
-  endDate   DateTime @map("end_date") @db.Date
+  startDate DateTime @map("start_date") 
+  endDate   DateTime @map("end_date") 
   status    String   @default("upcoming")
   class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
   unit      Unit     @relation(fields: [unitId], references: [id], onDelete: Cascade)
@@ -545,7 +546,7 @@ model Settings {
   institutePhone                String?  @map("institute_phone")
   instituteAddress              String?  @map("institute_address")
   instituteWebsite              String?  @map("institute_website")
-  awardingBodies                Json     @default("[]") @map("awarding_bodies")
+  awardingBodies                String     @default("[]") @map("awarding_bodies")
   defaultAcademicYear           String?  @map("default_academic_year")
   gradePassingPercentage        Int      @default(50) @map("grade_passing_percentage")
   attendanceThreshold           Int      @default(75) @map("attendance_threshold")
@@ -565,12 +566,12 @@ model Settings {
   smsApiKey                     String?  @map("sms_api_key")
   updatedAt                     DateTime @updatedAt @map("updated_at")
   createdAt                     DateTime @default(now()) @map("created_at")
-  fullPaymentDiscountAmount     Decimal  @default(0) @map("full_payment_discount_amount") @db.Decimal(10, 2)
-  fullPaymentDiscountPercentage Decimal  @default(0) @map("full_payment_discount_percentage") @db.Decimal(5, 2)
-  lateFeeAmount                 Decimal  @default(0) @map("late_fee_amount") @db.Decimal(10, 2)
+  fullPaymentDiscountAmount     Float  @default(0) @map("full_payment_discount_amount") 
+  fullPaymentDiscountPercentage Float  @default(0) @map("full_payment_discount_percentage") 
+  lateFeeAmount                 Float  @default(0) @map("late_fee_amount") 
   lateFeeGraceDays              Int      @default(0) @map("late_fee_grace_days")
   taxEnabled                    Boolean  @default(false) @map("tax_enabled")
-  taxRate                       Decimal  @default(15) @map("tax_rate") @db.Decimal(5, 2)
+  taxRate                       Float  @default(15) @map("tax_rate") 
   externalAiApiKey              String?  @map("external_ai_api_key")
   externalAiEnabled             Boolean  @default(false) @map("external_ai_enabled")
   externalAiProvider            String?  @default("openai") @map("external_ai_provider")
@@ -584,12 +585,12 @@ model Settings {
   trn                           String?  @map("trn")
 
   // --- HR SETTINGS ---
-  hrWorkingDays             Json     @default("[\"Sunday\", \"Monday\", \"Tuesday\", \"Wednesday\", \"Thursday\"]") @map("hr_working_days")
+  hrWorkingDays             String     @default("[\"Sunday\", \"Monday\", \"Tuesday\", \"Wednesday\", \"Thursday\"]") @map("hr_working_days")
   hrWorkStartTime           String   @default("09:00") @map("hr_work_start_time")
   hrWorkEndTime             String   @default("17:00") @map("hr_work_end_time")
   hrLateGracePeriod         Int      @default(15) @map("hr_late_grace_period")
   hrAbsenceThreshold        Int      @default(60) @map("hr_absence_threshold")
-  hrLateHourDeduction       Decimal  @default(0) @map("hr_late_hour_deduction") @db.Decimal(10, 2)
+  hrLateHourDeduction       Float  @default(0) @map("hr_late_hour_deduction") 
   hrShiftEnabled            Boolean  @default(false) @map("hr_shift_enabled")
   activeTemplate            String   @default("legacy") @map("active_template")
   announcementTicker        String?  @map("announcement_ticker")
@@ -602,7 +603,7 @@ model StudentRegistration {
   studentId          String    @map("student_id")
   awardingBodyId     String    @map("awarding_body_id")
   registrationNumber String    @map("registration_number")
-  registrationDate   DateTime? @map("registration_date") @db.Date
+  registrationDate   DateTime? @map("registration_date") 
   createdAt          DateTime  @default(now()) @map("created_at")
   updatedAt          DateTime  @updatedAt @map("updated_at")
   student            Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
@@ -618,8 +619,8 @@ model FeeTemplate {
   programId           String?                 @map("program_id")
   description         String?
   currency            String                  @default("SAR")
-  totalAmount         Decimal                 @db.Decimal(10, 2)
-  tuitionAmount       Decimal                 @db.Decimal(10, 2)
+  totalAmount         Float                 
+  tuitionAmount       Float                 
   isActive            Boolean                 @default(true) @map("is_active")
   isDefault           Boolean                 @default(false) @map("is_default")
   incomeAccountId     String?                 @map("income_account_id")
@@ -637,8 +638,8 @@ model FeeItem {
   templateId          String               @map("template_id")
   name                String
   nameAr              String               @map("name_ar")
-  type                FeeType              @default(CUSTOM)
-  amount              Decimal              @db.Decimal(10, 2)
+  type                String              @default("CUSTOM")
+  amount              Float              
   isIncludedInTuition Boolean              @default(false) @map("is_included_in_tuition")
   isOptional          Boolean              @default(false) @map("is_optional")
   isTaxable           Boolean              @default(false) @map("is_taxable")
@@ -663,22 +664,22 @@ model StudentFeeCalculation {
   programId         String?                  @map("program_id")
   calculationNumber String                   @unique @map("calculation_number")
   title             String
-  subtotal          Decimal                  @db.Decimal(10, 2)
-  discountAmount    Decimal                  @default(0) @db.Decimal(10, 2)
-  scholarshipAmount Decimal                  @default(0) @db.Decimal(10, 2)
-  totalAmount       Decimal                  @db.Decimal(10, 2)
-  paidAmount        Decimal                  @default(0) @db.Decimal(10, 2)
-  balance           Decimal                  @db.Decimal(10, 2)
+  subtotal          Float                  
+  discountAmount    Float                  @default(0) 
+  scholarshipAmount Float                  @default(0) 
+  totalAmount       Float                  
+  paidAmount        Float                  @default(0) 
+  balance           Float                  
   currency          String                   @default("SAR")
-  status            PaymentStatus            @default(PENDING)
-  issueDate         DateTime                 @default(now()) @map("issue_date") @db.Date
-  dueDate           DateTime?                @map("due_date") @db.Date
+  status            String            @default("PENDING")
+  issueDate         DateTime                 @default(now()) @map("issue_date") 
+  dueDate           DateTime?                @map("due_date") 
   notes             String?
   internalNotes     String?                  @map("internal_notes")
   createdBy         String?                  @map("created_by")
   createdAt         DateTime                 @default(now()) @map("created_at")
   updatedAt         DateTime                 @updatedAt @map("updated_at")
-  taxAmount         Decimal                  @default(0) @db.Decimal(10, 2)
+  taxAmount         Float                  @default(0) 
   discounts         FeeCalculationDiscount[]
   feeItems          FeeCalculationItem[]
   installmentPlans  InstallmentPlan[]
@@ -698,8 +699,8 @@ model FeeCalculationItem {
   feeItemId     String?               @map("fee_item_id")
   name          String
   nameAr        String                @map("name_ar")
-  type          FeeType
-  amount        Decimal               @db.Decimal(10, 2)
+  type          String
+  amount        Float               
   isTaxable     Boolean               @default(false) @map("is_tax_able")
   displayOrder  Int                   @default(0) @map("display_order")
   incomeAccountId String?             @map("income_account_id")
@@ -715,10 +716,10 @@ model FeeCalculationDiscount {
   calculationId    String                @map("calculation_id")
   name             String
   nameAr           String                @map("name_ar")
-  type             DiscountType
-  percentage       Decimal?              @db.Decimal(5, 2)
-  fixedAmount      Decimal?              @db.Decimal(10, 2)
-  calculatedAmount Decimal               @map("calculated_amount") @db.Decimal(10, 2)
+  type             String
+  percentage       Float?              
+  fixedAmount      Float?              
+  calculatedAmount Float               @map("calculated_amount") 
   isScholarship    Boolean               @default(false) @map("is_scholarship")
   description      String?
   createdAt        DateTime              @default(now()) @map("created_at")
@@ -732,11 +733,11 @@ model InstallmentPlan {
   calculationId     String          @map("calculation_id")
   name              String
   nameAr            String                @map("name_ar")
-  totalAmount       Decimal               @db.Decimal(10, 2)
+  totalAmount       Float               
   numberOfMonths    Int                   @map("number_of_months")
-  installmentAmount Decimal               @map("installment_amount") @db.Decimal(10, 2)
-  startDate         DateTime              @map("start_date") @db.Date
-  endDate           DateTime              @map("end_date") @db.Date
+  installmentAmount Float               @map("installment_amount") 
+  startDate         DateTime              @map("start_date") 
+  endDate           DateTime              @map("end_date") 
   dayOfMonth        Int                   @default(1) @map("day_of_month")
   isActive          Boolean               @default(true) @map("is_active")
   notes             String?
@@ -754,12 +755,12 @@ model Installment {
   id                String          @id @default(uuid())
   planId            String          @map("plan_id")
   installmentNumber Int             @map("installment_number")
-  amount            Decimal         @db.Decimal(10, 2)
-  dueDate           DateTime        @map("due_date") @db.Date
-  paidAmount        Decimal         @default(0) @map("paid_amount") @db.Decimal(10, 2)
-  balance           Decimal         @db.Decimal(10, 2)
-  status            PaymentStatus   @default(PENDING)
-  paidDate          DateTime?       @map("paid_date") @db.Date
+  amount            Float         
+  dueDate           DateTime        @map("due_date") 
+  paidAmount        Float         @default(0) @map("paid_amount") 
+  balance           Float         
+  status            String   @default("PENDING")
+  paidDate          DateTime?       @map("paid_date") 
   notes             String?
   createdAt         DateTime        @default(now()) @map("created_at")
   updatedAt         DateTime        @updatedAt @map("updated_at")
@@ -777,9 +778,9 @@ model Discount {
   code          String       @unique
   name          String
   nameAr        String       @map("name_ar")
-  type          DiscountType @default(PERCENTAGE)
-  percentage    Decimal?     @db.Decimal(5, 2)
-  fixedAmount   Decimal?     @db.Decimal(10, 2)
+  type          String @default("PERCENTAGE")
+  percentage    Float?     
+  fixedAmount   Float?     
   isScholarship Boolean      @default(false) @map("is_scholarship")
   sponsorName   String?      @map("sponsor_name")
   validFrom     DateTime?    @map("valid_from")
@@ -799,15 +800,15 @@ model StudentFee {
   id             String        @id @default(uuid())
   studentId      String        @map("student_id")
   title          String
-  type           FeeType       @default(TUITION)
-  amount         Decimal       @db.Decimal(10, 2)
+  type           String       @default("TUITION")
+  amount         Float       
   discountId     String?       @map("discount_id")
-  discountAmount Decimal       @default(0) @db.Decimal(10, 2)
-  netAmount      Decimal       @db.Decimal(10, 2)
-  paidAmount     Decimal       @default(0) @db.Decimal(10, 2)
-  balance        Decimal       @db.Decimal(10, 2)
-  dueDate        DateTime      @map("due_date") @db.Date
-  status         PaymentStatus @default(PENDING)
+  discountAmount Float       @default(0) 
+  netAmount      Float       
+  paidAmount     Float       @default(0) 
+  balance        Float       
+  dueDate        DateTime      @map("due_date") 
+  status         String @default("PENDING")
   description    String?
   createdAt      DateTime      @default(now()) @map("created_at")
   updatedAt      DateTime      @updatedAt @map("updated_at")
@@ -825,17 +826,17 @@ model Payment {
   id             String                 @id @default(uuid())
   feeId          String?                @map("fee_id")
   calculationId  String?                @map("calculation_id")
-  amount         Decimal                @db.Decimal(10, 2)
-  method         PaymentMethod          @default(CASH)
+  amount         Float                
+  method         String          @default("CASH")
   referenceNo    String?                @map("reference_no")
   paymentDate    DateTime               @default(now()) @map("payment_date")
   recordedBy     String?                @map("recorded_by")
   notes          String?
   createdAt      DateTime               @default(now()) @map("created_at")
   updatedAt      DateTime               @updatedAt @map("updated_at")
-  discount       Decimal                @default(0) @map("discount_amount") @db.Decimal(10, 2)
+  discount       Float                @default(0) @map("discount_amount") 
   installmentId  String?                @map("installment_id")
-  lateFee        Decimal                @default(0) @map("late_fee_amount") @db.Decimal(10, 2)
+  lateFee        Float                @default(0) @map("late_fee_amount") 
   receiptNumber  String?                @map("receipt_number")
   feeCalculation StudentFeeCalculation? @relation(fields: [calculationId], references: [id], onDelete: Cascade)
   studentFee     StudentFee?            @relation(fields: [feeId], references: [id], onDelete: Cascade)
@@ -843,7 +844,7 @@ model Payment {
   invoice        Invoice?
   studentId      String?                @map("student_id")
   student        Student?               @relation(fields: [studentId], references: [id])
-  reconciliationStatus ReconciliationStatus @default(PENDING) @map("reconciliation_status")
+  reconciliationStatus String @default("PENDING") @map("reconciliation_status")
   journalId      String?                @map("journal_id")
   journal        FinancialJournal?      @relation(fields: [journalId], references: [id])
 
@@ -870,11 +871,11 @@ model ExpenseCategory {
 model Expense {
   id            String          @id @default(uuid())
   categoryId    String          @map("category_id")
-  amount        Decimal         @db.Decimal(10, 2)
+  amount        Float         
   currency      String          @default("SAR")
   description   String?
-  expenseDate   DateTime        @default(now()) @map("expense_date") @db.Date
-  paymentMethod PaymentMethod   @default(CASH) @map("payment_method")
+  expenseDate   DateTime        @default(now()) @map("expense_date") 
+  paymentMethod String   @default("CASH") @map("payment_method")
   referenceNo   String?         @map("reference_no")
   receiptImage  String?         @map("receipt_image")
   recordedBy    String?         @map("recorded_by")
@@ -883,9 +884,9 @@ model Expense {
   expenseNumber String?         @unique @map("expense_number")
   notes         String?
   paidTo        String?         @map("paid_to")
-  taxAmount     Decimal?        @default(0) @map("tax_amount") @db.Decimal(10, 2)
-  taxRate       Decimal?        @default(0) @map("tax_rate") @db.Decimal(5, 2)
-  totalAmount   Decimal?        @map("total_amount") @db.Decimal(10, 2)
+  taxAmount     Float?        @default(0) @map("tax_amount") 
+  taxRate       Float?        @default(0) @map("tax_rate") 
+  totalAmount   Float?        @map("total_amount") 
   category      ExpenseCategory @relation(fields: [categoryId], references: [id])
 
   @@index([categoryId])
@@ -897,8 +898,8 @@ model MarketingAudience {
   id          String              @id @default(uuid())
   name        String
   description String?
-  type        AudienceType        @default(CORE)
-  rules       Json?
+  type        String        @default("CORE")
+  rules       String?
   sourceCount Int                 @default(0) @map("source_count")
   isActive    Boolean             @default(true) @map("is_active")
   createdAt   DateTime            @default(now()) @map("created_at")
@@ -911,15 +912,15 @@ model MarketingAudience {
 model MarketingCampaign {
   id             String              @id @default(uuid())
   name           String
-  type           CampaignType
-  status         CampaignStatus      @default(DRAFT)
+  type           String
+  status         String      @default("DRAFT")
   audienceId     String?             @map("audience_id")
-  content        Json?
+  content        String?
   startDate      DateTime?           @map("start_date")
   endDate        DateTime?           @map("end_date")
-  budget         Decimal?            @db.Decimal(10, 2)
-  spent          Decimal?            @default(0) @db.Decimal(10, 2)
-  aiScore        Decimal?            @map("ai_score") @db.Decimal(3, 2)
+  budget         Float?            
+  spent          Float?            @default(0) 
+  aiScore        Float?            @map("ai_score") 
   aiOptimization Boolean             @default(true) @map("ai_optimization")
   createdAt      DateTime            @default(now()) @map("created_at")
   updatedAt      DateTime            @updatedAt @map("updated_at")
@@ -941,7 +942,7 @@ model MarketingLead {
   email           String?
   phone           String?
   source          String?
-  status          LeadStatus         @default(NEW)
+  status          String         @default("NEW")
   interestScore   Int?               @map("interest_score")
   aiFollowUpNotes String?            @map("ai_follow_up_notes")
   lastActivity    DateTime?          @map("last_activity")
@@ -960,12 +961,12 @@ model MarketingLead {
 model MarketingAnalytic {
   id          String            @id @default(uuid())
   campaignId  String            @map("campaign_id")
-  date        DateTime          @db.Date
+  date        DateTime          
   reach       Int               @default(0)
   impressions Int               @default(0)
   clicks      Int               @default(0)
   conversions Int               @default(0)
-  revenue     Decimal           @default(0) @db.Decimal(10, 2)
+  revenue     Float           @default(0) 
   deliveries  Int?
   readCount   Int?              @map("read_count")
   createdAt   DateTime          @default(now()) @map("created_at")
@@ -978,10 +979,10 @@ model MarketingAnalytic {
 model MarketingFunnel {
   id          String            @id @default(uuid())
   campaignId  String            @map("campaign_id")
-  stage       FunnelStage
+  stage       String
   count       Int               @default(0)
-  dropOffRate Decimal?          @map("drop_off_rate") @db.Decimal(5, 2)
-  date        DateTime          @db.Date
+  dropOffRate Float?          @map("drop_off_rate") 
+  date        DateTime          
   createdAt   DateTime          @default(now()) @map("created_at")
   campaign    MarketingCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
@@ -996,8 +997,8 @@ model LeadScoring {
   engagementScore   Int         @default(50) @map("engagement_score")
   behaviorScore     Int         @default(50) @map("behavior_score")
   totalScore        Int         @default(50) @map("total_score")
-  quality           LeadQuality @default(COLD)
-  conversionProb    Decimal?    @map("conversion_probability") @db.Decimal(5, 2)
+  quality           String @default("COLD")
+  conversionProb    Float?    @map("conversion_probability") 
   recommendedAction String?     @map("recommended_action")
   lastCalculated    DateTime    @default(now()) @map("last_calculated")
 
@@ -1007,14 +1008,14 @@ model LeadScoring {
 model CampaignROI {
   id           String            @id @default(uuid())
   campaignId   String            @unique @map("campaign_id")
-  totalSpent   Decimal           @default(0) @map("total_spent") @db.Decimal(10, 2)
-  setupCost    Decimal           @default(0) @map("setup_cost") @db.Decimal(10, 2)
-  mediaCost    Decimal           @default(0) @map("media_cost") @db.Decimal(10, 2)
-  totalRevenue Decimal           @default(0) @map("total_revenue") @db.Decimal(10, 2)
-  costPerLead  Decimal?          @map("cost_per_lead") @db.Decimal(10, 2)
-  costPerAcq   Decimal?          @map("cost_per_acquisition") @db.Decimal(10, 2)
-  roi          Decimal?          @db.Decimal(10, 2)
-  roas         Decimal?          @db.Decimal(10, 2)
+  totalSpent   Float           @default(0) @map("total_spent") 
+  setupCost    Float           @default(0) @map("setup_cost") 
+  mediaCost    Float           @default(0) @map("media_cost") 
+  totalRevenue Float           @default(0) @map("total_revenue") 
+  costPerLead  Float?          @map("cost_per_lead") 
+  costPerAcq   Float?          @map("cost_per_acquisition") 
+  roi          Float?          
+  roas         Float?          
   calculatedAt DateTime          @default(now()) @map("calculated_at")
   updatedAt    DateTime          @updatedAt @map("updated_at")
   campaign     MarketingCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
@@ -1027,7 +1028,7 @@ model LeadActivity {
   leadId       String        @map("lead_id")
   activityType String        @map("activity_type")
   channel      String?
-  metadata     Json?
+  metadata     String?
   timestamp    DateTime      @default(now())
   lead         MarketingLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
 
@@ -1041,12 +1042,12 @@ model CampaignVariant {
   campaignId   String            @map("campaign_id")
   name         String
   description  String?
-  content      Json?
-  trafficSplit Decimal           @map("traffic_split") @db.Decimal(5, 2)
+  content      String?
+  trafficSplit Float           @map("traffic_split") 
   impressions  Int               @default(0)
   clicks       Int               @default(0)
   conversions  Int               @default(0)
-  status       VariantStatus     @default(DRAFT)
+  status       String     @default("DRAFT")
   createdAt    DateTime          @default(now()) @map("created_at")
   updatedAt    DateTime          @updatedAt @map("updated_at")
   testResults  ABTestResult[]
@@ -1058,10 +1059,10 @@ model CampaignVariant {
 model ABTestResult {
   id               String          @id @default(uuid())
   variantId        String          @map("variant_id")
-  conversionRate   Decimal         @map("conversion_rate") @db.Decimal(5, 2)
-  clickThroughRate Decimal         @map("click_through_rate") @db.Decimal(5, 2)
-  pValue           Decimal?        @map("p_value") @db.Decimal(5, 4)
-  confidence       Decimal?        @db.Decimal(5, 2)
+  conversionRate   Float         @map("conversion_rate") 
+  clickThroughRate Float         @map("click_through_rate") 
+  pValue           Float?        @map("p_value") 
+  confidence       Float?        
   sampleSize       Int             @map("sample_size")
   calculatedAt     DateTime        @default(now()) @map("calculated_at")
   variant          CampaignVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
@@ -1073,8 +1074,8 @@ model ABTestWinner {
   id              String   @id @default(uuid())
   campaignId      String   @unique @map("campaign_id")
   winnerVariantId String   @map("winner_variant_id")
-  improvementRate Decimal  @map("improvement_rate") @db.Decimal(5, 2)
-  confidenceLevel Decimal  @map("confidence_level") @db.Decimal(5, 2)
+  improvementRate Float  @map("improvement_rate") 
+  confidenceLevel Float  @map("confidence_level") 
   declaredAt      DateTime @default(now()) @map("declared_at")
   declaredBy      String?  @map("declared_by")
   notes           String?
@@ -1085,12 +1086,12 @@ model ABTestWinner {
 model CustomerJourney {
   id              String              @id @default(uuid())
   leadId          String              @map("lead_id")
-  currentStage    JourneyStage        @default(AWARENESS) @map("current_stage")
+  currentStage    String        @default("AWARENESS") @map("current_stage")
   startedAt       DateTime            @default(now()) @map("started_at")
   lastUpdated     DateTime            @updatedAt @map("last_updated")
   isConverted     Boolean             @default(false) @map("is_converted")
   convertedAt     DateTime?           @map("converted_at")
-  conversionValue Decimal?            @map("conversion_value") @db.Decimal(10, 2)
+  conversionValue Float?            @map("conversion_value") 
   touchpointCount Int                 @default(0) @map("touchpoint_count")
   durationDays    Int?                @map("duration_days")
   lead            MarketingLead       @relation(fields: [leadId], references: [id], onDelete: Cascade)
@@ -1103,12 +1104,12 @@ model CustomerJourney {
 model JourneyTouchpoint {
   id              String          @id @default(uuid())
   journeyId       String          @map("journey_id")
-  type            TouchpointType
-  stage           JourneyStage
+  type            String
+  stage           String
   channel         String?
   campaignId      String?         @map("campaign_id")
   description     String?
-  metadata        Json?
+  metadata        String?
   timestamp       DateTime        @default(now())
   engagementScore Int?            @map("engagement_score")
   journey         CustomerJourney @relation(fields: [journeyId], references: [id], onDelete: Cascade)
@@ -1122,9 +1123,9 @@ model AutomationWorkflow {
   id              String              @id @default(uuid())
   name            String
   description     String?
-  status          WorkflowStatus      @default(DRAFT)
-  triggerType     TriggerType
-  triggerConfig   Json?
+  status          String      @default("DRAFT")
+  triggerType     String
+  triggerConfig   String?
   createdBy       String?
   createdAt       DateTime            @default(now()) @map("created_at")
   updatedAt       DateTime            @updatedAt @map("updated_at")
@@ -1142,9 +1143,9 @@ model WorkflowStep {
   id           String             @id @default(uuid())
   workflowId   String             @map("workflow_id")
   stepOrder    Int                @map("step_order")
-  actionType   ActionType         @map("action_type")
-  actionConfig Json               @map("action_config")
-  conditions   Json?
+  actionType   String         @map("action_type")
+  actionConfig String               @map("action_config")
+  conditions   String?
   createdAt    DateTime           @default(now()) @map("created_at")
   workflow     AutomationWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 
@@ -1175,8 +1176,8 @@ model ExecutionLog {
   id          String            @id @default(uuid())
   executionId String            @map("execution_id")
   stepOrder   Int               @map("step_order")
-  actionType  ActionType        @map("action_type")
-  actionData  Json?             @map("action_data")
+  actionType  String        @map("action_type")
+  actionData  String?             @map("action_data")
   status      String
   message     String?
   timestamp   DateTime          @default(now())
@@ -1202,7 +1203,7 @@ model KnowledgeSource {
 model AiMemory {
   id         String   @id @default(uuid())
   key        String   @unique
-  value      Json
+  value      String
   category   String
   confidence Float    @default(1.0)
   createdAt  DateTime @default(now()) @map("created_at")
@@ -1234,50 +1235,50 @@ model Employee {
   employeeCode             String                   @unique @map("employee_code")
   jobTitleAr               String?                  @map("job_title_ar")
   jobTitleEn               String?                  @map("job_title_en")
-  hiringDate               DateTime?                @map("hiring_date") @db.Date
-  salary                   Decimal                  @default(0) @db.Decimal(10, 2)
+  hiringDate               DateTime?                @map("hiring_date") 
+  salary                   Float                  @default(0) 
   currency                 String                   @default("SAR")
   status                   String                   @default("active")
-  statusChangeDate         DateTime?                @map("status_change_date") @db.Date
-  lastWorkingDate          DateTime?                @map("last_working_date") @db.Date
+  statusChangeDate         DateTime?                @map("status_change_date") 
+  lastWorkingDate          DateTime?                @map("last_working_date") 
   personalEmail            String?                  @map("personal_email")
   createdAt                DateTime                 @default(now()) @map("created_at")
   updatedAt                DateTime                 @updatedAt @map("updated_at")
   contractType             String?                  @map("contract_type")
-  housingAllowance         Decimal                  @default(0) @map("housing_allowance") @db.Decimal(10, 2)
-  otherAllowances          Decimal                  @default(0) @map("other_allowances") @db.Decimal(10, 2)
-  totalDeductions          Decimal                  @default(0) @map("total_deductions") @db.Decimal(10, 2)
-  transportAllowance       Decimal                  @default(0) @map("transport_allowance") @db.Decimal(10, 2)
-  commissionRate           Decimal?                 @map("commission_rate") @db.Decimal(10, 2)
-  hourlyRate               Decimal?                 @map("hourly_rate") @db.Decimal(10, 2)
+  housingAllowance         Float                  @default(0) @map("housing_allowance") 
+  otherAllowances          Float                  @default(0) @map("other_allowances") 
+  totalDeductions          Float                  @default(0) @map("total_deductions") 
+  transportAllowance       Float                  @default(0) @map("transport_allowance") 
+  commissionRate           Float?                 @map("commission_rate") 
+  hourlyRate               Float?                 @map("hourly_rate") 
   hourlyUnit               Int?                     @default(1) @map("hourly_unit")
   isCommissionPercentage   Boolean                  @default(false) @map("is_commission_percentage")
-  salaryType               SalaryType               @default(FIXED) @map("salary_type")
-  targetType               TargetType?              @map("target_type")
-  targetValue              Decimal?                 @map("target_value") @db.Decimal(10, 2)
+  salaryType               String               @default("FIXED") @map("salary_type")
+  targetType               String?              @map("target_type")
+  targetValue              Float?                 @map("target_value") 
   bankName                 String?                  @map("bank_name")
-  dateOfBirth              DateTime?                @map("date_of_birth") @db.Date
+  dateOfBirth              DateTime?                @map("date_of_birth") 
   emergencyContactName     String?                  @map("emergency_contact_name")
   emergencyContactPhone    String?                  @map("emergency_contact_phone")
   emergencyContactRelation String?                  @map("emergency_contact_relation")
   gender                   String?
   iban                     String?                  @map("iban")
-  idExpiry                 DateTime?                @map("id_expiry") @db.Date
-  joiningDate              DateTime?                @map("joining_date") @db.Date
-  laborCardExpiry          DateTime?                @map("labor_card_expiry") @db.Date
+  idExpiry                 DateTime?                @map("id_expiry") 
+  joiningDate              DateTime?                @map("joining_date") 
+  laborCardExpiry          DateTime?                @map("labor_card_expiry") 
   laborCardNumber          String?                  @map("labor_card_number")
   maritalStatus            String?                  @map("marital_status")
   nationalId               String?                  @map("national_id")
   nationality              String?
   noticePeriod             Int?                     @default(30) @map("notice_period")
-  passportExpiry           DateTime?                @map("passport_expiry") @db.Date
+  passportExpiry           DateTime?                @map("passport_expiry") 
   passportNumber           String?                  @map("passport_number")
   probationPeriod          Int?                     @default(90) @map("probation_period")
   swiftCode                String?                  @map("swift_code")
-  visaExpiry               DateTime?                @map("visa_expiry") @db.Date
+  visaExpiry               DateTime?                @map("visa_expiry") 
   visaNumber               String?                  @map("visa_number")
-  commissionLogic          CommissionLogic          @default(POSITIVE) @map("commission_logic")
-  minimumSalaryFloor       Decimal                  @default(0) @map("minimum_salary_floor") @db.Decimal(10, 2)
+  commissionLogic          String          @default("POSITIVE") @map("commission_logic")
+  minimumSalaryFloor       Float                  @default(0) @map("minimum_salary_floor") 
   shiftId                  String?                  @map("shift_id")
   biometricId              String?                  @unique @map("biometric_id")
   assets                   EmployeeAsset[]
@@ -1310,7 +1311,7 @@ model EmployeeDocument {
   title      String
   fileUrl    String    @map("file_url")
   docType    String    @map("doc_type")
-  expiryDate DateTime? @map("expiry_date") @db.Date
+  expiryDate DateTime? @map("expiry_date") 
   createdAt  DateTime  @default(now()) @map("created_at")
   updatedAt  DateTime  @updatedAt @map("updated_at")
   employee   Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
@@ -1325,8 +1326,8 @@ model EmployeeAsset {
   serialNumber   String?   @map("serial_number")
   category       String
   status         String    @default("assigned")
-  assignmentDate DateTime  @default(now()) @map("assignment_date") @db.Date
-  returnDate     DateTime? @map("return_date") @db.Date
+  assignmentDate DateTime  @default(now()) @map("assignment_date") 
+  returnDate     DateTime? @map("return_date") 
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
   employee       Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
@@ -1338,7 +1339,7 @@ model PerformanceReview {
   id         String   @id @default(uuid())
   employeeId String   @map("employee_id")
   reviewerId String   @map("reviewer_id")
-  reviewDate DateTime @map("review_date") @db.Date
+  reviewDate DateTime @map("review_date") 
   period     String
   rating     Int
   feedback   String
@@ -1356,8 +1357,8 @@ model EmployeeTraining {
   employeeId     String    @map("employee_id")
   courseName     String    @map("course_name")
   provider       String?
-  completionDate DateTime? @map("completion_date") @db.Date
-  expiryDate     DateTime? @map("expiry_date") @db.Date
+  completionDate DateTime? @map("completion_date") 
+  expiryDate     DateTime? @map("expiry_date") 
   certificateUrl String?   @map("certificate_url")
   status         String    @default("completed")
   createdAt      DateTime  @default(now()) @map("created_at")
@@ -1371,8 +1372,8 @@ model EmployeeCommissionTier {
   id               String   @id @default(uuid())
   employeeId       String   @map("employee_id")
   targetNumber     Int      @map("target_number")
-  targetThreshold  Decimal  @map("target_threshold") @db.Decimal(10, 2)
-  commissionAmount Decimal  @map("commission_amount") @db.Decimal(10, 2)
+  targetThreshold  Float  @map("target_threshold") 
+  commissionAmount Float  @map("commission_amount") 
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
   employee         Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
@@ -1384,7 +1385,7 @@ model EmployeeCommissionTier {
 model StaffAttendance {
   id                 String             @id @default(uuid())
   employeeId         String             @map("employee_id")
-  date               DateTime           @db.Date
+  date               DateTime           
   checkIn            DateTime?          @map("check_in")
   checkOut           DateTime?          @map("check_out")
   firstCheckIn       DateTime?          @map("first_check_in")
@@ -1424,8 +1425,8 @@ model LeaveRequest {
   id         String    @id @default(uuid())
   employeeId String    @map("employee_id")
   type       String
-  startDate  DateTime  @map("start_date") @db.Date
-  endDate    DateTime  @map("end_date") @db.Date
+  startDate  DateTime  @map("start_date") 
+  endDate    DateTime  @map("end_date") 
   reason     String?
   status     String    @default("pending")
   approvedBy String?   @map("approved_by")
@@ -1443,15 +1444,15 @@ model Payroll {
   employeeId         String    @map("employee_id")
   month              Int
   year               Int
-  basicSalary        Decimal   @map("basic_salary") @db.Decimal(10, 2)
-  housingAllowance   Decimal   @default(0) @map("housing_allowance") @db.Decimal(10, 2)
-  transportAllowance Decimal   @default(0) @map("transport_allowance") @db.Decimal(10, 2)
-  otherAllowances    Decimal   @default(0) @map("other_allowances") @db.Decimal(10, 2)
-  deductions         Decimal   @default(0) @db.Decimal(10, 2)
-  commission         Decimal   @default(0) @db.Decimal(10, 2)
-  netSalary          Decimal   @map("net_salary") @db.Decimal(10, 2)
-  achievedTarget     Decimal?  @map("achieved_target") @db.Decimal(10, 2)
-  hoursWorked        Decimal?  @map("hours_worked") @db.Decimal(10, 2)
+  basicSalary        Float   @map("basic_salary") 
+  housingAllowance   Float   @default(0) @map("housing_allowance") 
+  transportAllowance Float   @default(0) @map("transport_allowance") 
+  otherAllowances    Float   @default(0) @map("other_allowances") 
+  deductions         Float   @default(0) 
+  commission         Float   @default(0) 
+  netSalary          Float   @map("net_salary") 
+  achievedTarget     Float?  @map("achieved_target") 
+  hoursWorked        Float?  @map("hours_worked") 
   paymentDate        DateTime? @map("payment_date")
   status             String    @default("draft")
   notes              String?
@@ -1466,17 +1467,17 @@ model Payroll {
 model PayrollSheet {
   id              String        @id @default(uuid())
   payrollNumber   String        @unique @map("payroll_number")
-  month           DateTime      @db.Date
+  month           DateTime      
   monthName       String?       @map("month_name")
-  totalGross      Decimal       @map("total_gross") @db.Decimal(15, 2)
-  totalAllowances Decimal       @default(0) @map("total_allowances") @db.Decimal(15, 2)
-  totalDeductions Decimal       @default(0) @map("total_deductions") @db.Decimal(15, 2)
-  totalNet        Decimal       @map("total_net") @db.Decimal(15, 2)
-  status          PayrollStatus @default(DRAFT)
+  totalGross      Float       @map("total_gross") 
+  totalAllowances Float       @default(0) @map("total_allowances") 
+  totalDeductions Float       @default(0) @map("total_deductions") 
+  totalNet        Float       @map("total_net") 
+  status          String @default("DRAFT")
   approvedBy      String?       @map("approved_by")
   approvedAt      DateTime?     @map("approved_at")
-  paidDate        DateTime?     @map("paid_date") @db.Date
-  paymentMethod   PaymentMethod @default(BANK_TRANSFER) @map("payment_method")
+  paidDate        DateTime?     @map("paid_date") 
+  paymentMethod   String @default("BANK_TRANSFER") @map("payment_method")
   journalEntryId  String?       @map("journal_entry_id")
   sifFileUrl      String?       @map("sif_file_url")
   sifGeneratedAt  DateTime?     @map("sif_generated_at")
@@ -1494,18 +1495,18 @@ model PayrollItem {
   id                 String       @id @default(uuid())
   payrollId          String       @map("payroll_id")
   employeeId         String       @map("employee_id")
-  basicSalary        Decimal      @map("basic_salary") @db.Decimal(10, 2)
-  housingAllowance   Decimal      @default(0) @map("housing_allowance") @db.Decimal(10, 2)
-  transportAllowance Decimal      @default(0) @map("transport_allowance") @db.Decimal(10, 2)
-  phoneAllowance     Decimal      @default(0) @map("phone_allowance") @db.Decimal(10, 2)
-  otherAllowances    Decimal      @default(0) @map("other_allowances") @db.Decimal(10, 2)
-  totalAllowances    Decimal      @map("total_allowances") @db.Decimal(10, 2)
-  insurance          Decimal      @default(0) @db.Decimal(10, 2)
-  loans              Decimal      @default(0) @db.Decimal(10, 2)
-  otherDeductions    Decimal      @default(0) @map("other_deductions") @db.Decimal(10, 2)
-  totalDeductions    Decimal      @map("total_deductions") @db.Decimal(10, 2)
-  grossSalary        Decimal      @map("gross_salary") @db.Decimal(10, 2)
-  netSalary          Decimal      @map("net_salary") @db.Decimal(10, 2)
+  basicSalary        Float      @map("basic_salary") 
+  housingAllowance   Float      @default(0) @map("housing_allowance") 
+  transportAllowance Float      @default(0) @map("transport_allowance") 
+  phoneAllowance     Float      @default(0) @map("phone_allowance") 
+  otherAllowances    Float      @default(0) @map("other_allowances") 
+  totalAllowances    Float      @map("total_allowances") 
+  insurance          Float      @default(0) 
+  loans              Float      @default(0) 
+  otherDeductions    Float      @default(0) @map("other_deductions") 
+  totalDeductions    Float      @map("total_deductions") 
+  grossSalary        Float      @map("gross_salary") 
+  netSalary          Float      @map("net_salary") 
   bankName           String?      @map("bank_name")
   iban               String?
   notes              String?
@@ -1523,7 +1524,7 @@ model JobOpening {
   description  String
   departmentId String           @map("department_id")
   status       String           @default("active")
-  deadline     DateTime?        @db.Date
+  deadline     DateTime?        
   createdAt    DateTime         @default(now()) @map("created_at")
   updatedAt    DateTime         @updatedAt @map("updated_at")
   applications JobApplication[]
@@ -1551,7 +1552,7 @@ model EmployeeAward {
   id          String   @id @default(uuid())
   employeeId  String   @map("employee_id")
   awardType   String   @map("award_type")
-  date        DateTime @db.Date
+  date        DateTime 
   gift        String?
   description String?
   createdAt   DateTime @default(now()) @map("created_at")
@@ -1566,7 +1567,7 @@ model EmployeeWarning {
   employeeId  String   @map("employee_id")
   warningBy   String   @map("warning_by")
   subject     String
-  date        DateTime @db.Date
+  date        DateTime 
   description String?
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
@@ -1580,7 +1581,7 @@ model EmployeeComplaint {
   employeeId       String   @map("employee_id")
   complaintAgainst String   @map("complaint_against")
   subject          String
-  date             DateTime @db.Date
+  date             DateTime 
   description      String?
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
@@ -1594,7 +1595,7 @@ model Promotion {
   id            String   @id @default(uuid())
   employeeId    String   @map("employee_id")
   designation   String
-  promotionDate DateTime @map("promotion_date") @db.Date
+  promotionDate DateTime @map("promotion_date") 
   description   String?
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
@@ -1607,7 +1608,7 @@ model Transfer {
   id           String     @id @default(uuid())
   employeeId   String     @map("employee_id")
   departmentId String     @map("department_id")
-  transferDate DateTime   @map("transfer_date") @db.Date
+  transferDate DateTime   @map("transfer_date") 
   description  String?
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")
@@ -1620,8 +1621,8 @@ model Transfer {
 model Resignation {
   id              String   @id @default(uuid())
   employeeId      String   @unique @map("employee_id")
-  noticeDate      DateTime @map("notice_date") @db.Date
-  resignationDate DateTime @map("resignation_date") @db.Date
+  noticeDate      DateTime @map("notice_date") 
+  resignationDate DateTime @map("resignation_date") 
   description     String?
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
@@ -1633,8 +1634,8 @@ model Resignation {
 model Termination {
   id              String   @id @default(uuid())
   employeeId      String   @unique @map("employee_id")
-  noticeDate      DateTime @map("notice_date") @db.Date
-  terminationDate DateTime @map("termination_date") @db.Date
+  noticeDate      DateTime @map("notice_date") 
+  terminationDate DateTime @map("termination_date") 
   terminationType String   @map("termination_type")
   description     String?
   createdAt       DateTime @default(now()) @map("created_at")
@@ -1649,8 +1650,8 @@ model Announcement {
   title        String
   description  String
   departmentId String?     @map("department_id")
-  startDate    DateTime    @map("start_date") @db.Date
-  endDate      DateTime    @map("end_date") @db.Date
+  startDate    DateTime    @map("start_date") 
+  endDate      DateTime    @map("end_date") 
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime    @updatedAt @map("updated_at")
   department   Department? @relation(fields: [departmentId], references: [id])
@@ -1661,7 +1662,7 @@ model Announcement {
 model HRMeeting {
   id          String   @id @default(uuid())
   title       String
-  date        DateTime @db.Date
+  date        DateTime 
   time        String?
   location    String?
   description String?
@@ -1674,8 +1675,8 @@ model HRMeeting {
 model HREvent {
   id          String   @id @default(uuid())
   title       String
-  startDate   DateTime @map("start_date") @db.Date
-  endDate     DateTime @map("end_date") @db.Date
+  startDate   DateTime @map("start_date") 
+  endDate     DateTime @map("end_date") 
   description String?
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
@@ -1714,13 +1715,13 @@ model Lead {
   assignedTo         String?       @map("assigned_to")
   createdAt          DateTime      @default(now()) @map("created_at")
   updatedAt          DateTime      @updatedAt @map("updated_at")
-  birthday           DateTime?     @map("birthday") @db.Date
+  birthday           DateTime?     @map("birthday") 
   gender             String?
   lastContacted      DateTime?     @map("last_contacted")
   nationality        String?
   preferredProgramId String?       @map("preferred_program_id")
   score              Int           @default(0)
-  customFields       Json?         @map("custom_fields")
+  customFields       String?         @map("custom_fields")
   activities         CRMActivity[]
   deals              Deal[]
   counselor          User?         @relation("AssignedLeads", fields: [assignedTo], references: [id])
@@ -1730,8 +1731,8 @@ model Lead {
 
 model CRMConfiguration {
   id                 String   @id @default("GLOBAL")
-  customFieldsConfig Json?    @map("custom_fields_config")
-  pipelineSettings   Json?    @map("pipeline_settings")
+  customFieldsConfig String?    @map("custom_fields_config")
+  pipelineSettings   String?    @map("pipeline_settings")
   updatedAt          DateTime @updatedAt @map("updated_at")
 
   @@map("crm_configurations")
@@ -1742,7 +1743,7 @@ model Deal {
   leadId        String        @map("lead_id")
   title         String?
   stage         String        @default("INQUIRY")
-  amount        Decimal?      @db.Decimal(10, 2)
+  amount        Float?      
   closeDate     DateTime?     @map("close_date")
   expectedClose DateTime?     @map("expected_close")
   createdAt     DateTime      @default(now()) @map("created_at")
@@ -1777,13 +1778,13 @@ model CRMAutomationRule {
   id          String   @id @default(uuid())
   name        String
   trigger     String
-  condition   Json?
+  condition   String?
   action      String
-  actionData  Json?
+  actionData  String?
   isActive    Boolean  @default(true) @map("is_active")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
-  visualGraph Json?
+  visualGraph String?
 
   @@map("crm_automation_rules")
 }
@@ -1798,11 +1799,12 @@ model CrmLead {
   phone               String?
   mobile              String?
   website             String?
-  expectedRevenue     Decimal?      @map("expected_revenue") @db.Decimal(12, 2)
+  expectedRevenue     Float?      @map("expected_revenue") 
   probability         Float         @default(10.0)
   stageId             String?       @map("stage_id")
   active              Boolean       @default(true)
   priority            String        @default("1")
+
   salespersonId       String?       @map("salesperson_id")
   teamId              String?       @map("team_id")
   campaignId          String?       @map("campaign_id")
@@ -1819,7 +1821,7 @@ model CrmLead {
   isDuplicate         Boolean       @default(false) @map("is_duplicate")
   mobileNormalized    String?       @map("mobile_normalized")
   phoneNormalized     String?       @map("phone_normalized")
-  customFields        Json?         @map("custom_fields")
+  customFields        String?         @map("custom_fields")
   activities          CrmActivity[]
   salesperson         User?         @relation("CrmSalesperson", fields: [salespersonId], references: [id])
   stage               CrmStage?     @relation(fields: [stageId], references: [id])
@@ -1940,9 +1942,9 @@ model Account {
   code         String        @unique
   name         String
   nameAr       String        @map("name_ar")
-  type         AccountType
+  type         String
   parentId     String?       @map("parent_id")
-  balance      Decimal       @default(0) @db.Decimal(15, 2)
+  balance      Float       @default(0) 
   isActive     Boolean       @default(true) @map("is_active")
   description  String?
   createdAt    DateTime      @default(now()) @map("created_at")
@@ -1965,7 +1967,7 @@ model Account {
 model JournalEntry {
   id            String            @id @default(uuid())
   entryNumber   String            @unique @map("entry_number")
-  date          DateTime          @db.Date
+  date          DateTime          
   description   String
   journalId     String?           @map("journal_id")
   referenceType String?           @map("reference_type")
@@ -1991,7 +1993,7 @@ model FinancialJournal {
   code             String         @unique
   name             String
   nameAr           String         @map("name_ar")
-  type             JournalType
+  type             String
   defaultAccountId String?        @map("default_account_id")
   isActive         Boolean        @default(true) @map("is_active")
   createdAt        DateTime       @default(now()) @map("created_at")
@@ -2007,8 +2009,8 @@ model JournalLine {
   id          String       @id @default(uuid())
   entryId     String       @map("entry_id")
   accountId   String       @map("account_id")
-  debit       Decimal      @default(0) @db.Decimal(15, 2)
-  credit      Decimal      @default(0) @db.Decimal(15, 2)
+  debit       Float      @default(0) 
+  credit      Float      @default(0) 
   notes       String?
   description String?
   account     Account      @relation(fields: [accountId], references: [id])
@@ -2022,8 +2024,8 @@ model JournalLine {
 model FinancialYear {
   id        String   @id @default(uuid())
   yearName  String   @map("year_name")
-  startDate DateTime @map("start_date") @db.Date
-  endDate   DateTime @map("end_date") @db.Date
+  startDate DateTime @map("start_date") 
+  endDate   DateTime @map("end_date") 
   isClosed  Boolean  @default(false) @map("is_closed")
   isCurrent Boolean  @default(false) @map("is_current")
   createdAt DateTime @default(now()) @map("created_at")
@@ -2036,11 +2038,11 @@ model Receipt {
   id                 String        @id @default(uuid())
   receiptNumber      String        @unique @map("receipt_number")
   studentId          String        @map("student_id")
-  amount             Decimal       @db.Decimal(10, 2)
+  amount             Float       
   amountInWords      String?       @map("amount_in_words")
-  paymentMethod      PaymentMethod @map("payment_method")
+  paymentMethod      String @map("payment_method")
   referenceNo        String?       @map("reference_no")
-  receivedDate       DateTime      @map("received_date") @db.Date
+  receivedDate       DateTime      @map("received_date") 
   notes              String?
   purpose            String?
   receivedBy         String?       @map("received_by")
@@ -2048,7 +2050,7 @@ model Receipt {
   createdAt          DateTime      @default(now()) @map("created_at")
   updatedAt          DateTime      @updatedAt @map("updated_at")
   financialAccountId String?       @map("financial_account_id")
-  status             ReceiptStatus @default(DRAFT)
+  status             String @default("DRAFT")
   financialAccount   Account?      @relation(fields: [financialAccountId], references: [id])
   journalEntry       JournalEntry? @relation(fields: [journalEntryId], references: [id])
   student            Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
@@ -2064,9 +2066,9 @@ model TrialBalance {
   accountId   String   @map("account_id")
   accountCode String   @map("account_code")
   accountName String   @map("account_name")
-  debit       Decimal  @db.Decimal(15, 2)
-  credit      Decimal  @db.Decimal(15, 2)
-  asOfDate    DateTime @map("as_of_date") @db.Date
+  debit       Float  
+  credit      Float  
+  asOfDate    DateTime @map("as_of_date") 
   generatedAt DateTime @default(now()) @map("generated_at")
 
   @@index([asOfDate])
@@ -2078,7 +2080,7 @@ model FinancialSettings {
   companyNameAr          String   @map("company_name_ar")
   companyNameEn          String   @map("company_name_en")
   trn                    String   @unique
-  vatRate                Decimal  @default(5.00) @map("vat_rate") @db.Decimal(5, 2)
+  vatRate                Float  @default(5.00) @map("vat_rate") 
   currency               String   @default("AED")
   bankName               String?  @map("bank_name")
   iban                   String?
@@ -2105,12 +2107,12 @@ model Invoice {
   studentId       String?           @map("student_id")
   date            DateTime          @default(now())
   dueDate         DateTime?         @map("due_date")
-  subtotal        Decimal           @db.Decimal(15, 2)
-  vatAmount       Decimal           @map("vat_amount") @db.Decimal(15, 2)
-  totalAmount     Decimal           @map("total_amount") @db.Decimal(15, 2)
-  status          InvoiceStatus     @default(DRAFT)
+  subtotal        Float           
+  vatAmount       Float           @map("vat_amount") 
+  totalAmount     Float           @map("total_amount") 
+  status          String     @default("DRAFT")
   trnSnapshot     String?           @map("trn_snapshot")
-  vatRateSnapshot Decimal?          @map("vat_rate_snapshot")
+  vatRateSnapshot Float?          @map("vat_rate_snapshot")
   createdAt       DateTime          @default(now()) @map("created_at")
   updatedAt       DateTime          @updatedAt @map("updated_at")
   installments    InstallmentPlan[]
@@ -2127,222 +2129,66 @@ model InvoiceItem {
   invoiceId     String  @map("invoice_id")
   description   String
   quantity      Int     @default(1)
-  unitPrice     Decimal @map("unit_price") @db.Decimal(15, 2)
-  taxableAmount Decimal @map("taxable_amount") @db.Decimal(15, 2)
-  vatAmount     Decimal @map("vat_amount") @db.Decimal(15, 2)
-  totalAmount   Decimal @map("total_amount") @db.Decimal(15, 2)
+  unitPrice     Float @map("unit_price") 
+  taxableAmount Float @map("taxable_amount") 
+  vatAmount     Float @map("vat_amount") 
+  totalAmount   Float @map("total_amount") 
   invoice       Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   @@map("invoice_items")
 }
 
-enum StudyMode {
-  IN_PERSON
-  ONLINE
-  SELF_PACED
-}
 
-enum FeeType {
-  TUITION
-  REGISTRATION
-  FIRST_PAYMENT
-  CERTIFICATE
-  SHIPPING
-  SERVICE
-  CUSTOM
-  OTHER
-}
 
-enum DiscountType {
-  PERCENTAGE
-  FIXED_AMOUNT
-  SCHOLARSHIP
-}
 
-enum PaymentMethod {
-  CASH
-  BANK_TRANSFER
-  CHEQUE
-  ONLINE
-  POS
-}
 
-enum PaymentStatus {
-  PENDING
-  IN_PAYMENT
-  PARTIAL
-  PAID
-  OVERDUE
-  CANCELLED
-}
 
-enum ReconciliationStatus {
-  PENDING
-  RECONCILED
-  FAILED
-}
 
-enum CampaignType {
-  WHATSAPP
-  LANDING_PAGE
-  SOCIAL_MEDIA
-  EMAIL
-  SMS
-}
 
-enum CampaignStatus {
-  DRAFT
-  SCHEDULED
-  ACTIVE
-  PAUSED
-  COMPLETED
-  ARCHIVED
-}
 
-enum AudienceType {
-  CORE
-  CUSTOM
-  LOOKALIKE
-  AI_PREDICTIVE
-}
 
-enum LeadStatus {
-  NEW
-  CONTACTED
-  QUALIFIED
-  CONVERTED
-  LOST
-  SPAM
-}
 
-enum FunnelStage {
-  AWARENESS
-  INTEREST
-  CONSIDERATION
-  INTENT
-  PURCHASE
-}
 
-enum LeadQuality {
-  HOT
-  WARM
-  COLD
-}
 
-enum VariantStatus {
-  DRAFT
-  RUNNING
-  PAUSED
-  COMPLETED
-}
 
-enum JourneyStage {
-  AWARENESS
-  CONSIDERATION
-  DECISION
-  RETENTION
-  ADVOCACY
-}
 
-enum TouchpointType {
-  MARKETING_CAMPAIGN
-  EMAIL_OPEN
-  LINK_CLICK
-  WEBSITE_VISIT
-  FORM_SUBMISSION
-  PHONE_CALL
-  MEETING
-  PURCHASE
-  SUPPORT_TICKET
-  SOCIAL_INTERACTION
-}
 
-enum WorkflowStatus {
-  DRAFT
-  ACTIVE
-  PAUSED
-  ARCHIVED
-}
 
-enum TriggerType {
-  LEAD_CREATED
-  LEAD_STATUS_CHANGED
-  EMAIL_OPENED
-  LINK_CLICKED
-  FORM_SUBMITTED
-  SCORE_THRESHOLD
-  INACTIVITY_PERIOD
-  STAGE_CHANGED
-  MANUAL
-}
 
-enum ActionType {
-  SEND_EMAIL
-  SEND_WHATSAPP
-  UPDATE_STATUS
-  UPDATE_SCORE
-  ASSIGN_TO_USER
-  ADD_TO_CAMPAIGN
-  CREATE_TASK
-  WAIT
-  ADD_TAG
-  REMOVE_TAG
-}
 
-enum SalaryType {
-  FIXED
-  SALARY_COMMISSION
-  COMMISSION_ONLY
-  HOURLY
-}
 
-enum TargetType {
-  TRANSACTIONS
-  AMOUNT
-}
 
-enum CommissionLogic {
-  POSITIVE
-  NEGATIVE
-}
 
-enum PayrollStatus {
-  DRAFT
-  APPROVED
-  PAID
-  CANCELLED
-}
 
-enum AccountType {
-  ASSET
-  LIABILITY
-  EQUITY
-  REVENUE
-  EXPENSE
-}
 
-enum ReceiptStatus {
-  DRAFT
-  POSTED
-  CANCELLED
-}
 
-enum InvoiceStatus {
-  DRAFT
-  ISSUED
-  PAID
-  PARTIALLY_PAID
-  CANCELLED
-  OVERDUE
-}
 
-enum JournalType {
-  SALE
-  PURCHASE
-  CASH
-  BANK
-  GENERAL
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 model BiometricDevice {
   id           String   @id @default(uuid())
   name         String
