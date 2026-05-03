@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "cd frontend && npm install && npm run build",
+    "build": "cd frontend && npm install --include=dev && npx vite build",
+
 
     "install-all": "npm install && npm install --prefix frontend && npm install --prefix backend",
     "postinstall": "cd backend && npm install --legacy-peer-deps && npx prisma generate"
