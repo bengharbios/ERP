@@ -72,7 +72,9 @@ export async function handleLectureInterruption(params: ShiftParams) {
 
     if (!classData) throw new Error('Class not found');
 
-    const studyDayNumbers = classData.studyDays.map(day => DAY_MAP[day]);
+    const rawStudyDays: string[] = typeof classData.studyDays === 'string' ? JSON.parse(classData.studyDays || '[]') : (classData.studyDays as any) || [];
+    const studyDayNumbers = rawStudyDays.map((day: string) => DAY_MAP[day]);
+
     const startHour = classData.lectureStartTime?.getUTCHours() || 9;
     const startMinute = classData.lectureStartTime?.getUTCMinutes() || 0;
     const endHour = classData.lectureEndTime?.getUTCHours() || 12;
@@ -141,7 +143,9 @@ export async function handleLectureInterruption(params: ShiftParams) {
         });
 
         // Find next available study day for the clone
-        const nextDate = getNextStudyDay(lectureToPostpone.scheduledDate, lectureToPostpone.class.studyDays);
+        const classStudyDays: string[] = typeof lectureToPostpone.class.studyDays === 'string' ? JSON.parse(lectureToPostpone.class.studyDays || '[]') : (lectureToPostpone.class.studyDays as any) || [];
+        const nextDate = getNextStudyDay(lectureToPostpone.scheduledDate, classStudyDays);
+
 
         console.log('📅 Creating clone for next date:', nextDate);
 

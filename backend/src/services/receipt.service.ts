@@ -1,6 +1,6 @@
 import prisma from '../common/db/prisma';
 import { CreateReceiptInput, UpdateReceiptInput, ReceiptQueryParams } from '../validation/receipt.validation';
-import { ReceiptStatus } from '@prisma/client';
+
 import journalService from './journal.service';
 import { CreateJournalEntryInput } from '../validation/journal.validation';
 
@@ -139,7 +139,7 @@ class ReceiptService {
                 receivedDate: new Date(data.receivedDate || new Date()),
                 notes: data.notes,
                 purpose: data.purpose,
-                status: ReceiptStatus.DRAFT,
+                status: 'DRAFT',
                 receivedBy: data.receivedBy,
                 financialAccountId: data.financialAccountId
             }
@@ -152,7 +152,7 @@ class ReceiptService {
     async updateReceipt(id: string, data: UpdateReceiptInput) {
         const receipt = await this.getReceiptById(id);
 
-        if (receipt.status !== ReceiptStatus.DRAFT) {
+        if (receipt.status !== 'DRAFT') {
             throw new Error('Can only update DRAFT receipts');
         }
 
@@ -171,7 +171,7 @@ class ReceiptService {
     async postReceipt(id: string, postedBy?: string) {
         const receipt = await this.getReceiptById(id);
 
-        if (receipt.status !== ReceiptStatus.DRAFT) {
+        if (receipt.status !== 'DRAFT') {
             throw new Error('Receipt is not in DRAFT status or already posted');
         }
 
@@ -216,7 +216,7 @@ class ReceiptService {
         return prisma.receipt.update({
             where: { id },
             data: {
-                status: ReceiptStatus.POSTED,
+                status: 'POSTED',
                 journalEntryId: journalEntry.id
             }
         });
@@ -228,13 +228,13 @@ class ReceiptService {
     async cancelReceipt(id: string) {
         const receipt = await this.getReceiptById(id);
 
-        if (receipt.status === ReceiptStatus.POSTED) {
+        if (receipt.status === 'POSTED') {
             throw new Error('Cannot cancel posted receipt. Please create a reversal entry manually.');
         }
 
         return prisma.receipt.update({
             where: { id },
-            data: { status: ReceiptStatus.CANCELLED }
+            data: { status: 'CANCELLED' }
         });
     }
 
@@ -243,7 +243,7 @@ class ReceiptService {
      */
     async deleteReceipt(id: string) {
         const receipt = await this.getReceiptById(id);
-        if (receipt.status !== ReceiptStatus.DRAFT) {
+        if (receipt.status !== 'DRAFT') {
             throw new Error('Only DRAFT receipts can be deleted');
         }
         return prisma.receipt.delete({ where: { id } });
