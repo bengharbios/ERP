@@ -1,0 +1,158 @@
+/* ══════════════════════════════════════════════════════
+   ULTIMATE 2026 DESIGN — HR GLOBAL SETTINGS
+   ══════════════════════════════════════════════════════ */
+
+.hrs-root {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding-bottom: 40px;
+}
+
+/* ── SETTINGS SHELF ── */
+.hrs-shelf {
+    background: var(--hz-void);
+    border: 1px solid var(--hz-border-soft);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+.hrs-shelf-header {
+    background: var(--hz-surface);
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--hz-border-soft);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.hrs-shelf-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--hz-text-bright);
+}
+
+.hrs-shelf-body {
+    padding: 24px;
+}
+
+/* ── DAYS SELECTOR ── */
+.hrs-days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.hrs-day-card {
+    background: var(--hz-surface);
+    border: 1px solid var(--hz-border-soft);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s var(--hz-ease);
+    user-select: none;
+}
+
+.hrs-day-card:hover {
+    border-color: var(--hz-cyan-border);
+    background: var(--hz-surface-2);
+}
+
+.hrs-day-card.active {
+    background: var(--hz-cyan-glow);
+    border-color: var(--hz-cyan);
+    box-shadow: 0 0 15px var(--hz-cyan-glow);
+}
+
+.hrs-day-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--hz-surface-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--hz-text-muted);
+}
+
+.hrs-day-card.active .hrs-day-icon {
+    background: var(--hz-cyan);
+    color: var(--hz-void);
+}
+
+.hrs-day-label {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--hz-text-secondary);
+}
+
+.hrs-day-card.active .hrs-day-label {
+    color: var(--hz-cyan);
+}
+
+/* ── SWITCH GROUP ── */
+.hrs-switch-box {
+    background: var(--hz-surface-2);
+    border: 1px solid var(--hz-border-soft);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.hrs-switch-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.hrs-switch-title {
+    font-weight: 800;
+    color: var(--hz-text-bright);
+}
+
+.hrs-switch-desc {
+    font-size: 0.75rem;
+    color: var(--hz-text-muted);
+}
+
+/* ── MOBILE ── */
+@media (max-width: 992px) {
+    .hrs-days-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .hrs-days-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .hrs-switch-box {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* ── PREVIEW BOX ── */
+.hrs-preview {
+    margin-top: 16px;
+    background: rgba(221, 107, 32, 0.05);
+    border: 1px dashed rgba(221, 107, 32, 0.3);
+    padding: 16px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #DD6B20;
+    font-size: 0.85rem;
+    font-weight: 600;
+}

@@ -1,0 +1,676 @@
+/* ══════════════════════════════════════════════════════
+   AG STYLE — SALES INVOICES (VAT COMPLIANCE)
+   تصميم سجل الفواتير الضريبية | رؤية 2030
+   ══════════════════════════════════════════════════════ */
+
+.ag-root {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 450px;
+    position: relative;
+    background: var(--hz-dark);
+    border: 1px solid var(--hz-border-soft);
+    border-radius: 12px;
+    overflow: hidden;
+    color: var(--hz-text-primary);
+    box-shadow: var(--hz-shadow-lg);
+    font-family: var(--hz-font);
+}
+
+/* ── HEADER ── */
+.ag-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    padding: 0 24px;
+    background: var(--hz-surface);
+    border-bottom: 1px solid var(--hz-border-soft);
+    flex-shrink: 0;
+}
+
+.ag-header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.ag-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--hz-text-bright);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.ag-title svg {
+    color: var(--hz-orange);
+}
+
+.ag-mini-stats {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 16px;
+    padding-right: 16px;
+    border-right: 1px solid var(--hz-border-soft);
+}
+
+.ag-stat-pill {
+    padding: 4px 12px;
+    border-radius: 100px;
+    background: var(--hz-surface-2);
+    border: 1px solid var(--hz-border-soft);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+}
+
+.ag-stat-val {
+    font-weight: 800;
+    color: var(--hz-text-bright);
+}
+
+.ag-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.stat-quick-info {
+    display: flex;
+    gap: 8px;
+}
+
+.badge-paid {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10B981;
+    padding: 2px 10px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.badge-overdue {
+    background: rgba(239, 68, 68, 0.1);
+    color: #EF4444;
+    padding: 2px 10px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+/* ── BUTTONS ── */
+.ag-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    border: 1px solid transparent;
+}
+
+.ag-btn-primary {
+    background: var(--hz-orange);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(221, 107, 32, 0.2);
+}
+
+.ag-btn-ghost {
+    background: transparent;
+    border-color: var(--hz-border-soft);
+    color: var(--hz-text-muted);
+}
+
+.ag-btn-icon {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: var(--hz-surface-2);
+    border: 1px solid var(--hz-border-soft);
+    color: var(--hz-text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ag-btn-icon:hover {
+    border-color: var(--hz-orange);
+    color: var(--hz-orange);
+    background: var(--hz-surface-3);
+}
+
+/* ── BODY & SIDEBAR ── */
+.ag-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.ag-sidebar {
+    width: 260px;
+    background: var(--hz-surface);
+    border-left: 1px solid var(--hz-border-soft);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.ag-sidebar-head {
+    padding: 16px;
+    border-bottom: 1px solid var(--hz-border-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.ag-sidebar-head-title {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--hz-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.ag-sidebar-pane {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.ag-filter-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--hz-text-muted);
+    margin-bottom: 8px;
+}
+
+.ag-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.ag-search svg {
+    position: absolute;
+    right: 10px;
+    color: var(--hz-text-muted);
+}
+
+.ag-search input {
+    width: 100%;
+    background: var(--hz-surface-2);
+    border: 1px solid var(--hz-border-soft);
+    padding: 8px 32px 8px 12px;
+    border-radius: 8px;
+    color: var(--hz-text-bright);
+    font-size: 0.85rem;
+}
+
+.ag-select {
+    width: 100%;
+    background: var(--hz-surface-2);
+    border: 1px solid var(--hz-border-soft);
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: var(--hz-text-bright);
+    font-size: 0.85rem;
+    outline: none;
+}
+
+.ag-main {
+    flex: 1;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 24px;
+}
+
+/* ── DATA TABLE ── */
+.ag-table-wrap {
+    background: var(--hz-surface);
+    border: 1px solid var(--hz-border-soft);
+    border-radius: 12px;
+    overflow-x: auto;
+    /* Enable horizontal scroll */
+    -webkit-overflow-scrolling: touch;
+}
+
+.ag-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+    /* Ensure table doesn't squish too much */
+}
+
+@media (max-width: 768px) {
+    .ag-table {
+        min-width: 600px;
+    }
+
+    .ag-main {
+        padding: 12px;
+    }
+}
+
+.ag-table th {
+    text-align: right;
+    padding: 14px 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--hz-text-muted);
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid var(--hz-border-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.ag-table td {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--hz-border-soft);
+    font-size: 0.85rem;
+    white-space: nowrap;
+    /* Prevent messy wrapping in cells */
+}
+
+.ag-table tr:hover td {
+    background: rgba(255, 255, 255, 0.01);
+}
+
+.ag-id-pill {
+    display: inline-flex;
+    padding: 4px 10px;
+    background: var(--hz-surface-3);
+    border: 1px solid var(--hz-border-soft);
+    border-radius: 6px;
+    font-family: monospace;
+    font-weight: 800;
+    color: var(--hz-orange);
+}
+
+.ag-student-name {
+    font-weight: 700;
+    color: var(--hz-text-bright);
+}
+
+.ag-student-id {
+    font-size: 0.7rem;
+    color: var(--hz-text-muted);
+}
+
+.ag-amount-badge {
+    font-weight: 800;
+    color: var(--hz-text-bright);
+}
+
+.ag-vat-info {
+    font-size: 0.75rem;
+    color: var(--hz-text-muted);
+    display: flex;
+    flex-direction: column;
+}
+
+.ag-status-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 800;
+}
+
+/* ── ACTION BUTTONS ── */
+.ag-table-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.ag-action-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: var(--hz-surface-2);
+    border: 1px solid var(--hz-border-soft);
+    color: var(--hz-text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ag-action-btn:hover {
+    background: var(--hz-surface-3);
+    border-color: var(--hz-orange);
+    color: var(--hz-orange);
+}
+
+/* ── INVOICE MODAL & PAPER ── */
+.ag-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.ag-modal {
+    background: var(--hz-surface);
+    border-radius: 16px;
+    width: 100%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.ag-modal-head {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--hz-border-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.ag-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.ag-modal-title h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--hz-text-bright);
+}
+
+.ag-modal-title p {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--hz-text-muted);
+}
+
+.ag-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 40px;
+    background: #f8fafc;
+    /* Classic Paper Color for Preview */
+}
+
+/* ── TAX INVOICE DOCUMENT (PRINTABLE) ── */
+.ag-invoice-paper {
+    background: #FFF;
+    color: #1a202c;
+    padding: 40px;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    min-height: 800px;
+    max-width: 800px;
+    margin: 0 auto;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.ag-inv-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    border-bottom: 2px solid #edf2f7;
+    padding-bottom: 20px;
+}
+
+.ag-inv-branding h2 {
+    color: #2D3748;
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.ag-inv-branding .en-name {
+    color: #718096;
+    font-weight: 600;
+    margin: 0;
+}
+
+.trn-badge {
+    margin-top: 10px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #4A5568;
+}
+
+.ag-inv-label-box {
+    text-align: left;
+}
+
+.ag-inv-label-box h1 {
+    font-size: 1.8rem;
+    margin: 0;
+    color: #2D3748;
+    letter-spacing: 2px;
+}
+
+.ag-inv-label-box .en-label {
+    font-weight: 700;
+    color: #A0AEC0;
+    margin-bottom: 15px;
+}
+
+.inv-meta {
+    margin-top: 10px;
+}
+
+.meta-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 0.85rem;
+}
+
+.ag-inv-billing {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 40px;
+}
+
+.block-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #A0AEC0;
+    border-bottom: 1px solid #edf2f7;
+    padding-bottom: 4px;
+    margin-bottom: 10px;
+    letter-spacing: 0.05em;
+}
+
+.client-name {
+    font-size: 1.1rem;
+    font-weight: 800;
+}
+
+.client-name-en {
+    color: #718096;
+}
+
+.ag-inv-items {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+}
+
+.ag-inv-items th {
+    background: #f8fafc;
+    padding: 12px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #718096;
+    border-bottom: 2px solid #edf2f7;
+    text-align: right;
+}
+
+.ag-inv-items td {
+    padding: 15px 12px;
+    border-bottom: 1px solid #edf2f7;
+    font-size: 0.9rem;
+}
+
+.ag-inv-items .center {
+    text-align: center;
+}
+
+.ag-inv-items .left {
+    text-align: left;
+}
+
+.ag-inv-items .strong {
+    font-weight: 800;
+}
+
+.ag-inv-totals {
+    display: flex;
+    justify-content: flex-start;
+    /* Because it's RTL main layout */
+}
+
+.totals-wrap {
+    width: 280px;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 0.9rem;
+}
+
+.total-row.grand {
+    background: #f8fafc;
+    padding: 12px;
+    font-weight: 900;
+    font-size: 1.1rem;
+    border-top: 2px solid #2d3748;
+}
+
+.ag-inv-footer {
+    margin-top: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.payment-guide h5 {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: #A0AEC0;
+    margin-bottom: 8px;
+}
+
+.guide-content {
+    font-size: 0.75rem;
+    color: #4A5568;
+    line-height: 1.6;
+}
+
+.official-note {
+    font-size: 0.65rem;
+    color: #A0AEC0;
+    text-align: left;
+    max-width: 300px;
+}
+
+/* ── UTILITIES ── */
+.text-center {
+    text-align: center !important;
+}
+
+.hide-mobile {
+    display: flex;
+}
+
+.mobile-only {
+    display: none;
+}
+
+@media (max-width: 992px) {
+    .hide-mobile {
+        display: none !important;
+    }
+
+    .mobile-only {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .ag-sidebar {
+        position: fixed;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 9999;
+        transform: translateX(100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+        width: 280px;
+    }
+
+    .ag-sidebar.show {
+        transform: translateX(0);
+    }
+
+    .ag-sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        z-index: 9998;
+        display: none;
+        transition: all 0.3s ease;
+    }
+
+    .ag-sidebar-overlay.show {
+        display: block;
+    }
+}
+
+/* Print Overrides */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    #printable-invoice,
+    #printable-invoice * {
+        visibility: visible;
+    }
+
+    #printable-invoice {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+}

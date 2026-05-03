@@ -1,0 +1,179 @@
+.hr-settings-container {
+    padding: 2.5rem;
+    background: var(--bg-main);
+    min-height: 100vh;
+    direction: rtl;
+    color: var(--text-main);
+}
+
+.settings-header {
+    margin-bottom: 3rem;
+    position: relative;
+}
+
+.settings-header h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #fff 0%, #ff9d00 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.settings-header p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+}
+
+.settings-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    padding: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.settings-card:hover {
+    border-color: rgba(255, 157, 0, 0.2);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.card-title i {
+    font-size: 1.5rem;
+    color: #ff9d00;
+}
+
+.card-title h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.input-group {
+    margin-bottom: 1.5rem;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 0.8rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.input-group input[type="text"],
+.input-group input[type="time"],
+.input-group input[type="number"],
+.input-group select {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 1rem;
+    color: #fff;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+    border-color: #ff9d00;
+    background: rgba(255, 157, 0, 0.05);
+    box-shadow: 0 0 15px rgba(255, 157, 0, 0.1);
+}
+
+/* Day Selection Chips */
+.days-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+}
+
+.day-chip {
+    padding: 0.6rem 1.2rem;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+}
+
+.day-chip.active {
+    background: #ff9d00;
+    color: #fff;
+    border-color: #ff9d00;
+    box-shadow: 0 4px 15px rgba(255, 157, 0, 0.3);
+}
+
+/* Switches */
+.switch-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 16px;
+}
+
+/* Save Button Floating */
+.actions-bar {
+    position: sticky;
+    bottom: 2rem;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 3rem;
+}
+
+.btn-save {
+    background: linear-gradient(135deg, #ff9d00 0%, #e68a00 100%);
+    color: #fff;
+    border: none;
+    padding: 1rem 3rem;
+    border-radius: 16px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(255, 157, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-save:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 15px 40px rgba(255, 157, 0, 0.4);
+}
+
+.btn-save:active {
+    transform: translateY(0);
+}
+
+.deduction-preview {
+    background: rgba(255, 68, 68, 0.05);
+    border: 1px dashed rgba(255, 68, 68, 0.2);
+    padding: 1.2rem;
+    border-radius: 16px;
+    margin-top: 1rem;
+    color: #ff6b6b;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}

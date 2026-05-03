@@ -1,0 +1,885 @@
+import { useState, useEffect } from 'react';
+import { classService, Class, CreateClassInput } from '../services/class.service';
+import { academicService } from '../services/academic.service';
+import { studentService, Student } from '../services/student.service';
+import { ClassFormModal } from '../components/ClassFormModal';
+import { Toast, ToastType } from '../components/Toast';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+
+export default function Classes() {
+    const [classes, setClasses] = useState<Class[]>([]);
+    const [programs, setPrograms] = useState<any[]>([]);
+    const [students, setStudents] = useState<Student[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [showModal, setShowModal] = useState(false);
+    const [showStudentModal, setShowStudentModal] = useState(false);
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [selectedClass, setSelectedClass] = useState<Class | null>(null);
+    const [enrolledStudents, setEnrolledStudents] = useState<any[]>([]);
+    const [filteredClasses, setFilteredClasses] = useState<Class[]>([]);
+    const [showMobileFilters, setShowMobileFilters] = useState(false);
+    const [viewMode, setViewMode] = useState<'grid' | 'table' | 'schedule'>('grid');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterProgram, setFilterProgram] = useState('');
+    const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
+    const [studentSearch, setStudentSearch] = useState('');
+    const [toast, setToast] = useState<{ type: ToastType; message: string } | null>(null);
+    const [confirmDialog, setConfirmDialog] = useState<{
+        title: string;
+        message: string;
+        type: 'danger' | 'warning' | 'info';
+        onConfirm: () => void;
+    } | null>(null);
+    const [formData, setFormData] = useState<CreateClassInput>({
+        code: '',
+        name: '',
+        programId: '',
+        startDate: '',
+        durationMonths: 6,
+        studyDays: [],
+        lectureStartTime: '09:00',
+        lectureEndTime: '12:00',
+        maxStudents: 30,
+        studyMode: 'IN_PERSON',
+        studyLanguage: 'Arabic',
+        classroom: '',
+        building: '',
+        defaultZoomLink: '',
+    });
+
+    useEffect(() => {
+        let filtered = [...classes];
+        if (searchTerm) {
+            filtered = filtered.filter(c =>
+                c.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                c.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+        if (filterProgram) {
+            filtered = filtered.filter(c => c.programId === filterProgram);
+        }
+        if (filterStatus === 'active') {
+            filtered = filtered.filter(c => c.status === 'active' || !c.status);
+        } else if (filterStatus === 'inactive') {
+            filtered = filtered.filter(c => c.status === 'inactive');
+        }
+        setFilteredClasses(filtered);
+    }, [classes, searchTerm, filterProgram, filterStatus]);
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const fetchData = async () => {
+        try {
+            const [programsRes, classesRes, studentsRes] = await Promise.all([
+                academicService.getPrograms(),
+                classService.getClasses(),
+                studentService.getStudents(),
+            ]);
+
+            if (programsRes.data) setPrograms(programsRes.data.programs || []);
+            if (classesRes.data) {
+                const classesData = classesRes.data.classes || [];
+                console.log('📚 Loaded classes:', classesData.length);
+                console.log('Sample class:', classesData[0]);
+                setClasses(classesData);
+            }
+            if (studentsRes.data) {
+                const studentsData = studentsRes.data.students || [];
+                console.log('📚 Loaded students:', studentsData.length);
+                console.log('Sample student:', studentsData[0]);
+                setStudents(studentsData);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const openStudentModal = async (classItem: Class) => {
+        console.log('👥 Opening student modal for class:', classItem);
+        console.log('📌 Class ID:', classItem.id);
+        setSelectedClass(classItem);
+        try {
+            const res = await classService.getClassStudents(classItem.id);
+            console.log('📋 Enrolled students response:', res);
+            if (res.data) {
+                setEnrolledStudents(res.data.students || []);
+            }
+        } catch (error) {
+            console.error('❌ Error loading students:', error);
+        }
+        setShowStudentModal(true);
+    };
+
+    const handleEnrollStudent = async (studentId: string) => {
+        if (!selectedClass) return;
+        console.log('➕ Enrolling student');
+        console.log('   Class ID:', selectedClass.id);
+        console.log('   Student ID:', studentId);
+        try {
+            await classService.enrollStudent(selectedClass.id, studentId);
+            console.log('✅ Student enrolled successfully');
+            const res = await classService.getClassStudents(selectedClass.id);
+            if (res.data) setEnrolledStudents(res.data.students || []);
+            await fetchData();
+        } catch (error: any) {
+            console.error('❌ Enrollment error:', error);
+            console.error('   Response:', error.response?.data);
+
+            const errorData = error.response?.data?.error;
+
+            if (errorData?.code === 'ENROLLED_IN_OTHER_CLASS') {
+                const otherClasses = errorData.details?.otherClasses || [];
+                const classNames = otherClasses.map((c: any) => `${c.className} (${c.classCode})`).join('\n');
+                const confirmMsg = `⚠️ تنبيه!\n\nهذا الطالب منضم بالفعل إلى ${otherClasses.length} فصل آخر:\n\n${classNames}\n\nهل تريد الاستمرار؟`;
+
+                if (confirm(confirmMsg)) {
+                    alert('ملاحظة: لم يتم تنفيذ الإضافة القسرية بعد. سيتم إضافتها لاحقاً.');
+                }
+            } else {
+                const errorMsg = errorData?.message || 'فشل في إضافة الطالب';
+                setToast({ type: 'error', message: `❌ ${errorMsg}` });
+            }
+        }
+    };
+
+    const handleRemoveStudent = async (studentId: string) => {
+        if (!selectedClass) return;
+        setConfirmDialog({
+            title: 'إزالة طالب',
+            message: 'هل أنت متأكد من إزالة هذا الطالب من الفصل؟',
+            type: 'danger',
+            onConfirm: async () => {
+                setConfirmDialog(null);
+                try {
+                    await classService.removeStudent(selectedClass.id, studentId);
+                    const res = await classService.getClassStudents(selectedClass.id);
+                    if (res.data) setEnrolledStudents(res.data.students || []);
+                    await fetchData();
+                    setToast({ type: 'success', message: '✅ تم إزالة الطالب بنجاح' });
+                } catch (error) {
+                    setToast({ type: 'error', message: '❌ فشل إزالة الطالب' });
+                }
+            }
+        });
+    };
+
+    const openDetailsModal = async (classItem: Class) => {
+        setSelectedClass(classItem);
+        setShowDetailsModal(true);
+        try {
+            const res = await classService.getClassStudents(classItem.id);
+            if (res.data) {
+                setEnrolledStudents(res.data.students || []);
+            }
+        } catch (error) {
+            console.error('Error loading students for details:', error);
+            setEnrolledStudents([]);
+        }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+
+        try {
+            console.log('📤 Creating class with data:', formData);
+            const response = await classService.createClass(formData);
+            console.log('✅ Class created:', response);
+
+            await fetchData();
+            setShowModal(false);
+            resetForm();
+            setToast({ type: 'success', message: '✅ تم حفظ الفصل بنجاح' });
+        } catch (error: any) {
+            console.error('❌ Error saving class:', error);
+            const errorMsg = error.response?.data?.error?.message || 'فشل في حفظ الفصل';
+            setToast({ type: 'error', message: `❌ ${errorMsg}` });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const resetForm = () => {
+        setFormData({
+            code: '',
+            name: '',
+            programId: '',
+            startDate: '',
+            durationMonths: 6,
+            studyDays: [],
+            lectureStartTime: '09:00',
+            lectureEndTime: '12:00',
+            maxStudents: 30,
+        });
+    };
+
+    const handleEdit = (classItem: Class) => {
+        setFormData({
+            code: classItem.code,
+            name: classItem.name,
+            programId: classItem.programId,
+            startDate: classItem.startDate,
+            durationMonths: classItem.durationMonths,
+            studyDays: classItem.studyDays,
+            lectureStartTime: classItem.lectureStartTime,
+            lectureEndTime: classItem.lectureEndTime,
+            maxStudents: classItem.maxStudents,
+            studyMode: classItem.studyMode,
+            studyLanguage: classItem.studyLanguage,
+            classroom: classItem.classroom,
+            building: classItem.building,
+            defaultZoomLink: classItem.defaultZoomLink,
+        });
+        setShowModal(true);
+    };
+
+    const handleDelete = async (id: string) => {
+        setConfirmDialog({
+            title: 'حذف الفصل الدراسي',
+            message: 'هل أنت متأكد من حذف هذا الفصل نهائياً؟',
+            type: 'danger',
+            onConfirm: async () => {
+                setConfirmDialog(null);
+                try {
+                    await classService.deleteClass(id);
+                    await fetchData();
+                    setToast({ type: 'success', message: '✅ تم الحذف بنجاح' });
+                } catch (error) {
+                    setToast({ type: 'error', message: '❌ فشل حذف الفصل' });
+                }
+            }
+        });
+    };
+
+    const toggleStudyDay = (day: string) => {
+        setFormData((prev) => ({
+            ...prev,
+            studyDays: prev.studyDays.includes(day)
+                ? prev.studyDays.filter((d) => d !== day)
+                : [...prev.studyDays, day],
+        }));
+    };
+
+    const handleFormChange = (field: string, value: any) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value,
+        }));
+    };
+
+    const weekDays = [
+        { en: 'Sunday', ar: 'الأحد' },
+        { en: 'Monday', ar: 'الإثنين' },
+        { en: 'Tuesday', ar: 'الثلاثاء' },
+        { en: 'Wednesday', ar: 'الأربعاء' },
+        { en: 'Thursday', ar: 'الخميس' },
+        { en: 'Friday', ar: 'الجمعة' },
+        { en: 'Saturday', ar: 'السبت' },
+    ];
+
+    const getDayArabic = (day: string) => {
+        return weekDays.find((d) => d.en === day)?.ar || day;
+    };
+
+    if (loading && classes.length === 0) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#F8FAFC' }}>
+                <div className="next-gen-loader"></div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="next-gen-page-container blue-theme">
+            {/* --- Premium Floating Header --- */}
+            <header className="glass-header">
+                <div className="container-wide header-content">
+                    <div className="header-branding">
+                        <div className="branding-icon blue">🎓</div>
+                        <div className="branding-text">
+                            <h1>الفصول الدراسية</h1>
+                            <p className="hide-on-mobile">تنظيم وجدولة الفصول الدراسية والطلاب</p>
+                        </div>
+                    </div>
+
+                    <div className="header-actions">
+                        <div className="view-switcher hide-on-mobile">
+                            <button onClick={() => setViewMode('grid')} className={viewMode === 'grid' ? 'active' : ''}>▦</button>
+                            <button onClick={() => setViewMode('table')} className={viewMode === 'table' ? 'active' : ''}>☰</button>
+                            <button onClick={() => setViewMode('schedule')} className={viewMode === 'schedule' ? 'active' : ''}>📅</button>
+                        </div>
+                        <div className="header-pills hide-on-mobile">
+                            <span className="pill pill-blue">النشطة: {classes.filter(c => c.status === 'active' || !c.status).length}</span>
+                        </div>
+                        <button onClick={() => { resetForm(); setShowModal(true); }} className="btn-modern btn-blue-gradient">
+                            <span className="plus-icon">+</span>
+                            <span className="hide-on-mobile">فصل جديد</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            {/* --- Main Content --- */}
+            <main className="container-wide main-content">
+                {/* Desktop Search & Filters Toolbar */}
+                <section className="filters-toolbar hide-on-mobile">
+                    <div className="search-box-wrapper">
+                        <span className="search-icon">🔍</span>
+                        <input type="text" placeholder="البحث بالاسم، الرمز أو البرنامج..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                    </div>
+                    <div className="filters-group">
+                        <select value={filterProgram} onChange={(e) => setFilterProgram(e.target.value)}>
+                            <option value="">كافة البرامج</option>
+                            {programs.map(p => <option key={p.id} value={p.id}>{p.nameAr}</option>)}
+                        </select>
+                        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as any)}>
+                            <option value="all">الحالة: الكل</option>
+                            <option value="active">نشط</option>
+                            <option value="inactive">غير نشط</option>
+                        </select>
+                        <div className="divider-v"></div>
+                        <div className="stats-mini-pills">
+                            <span className="pill-outline">إجمالي الطلاب: {classes.reduce((sum, c) => sum + (c._count?.studentEnrollments || 0), 0)}</span>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Mobile Search Bar Only */}
+                <section className="show-on-mobile mobile-search-area">
+                    <div className="search-box-wrapper">
+                        <input type="text" placeholder="بحث..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                        <button onClick={() => setShowMobileFilters(true)} className="btn-filter-toggle">⚙️</button>
+                    </div>
+                </section>
+
+                {/* --- Executive Insights Grid --- */}
+                <section className="executive-stats-2026">
+                    <div className="stat-card-2026 blue">
+                        <div className="st-info">
+                            <span className="st-label">إجمالي الفصول</span>
+                            <h3 className="st-value">{classes.length}</h3>
+                        </div>
+                        <div className="st-icon">🏫</div>
+                    </div>
+                    <div className="stat-card-2026 green">
+                        <div className="st-info">
+                            <span className="st-label">فصول نشطة</span>
+                            <h3 className="st-value">{classes.filter(c => c.status === 'active').length}</h3>
+                        </div>
+                        <div className="st-icon">🟢</div>
+                    </div>
+                    <div className="stat-card-2026 orange">
+                        <div className="st-info">
+                            <span className="st-label">إجمالي الطلاب</span>
+                            <h3 className="st-value">{classes.reduce((sum, c) => sum + (c._count?.studentEnrollments || 0), 0)}</h3>
+                        </div>
+                        <div className="st-icon">👥</div>
+                    </div>
+                    <div className="stat-card-2026 purple">
+                        <div className="st-info">
+                            <span className="st-label">محاضرات الأسبوع</span>
+                            <h3 className="st-value">{classes.reduce((sum, c) => sum + (c._count?.lectures || 0), 0)}</h3>
+                        </div>
+                        <div className="st-icon">📅</div>
+                    </div>
+                </section>
+
+                {/* --- Action Bar & View Switcher (Mobile Only) --- */}
+                <div className="mobile-view-actions show-on-mobile">
+                    <div className="mini-switcher">
+                        <button className={viewMode === 'grid' ? 'active' : ''} onClick={() => setViewMode('grid')}>▦ الشبكة</button>
+                        <button className={viewMode === 'table' ? 'active' : ''} onClick={() => setViewMode('table')}>☰ الجدول</button>
+                        <button className={viewMode === 'schedule' ? 'active' : ''} onClick={() => setViewMode('schedule')}>📅 الجدول</button>
+                    </div>
+                </div>
+
+                {/* Data Display */}
+                <div className={`content-transition-wrapper ${viewMode}`}>
+                    {filteredClasses.length === 0 ? (
+                        <div className="empty-state-modern">
+                            <div className="empty-icon">📂</div>
+                            <h2>لا توجد نتائج مطابقة</h2>
+                            <p>حاول تغيير معايير البحث أو إضافة فصول جديدة</p>
+                            <button onClick={() => { setSearchTerm(''); setFilterProgram(''); setFilterStatus('all'); }} className="btn-link">إعادة ضبط الفلاتر</button>
+                        </div>
+                    ) : viewMode === 'grid' ? (
+                        <div key="grid-view" className="programs-grid-2026">
+                            {filteredClasses.map((classItem) => {
+                                const studentCount = classItem._count?.studentEnrollments || 0;
+                                const maxCount = classItem.maxStudents || 30;
+                                const occupancy = (studentCount / maxCount) * 100;
+                                return (
+                                    <div key={classItem.id} className="next-gen-card blue">
+                                        <div className="card-top">
+                                            <span className="card-code blue">{classItem.code}</span>
+                                            <div className="card-actions-mini">
+                                                <button onClick={() => handleEdit(classItem)}>✎</button>
+                                                <button onClick={() => handleDelete(classItem.id)} className="danger">×</button>
+                                            </div>
+                                        </div>
+                                        <div className="card-info">
+                                            <h3 className="card-title">{classItem.name}</h3>
+                                            <p className="card-subtitle">{classItem.program?.nameAr || 'غير محدد'}</p>
+                                            <div className="card-tags">
+                                                <span className="tag-level">{classItem.studyMode === 'ONLINE' ? '🌐 أونلاين' : '🏫 حضوري'}</span>
+                                                <span className="tag-body">{classItem.lectureStartTime} - {classItem.lectureEndTime}</span>
+                                            </div>
+                                        </div>
+                                        <div className="card-stats-grid">
+                                            <div className="stat-item">
+                                                <span className="stat-val">{studentCount}</span>
+                                                <span className="stat-lbl">طالب</span>
+                                            </div>
+                                            <div className="stat-item highlight-blue">
+                                                <span className="stat-val">%{Math.round(occupancy)}</span>
+                                                <span className="stat-lbl">الإشغال</span>
+                                            </div>
+                                            <div className="stat-item">
+                                                <span className="stat-val">{classItem.studyDays.length}</span>
+                                                <span className="stat-lbl">أيام</span>
+                                            </div>
+                                        </div>
+                                        <div className="card-footer">
+                                            <div className="stats-bar" style={{ flex: 1, background: '#EDF2F7', borderRadius: '8px', height: '6px', overflow: 'hidden' }}>
+                                                <div className="bar-fill" style={{ width: `${occupancy}%`, height: '100%', borderRadius: '8px', background: occupancy > 90 ? '#E53E3E' : occupancy > 70 ? '#ED8936' : '#38A169', transition: 'width 0.3s' }}></div>
+                                            </div>
+                                            <div className="card-actions-row" style={{ display: 'flex', gap: '6px', marginRight: '10px' }}>
+                                                <button className="btn-mini" onClick={() => openDetailsModal(classItem)} title="عرض التفاصيل">👁️</button>
+                                                <button className="btn-mini" onClick={() => openStudentModal(classItem)} title="إدارة الطلاب">👥</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )
+
+                        : viewMode === 'table' ? (
+                            <div key="table-view" className="next-gen-table-container">
+                                <table className="modern-data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>الرمز</th>
+                                            <th>الفصل / البرنامج</th>
+                                            <th className="hide-on-mobile">المواعيد</th>
+                                            <th className="text-center">الطلاب</th>
+                                            <th className="text-center">الإشغال</th>
+                                            <th className="text-center">إجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filteredClasses.map(classItem => {
+                                            const studentCount = classItem._count?.studentEnrollments || 0;
+                                            const occupancy = (studentCount / (classItem.maxStudents || 30)) * 100;
+                                            return (
+                                                <tr key={classItem.id}>
+                                                    <td className="w-100"><span className="code-pill blue">{classItem.code}</span></td>
+                                                    <td>
+                                                        <div className="table-primary-text">{classItem.name}</div>
+                                                        <div className="table-secondary-text">{classItem.program?.nameAr}</div>
+                                                    </td>
+                                                    <td className="hide-on-mobile">
+                                                        <div style={{ fontSize: '0.85rem' }}>{classItem.studyDays.map(d => getDayArabic(d)).join(', ')}</div>
+                                                        <div style={{ fontSize: '0.75rem', color: '#718096' }}>{classItem.lectureStartTime} - {classItem.lectureEndTime}</div>
+                                                    </td>
+                                                    <td className="text-center"><span className="count-pill blue">{studentCount}</span></td>
+                                                    <td className="text-center">
+                                                        <div style={{ fontSize: '0.875rem', fontWeight: '700', color: occupancy > 90 ? '#E53E3E' : occupancy > 70 ? '#ED8936' : '#38A169' }}>%{Math.round(occupancy)}</div>
+                                                    </td>
+                                                    <td className="text-center w-120">
+                                                        <div className="table-row-actions">
+                                                            <button onClick={() => handleEdit(classItem)} className="edit-btn blue">تعديل</button>
+                                                            <button onClick={() => openStudentModal(classItem)} className="view-btn">👥 طلاب</button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )
+
+                            : viewMode === 'schedule' ? (
+                                <div key="schedule-view" className="schedule-view-2026">
+                                    <div className="schedule-container glass-card">
+                                        <div className="schedule-header">
+                                            <div className="time-col">الوقت</div>
+                                            {weekDays.slice(0, 6).map(day => <div key={day.en} className="day-col">{day.ar}</div>)}
+                                        </div>
+                                        <div className="schedule-body">
+                                            {['09:00', '10:00', '11:00', '12:00', '13:00', '14:00'].map(time => (
+                                                <div key={time} className="schedule-row">
+                                                    <div className="time-cell">{time}</div>
+                                                    {weekDays.slice(0, 6).map(day => {
+                                                        const targetHour = time.split(':')[0];
+                                                        const sessions = filteredClasses.filter(c =>
+                                                            Array.isArray(c.studyDays) &&
+                                                            c.studyDays.includes(day.en) &&
+                                                            c.lectureStartTime &&
+                                                            c.lectureStartTime.split(':')[0] === targetHour
+                                                        );
+                                                        return (
+                                                            <div key={day.en} className="day-cell">
+                                                                {sessions.map(s => (
+                                                                    <div key={s.id} className="session-pill blue" onClick={() => openDetailsModal(s)}>
+                                                                        <span className="s-code">{s.code}</span>
+                                                                        <span className="s-room">{s.name}</span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                        </div>
+        </div>
+                                </div >
+                            </div >
+                        </div >
+                    ) : null
+}
+                </div >
+            </main >
+
+    {/* --- Modals & Overlays Layer --- */ }
+
+{
+    showMobileFilters && (
+        <div className="drawer-overlay" onClick={() => setShowMobileFilters(false)}>
+            <div className="drawer-content" onClick={e => e.stopPropagation()}>
+                <div className="drawer-header">
+                    <h2><span>⚙️</span> خيارات التصفية</h2>
+                    <button onClick={() => setShowMobileFilters(false)}>✕</button>
+                </div>
+                <div className="drawer-body">
+                    <div className="drawer-section">
+                        <label>البرنامج التعليمي</label>
+                        <select value={filterProgram} onChange={(e) => setFilterProgram(e.target.value)}>
+                            <option value="">كافة البرامج</option>
+                            {programs.map(p => <option key={p.id} value={p.id}>{p.nameAr}</option>)}
+                        </select>
+                    </div>
+                    <div className="drawer-section">
+                        <label>حالة الفصل</label>
+                        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as any)}>
+                            <option value="all">الكل</option>
+                            <option value="active">نشط</option>
+                            <option value="inactive">غير نشط</option>
+                        </select>
+                    </div>
+                </div>
+                <div className="drawer-footer">
+                    <button className="btn-reset" onClick={() => { setFilterProgram(''); setFilterStatus('all'); setSearchTerm(''); setShowMobileFilters(false); }}>إعادة ضبط</button>
+                    <button className="btn-apply" onClick={() => setShowMobileFilters(false)}>تطبيق الفلاتر</button>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+{
+    showStudentModal && selectedClass && (
+        <div className="premium-modal-overlay" onClick={() => setShowStudentModal(false)}>
+            <div className="premium-modal-content fade-in" onClick={e => e.stopPropagation()} style={{ maxWidth: '950px' }}>
+                <div style={{ padding: '2.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
+                        <div>
+                            <h2 style={{ fontSize: '1.75rem', fontWeight: '900', color: '#1A202C', margin: 0 }}>👥 إدارة طلاب الفصل</h2>
+                            <p style={{ color: '#718096', margin: '4px 0 0 0', fontSize: '0.95rem' }}>{selectedClass.name} • {selectedClass.code}</p>
+                        </div>
+                        <button className="btn-close-2026" onClick={() => setShowStudentModal(false)}>✕</button>
+                    </div>
+
+                    <div className="modal-inner-grid">
+                        <div className="enrolled-section">
+                            <h3 className="section-title">📦 الطلاب الحاليين ({enrolledStudents.length})</h3>
+                            <div className="students-scroll-area">
+                                {enrolledStudents.length === 0 ? (
+                                    <div className="empty-substate">لا يوجد طلاب مسجلين في هذا الفصل حالياً</div>
+                                ) : (
+                                    enrolledStudents.map(enr => (
+                                        <div key={enr.id} className="student-item-mini">
+                                            <div className="s-info">
+                                                <div className="s-avatar">{enr.user?.firstName?.[0]}</div>
+                                                <div className="s-meta">
+                                                    <div className="s-name">{enr.user?.firstName} {enr.user?.lastName}</div>
+                                                    <div className="s-id">{enr.studentNumber}</div>
+                                                </div>
+                                            </div>
+                                            <button onClick={() => handleRemoveStudent(enr.id)} className="btn-remove">إزالة</button>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="add-section">
+                            <h3 className="section-title">➕ إضافة طلاب جدد</h3>
+                            <div className="search-pill-mini">
+                                <input type="text" placeholder="بحث بالاسم أو الرقم الأكاديمي..." value={studentSearch} onChange={e => setStudentSearch(e.target.value)} />
+                            </div>
+                            <div className="students-scroll-area">
+                                {students.filter(s => !enrolledStudents.some(e => e.id === s.id) && (!studentSearch || (`${s.user?.firstName} ${s.user?.lastName}`).includes(studentSearch) || s.studentNumber.includes(studentSearch))).map(s => (
+                                    <div key={s.id} onClick={() => handleEnrollStudent(s.id)} className="student-item-mini selectable">
+                                        <div className="s-info">
+                                            <div className="s-avatar-plus">+</div>
+                                            <div className="s-meta">
+                                                <div className="s-name">{s.user?.firstName} {s.user?.lastName}</div>
+                                                <div className="s-id">{s.studentNumber}</div>
+                                            </div>
+                                        </div>
+                                        <span className="add-label">إضافة</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+{
+    showDetailsModal && selectedClass && (
+        <div className="premium-modal-overlay" onClick={() => setShowDetailsModal(false)}>
+            <div className="premium-modal-content fade-in" onClick={e => e.stopPropagation()} style={{ maxWidth: '850px' }}>
+                <div style={{ padding: '3rem' }}>
+                    <div className="details-header-2026">
+                        <div className="details-branding">
+                            <div className="branding-icon-lg">🎓</div>
+                            <div className="branding-meta">
+                                <span className="b-code">{selectedClass.code}</span>
+                                <h2 className="b-title">{selectedClass.name}</h2>
+                            </div>
+                        </div>
+                        <button className="btn-close-2026" onClick={() => setShowDetailsModal(false)}>✕</button>
+                    </div>
+
+                    <div className="details-grid-2026">
+                        <div className="detail-stat-box">
+                            <span className="ds-label">الحالة</span>
+                            <div className="ds-value status-active">نشط</div>
+                        </div>
+                        <div className="detail-stat-box">
+                            <span className="ds-label">تاريخ البدء</span>
+                            <div className="ds-value">{selectedClass.startDate}</div>
+                        </div>
+                        <div className="detail-stat-box">
+                            <span className="ds-label">السعة</span>
+                            <div className="ds-value">{enrolledStudents.length} / {selectedClass.maxStudents}</div>
+                        </div>
+                    </div>
+
+                    <div className="details-program-card">
+                        <h3>🎯 المسار الأكاديمي</h3>
+                        <div className="p-content">
+                            <div className="p-icon">📚</div>
+                            <div className="p-text">
+                                <div className="p-name">{selectedClass.program?.nameAr}</div>
+                                <div className="p-desc">برنامج تدريبي معتمد - {selectedClass.durationMonths} شهر</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="details-schedule-row">
+                        <div className="sch-group">
+                            <h4>⏰ المواعيد</h4>
+                            <div className="sch-pills">
+                                <div className="sch-pill start">بداية: {selectedClass.lectureStartTime}</div>
+                                <div className="sch-pill end">نهاية: {selectedClass.lectureEndTime}</div>
+                            </div>
+                        </div>
+                        <div className="sch-group">
+                            <h4>🗓 الأيام</h4>
+                            <div className="sch-days">
+                                {selectedClass.studyDays.map(d => (
+                                    <span key={d} className="day-pill">{getDayArabic(d)}</span>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+<ClassFormModal
+    show={showModal}
+    formData={formData}
+    programs={programs}
+    onClose={() => {
+        setShowModal(false);
+        resetForm();
+    }}
+    onSubmit={handleSubmit}
+    onChange={handleFormChange}
+    toggleStudyDay={toggleStudyDay}
+/>
+
+{ toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} /> }
+{ confirmDialog && <ConfirmDialog {...confirmDialog} onCancel={() => setConfirmDialog(null)} /> }
+
+<style dangerouslySetInnerHTML={{
+    __html: `
+                .programs-grid-2026 {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+                    gap: 1.5rem;
+                }
+
+                .drawer-overlay {
+                    position: fixed;
+                    inset: 0;
+                    background: rgba(15, 23, 42, 0.4);
+                    backdrop-filter: blur(8px);
+                    z-index: 3000;
+                    display: flex;
+                    justify-content: flex-start;
+                    animation: fadeIn 0.3s ease;
+                }
+
+                .drawer-content {
+                    width: 85%;
+                    max-width: 320px;
+                    background: white;
+                    height: 100%;
+                    padding: 2.5rem 1.5rem;
+                    display: flex;
+                    flex-direction: column;
+                    box-shadow: -10px 0 40px rgba(0,0,0,0.15);
+                    animation: slideInRTL 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                    border-left: 1px solid rgba(226, 232, 240, 0.8);
+                }
+
+                @keyframes slideInRTL {
+                    from { transform: translateX(100%); }
+                    to { transform: translateX(0); }
+                }
+
+                .drawer-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 2.5rem;
+                    padding-bottom: 1.25rem;
+                    border-bottom: 1px solid #F1F5F9;
+                }
+
+                .drawer-header h2 { font-size: 1.25rem; font-weight: 800; margin: 0; color: #1A202C; display: flex; align-items: center; gap: 0.75rem; }
+                .drawer-header button { background: #F8FAFC; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.25rem; color: #718096; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+                .drawer-header button:hover { background: #fee2e2; color: #ef4444; transform: rotate(90deg); }
+
+                .drawer-body { flex: 1; overflow-y: auto; padding-right: 0.25rem; }
+                .drawer-section { margin-bottom: 2rem; }
+                .drawer-section label { display: block; font-size: 0.75rem; font-weight: 800; color: var(--primary-color); text-transform: uppercase; margin-bottom: 1rem; letter-spacing: 0.05em; }
+                
+                .drawer-section select {
+                    width: 100%;
+                    height: 52px;
+                    padding: 0 1rem;
+                    border: 2px solid #EDF2F7;
+                    border-radius: 14px;
+                    background: #F8FAFC;
+                    font-size: 0.9375rem;
+                    font-weight: 600;
+                    color: #1A202C;
+                    cursor: pointer;
+                    appearance: none;
+                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23718096'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+                    background-repeat: no-repeat;
+                    background-position: left 1rem center;
+                    background-size: 1.25rem;
+                    transition: all 0.2s;
+                }
+
+                .drawer-footer {
+                    margin-top: auto;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.75rem;
+                    padding-top: 1.5rem;
+                }
+
+                .btn-reset { height: 50px; background: #F1F5F9; border: none; border-radius: 14px; color: #718096; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+                .btn-apply { height: 52px; background: var(--primary-gradient); color: white; border: none; border-radius: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(44, 122, 123, 0.2); transition: all 0.2s; font-size: 1rem; }
+
+                .btn-close-2026 { width: 42px; height: 42px; border-radius: 14px; border: none; background: #F1F5F9; color: #64748B; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+                .btn-close-2026:hover { background: #fee2e2; color: #ef4444; transform: rotate(90deg); }
+
+                .modal-inner-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+                .section-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 1.5rem; color: #2D3748; }
+                .students-scroll-area { max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem; padding-left: 0.5rem; }
+                
+                .student-item-mini { display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: #F8FAFC; border-radius: 16px; border: 1px solid #EDF2F7; transition: all 0.2s; }
+                .student-item-mini.selectable { cursor: pointer; background: white; }
+                .student-item-mini.selectable:hover { border-color: #2C7A7B; transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+                
+                .s-info { display: flex; align-items: center; gap: 1rem; }
+                .s-avatar { width: 40px; height: 40px; border-radius: 12px; background: #EBF8FF; color: #3182CE; display: flex; align-items: center; justify-content: center; font-weight: 800; }
+                .s-avatar-plus { width: 40px; height: 40px; border-radius: 12px; background: #F0FFF4; color: #38A169; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 400; }
+                .s-name { font-weight: 800; font-size: 0.9rem; color: #2D3748; }
+                .s-id { font-size: 0.75rem; color: #718096; }
+                
+                .btn-remove { padding: 0.5rem 1rem; border: none; background: transparent; color: #E53E3E; font-weight: 800; cursor: pointer; font-size: 0.85rem; border-radius: 8px; }
+                .btn-remove:hover { background: #FFF5F5; }
+                .add-label { color: #2C7A7B; font-weight: 800; font-size: 0.85rem; }
+
+                .search-pill-mini { margin-bottom: 1.5rem; }
+                .search-pill-mini input { width: 100%; padding: 0.875rem 1.25rem; border-radius: 14px; border: 1.5px solid #EDF2F7; background: #F8FAFC; outline: none; font-family: inherit; transition: all 0.2s; }
+                .search-pill-mini input:focus { border-color: #2C7A7B; background: white; box-shadow: 0 0 0 4px rgba(44, 122, 123, 0.05); }
+
+                .details-header-2026 { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3rem; }
+                .details-branding { display: flex; gap: 1.5rem; align-items: center; }
+                .branding-icon-lg { width: 70px; height: 70px; border-radius: 24px; background: #F0FFF4; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; }
+                .b-code { color: #2C7A7B; font-weight: 800; font-size: 0.85rem; letter-spacing: 1px; }
+                .b-title { font-size: 2rem; font-weight: 900; margin: 0.25rem 0 0 0; color: #1A202C; }
+
+                .details-grid-2026 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2.5rem; }
+                .detail-stat-box { background: #F8FAFC; padding: 1.5rem; border-radius: 20px; border: 1px solid #EDF2F7; }
+                .ds-label { display: block; font-size: 0.75rem; font-weight: 800; color: #718096; text-transform: uppercase; margin-bottom: 0.5rem; }
+                .ds-value { font-size: 1.25rem; font-weight: 800; color: #2D3748; }
+                .status-active { color: #38A169; }
+
+                .details-program-card { background: white; border: 1.5px solid #EDF2F7; border-radius: 24px; padding: 2rem; margin-bottom: 2.5rem; }
+                .details-program-card h3 { font-size: 1rem; font-weight: 800; margin-bottom: 1.5rem; }
+                .p-content { display: flex; gap: 1.5rem; align-items: center; }
+                .p-icon { font-size: 2.5rem; }
+                .p-name { font-size: 1.2rem; font-weight: 800; color: #2D3748; }
+                .p-desc { font-size: 0.9rem; color: #718096; margin-top: 0.25rem; }
+
+                .details-schedule-row { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+                .sch-group h4 { font-size: 0.9rem; font-weight: 800; margin-bottom: 1.25rem; color: #4A5568; }
+                .sch-pills { display: flex; gap: 1rem; }
+                .sch-pill { flex: 1; padding: 1rem; border-radius: 16px; font-weight: 800; text-align: center; }
+                .sch-pill.start { background: #F0FFF4; color: #22543D; }
+                .sch-pill.end { background: #FFF5F5; color: #742A2A; }
+                .sch-days { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+                .day-pill { padding: 0.5rem 1rem; background: #EDF2F7; border-radius: 10px; font-size: 0.85rem; font-weight: 800; color: #4A5568; }
+
+                @media (max-width: 800px) {
+                    .modal-inner-grid { grid-template-columns: 1fr; gap: 2rem; }
+                    .details-grid-2026 { grid-template-columns: 1fr; }
+                    .details-schedule-row { grid-template-columns: 1fr; }
+                }
+
+                /* Schedule styles refinement */
+                .schedule-container { background: white; border-radius: 24px; box-shadow: var(--shadow-md); border: none; overflow: hidden; }
+                .schedule-header { background: #EDF2F7; }
+                .day-col { color: #2D3748; }
+                .session-pill { transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
+                .session-pill:hover { transform: scale(1.03); box-shadow: var(--shadow-md); }
+                `
+}} />
+        </div >
+    );
+}

@@ -1,0 +1,210 @@
+/* ══════════════════════════════════════════════════════
+   ULTIMATE 2026 DESIGN — RECRUITMENT & TALENT
+   ══════════════════════════════════════════════════════ */
+
+.rc-root {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 450px;
+    background: var(--hz-dark);
+    border: 1px solid var(--hz-border-soft);
+    border-radius: 12px;
+    overflow: hidden;
+    color: var(--hz-text-primary);
+    box-shadow: var(--hz-shadow-lg);
+    font-family: var(--hz-font);
+}
+
+/* ── HEADER ── */
+.rc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 70px;
+    padding: 0 24px;
+    background: var(--hz-surface);
+    border-bottom: 1px solid var(--hz-border-subtle);
+}
+
+.rc-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--hz-text-bright);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.rc-title svg {
+    color: #DD6B20;
+}
+
+/* ── TABS ── */
+.rc-tabs {
+    display: flex;
+    gap: 8px;
+    background: var(--hz-surface-2);
+    padding: 8px 24px;
+    border-bottom: 1px solid var(--hz-border-subtle);
+}
+
+.rc-tab {
+    padding: 8px 20px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--hz-text-muted);
+    cursor: pointer;
+    transition: 0.2s;
+    border: 1px solid transparent;
+}
+
+.rc-tab:hover {
+    color: var(--hz-text-bright);
+}
+
+.rc-tab.active {
+    background: var(--hz-void);
+    border-color: var(--hz-border-soft);
+    color: #DD6B20;
+}
+
+/* ── STATS ── */
+.rc-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    padding: 24px;
+    background: var(--hz-void);
+}
+
+.rc-stat-card {
+    background: var(--hz-surface);
+    border: 1px solid var(--hz-border-soft);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.rc-stat-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: var(--hz-text-muted);
+    text-transform: uppercase;
+}
+
+.rc-stat-val {
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: var(--hz-text-bright);
+}
+
+/* ── GRID / LIST ── */
+.rc-main {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+    background: var(--hz-void);
+}
+
+.rc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.rc-card {
+    background: var(--hz-surface);
+    border: 1px solid var(--hz-border-soft);
+    border-radius: 20px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rc-card:hover {
+    transform: translateY(-5px);
+    border-color: #DD6B20;
+    box-shadow: 0 10px 30px rgba(221, 107, 32, 0.1);
+}
+
+/* ── TABLE ── */
+.rc-table-wrap {
+    background: var(--hz-surface);
+    border: 1px solid var(--hz-border-soft);
+    border-radius: 20px;
+    overflow-x: auto;
+}
+
+.rc-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: right;
+    min-width: 900px;
+}
+
+.rc-table th {
+    padding: 16px;
+    background: var(--hz-surface-2);
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--hz-text-muted);
+}
+
+.rc-table td {
+    padding: 16px;
+    border-bottom: 1px solid var(--hz-border-subtle);
+    font-size: 0.85rem;
+}
+
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+    .rc-table-wrap {
+        border: none;
+        background: transparent;
+    }
+
+    .rc-table {
+        display: block;
+        min-width: 0;
+    }
+
+    .rc-table thead {
+        display: none;
+    }
+
+    .rc-table tbody {
+        display: grid;
+        gap: 16px;
+    }
+
+    .rc-row {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        background: var(--hz-surface);
+        border: 1px solid var(--hz-border-soft);
+        border-radius: 20px;
+        padding: 20px;
+    }
+
+    .rc-row td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0;
+        border: none;
+    }
+
+    .rc-row td::before {
+        content: attr(data-label);
+        font-size: 0.7rem;
+        font-weight: 800;
+        color: var(--hz-text-muted);
+    }
+}

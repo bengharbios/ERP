@@ -1,0 +1,1122 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { scheduleService, Lecture } from '../services/schedule.service';
+import { classService } from '../services/class.service';
+import { studentService } from '../services/student.service';
+import usersService, { User } from '../services/users.service';
+import { Toast, ToastType } from '../components/Toast';
+import { format, startOfWeek, addDays } from 'date-fns';
+
+export default function Schedule() {
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const classIdFromUrl = searchParams.get('classId');
+
+    const [lectures, setLectures] = useState<Lecture[]>([]);
+    const [classes, setClasses] = useState<any[]>([]);
+    const [instructors, setInstructors] = useState<User[]>([]);
+    const [students, setStudents] = useState<any[]>([]);
+
+    // Filter State
+    const [filterType, setFilterType] = useState<'class' | 'instructor' | 'student'>('class');
+    const [selectedId, setSelectedId] = useState(classIdFromUrl || '');
+
+    const [currentWeek, setCurrentWeek] = useState(new Date());
+    const [loading, setLoading] = useState(false);
+    const [viewMode, setViewMode] = useState<'weekly' | 'list'>('weekly');
+    const [toast, setToast] = useState<{ type: ToastType; message: string } | null>(null);
+
+    const weekDays = [
+        { en: 'Sunday', ar: 'الأحد', short: 'ح' },
+        { en: 'Monday', ar: 'الإثنين', short: 'ن' },
+        { en: 'Tuesday', ar: 'الثلاثاء', short: 'ث' },
+        { en: 'Wednesday', ar: 'الأربعاء', short: 'ر' },
+        { en: 'Thursday', ar: 'الخميس', short: 'خ' },
+        { en: 'Friday', ar: 'الجمعة', short: 'ج' },
+        { en: 'Saturday', ar: 'السبت', short: 'س' },
+    ];
+
+    const timeSlots = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'];
+
+
+
+    useEffect(() => {
+        fetchInitialData();
+    }, []);
+
+    useEffect(() => {
+        if (selectedId) {
+            fetchLectures();
+        } else {
+            setLectures([]);
+        }
+    }, [selectedId, filterType, currentWeek]);
+
+    const fetchInitialData = async () => {
+        setLoading(true);
+        try {
+            const [classesRes, studentsRes, usersRes] = await Promise.all([
+                classService.getClasses(),
+                studentService.getStudents(),
+                usersService.getUsers()
+            ]);
+
+            if (classesRes.success) setClasses(classesRes.data.classes || []);
+            if (studentsRes.success) setStudents(studentsRes.data.students || []);
+            if (usersRes.success) {
+                // Filter only instructors/lecturers if possible, or just keep all for now
+                setInstructors(usersRes.data.users || []);
+            }
+        } catch (error) {
+            console.error('Error fetching initial data:', error);
+            setToast({ type: 'error', message: '❌ فشل في تحميل البيانات الأساسية' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchLectures = async () => {
+        setLoading(true);
+        try {
+            const startDate = format(startOfWeek(currentWeek, { weekStartsOn: 0 }), 'yyyy-MM-dd');
+            const endDate = format(addDays(new Date(startDate), 6), 'yyyy-MM-dd');
+
+            const params: any = { startDate, endDate };
+            if (filterType === 'class') params.classId = selectedId;
+            if (filterType === 'instructor') params.instructorId = selectedId;
+            if (filterType === 'student') params.studentId = selectedId;
+
+            const res = await scheduleService.getLectures(params);
+            if (res.success) {
+                setLectures(res.data.lectures || []);
+            }
+        } catch (error) {
+            console.error('Error fetching lectures:', error);
+            setToast({ type: 'error', message: '❌ فشل في تحميل جدول المحاضرات' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getLectureAtSlot = (dayIdx: number, time: string) => {
+        return lectures.find((lec) => {
+            const lecDay = new Date(lec.scheduledDate).getDay();
+            const lecTime = format(new Date(lec.scheduledStartTime), 'HH:00');
+            return lecDay === dayIdx && lecTime === time;
+        });
+    };
+
+    const getUnitColor = (unitId: string) => {
+        const colors = ['#DD6B20', '#3182CE', '#805AD5', '#38A169', '#E53E3E'];
+        const index = parseInt(unitId.replace('unit', '')) % colors.length;
+        return colors[isNaN(index) ? 0 : index];
+    };
+
+    const handleLectureClick = (lecture: any) => {
+        navigate(`/attendance?lectureId=${lecture.id}&classId=${selectedId}`);
+    };
+
+    const goToPreviousWeek = () => {
+        const newDate = new Date(currentWeek);
+        newDate.setDate(newDate.getDate() - 7);
+        setCurrentWeek(newDate);
+    };
+
+    const goToNextWeek = () => {
+        const newDate = new Date(currentWeek);
+        newDate.setDate(newDate.getDate() + 7);
+        setCurrentWeek(newDate);
+    };
+
+    const goToCurrentWeek = () => {
+        setCurrentWeek(new Date());
+    };
+
+    if (loading && classes.length === 0) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#F8FAFC' }}>
+                <div className="next-gen-loader"></div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="next-gen-page-container">
+            {/* --- Premium Floating Header --- */}
+            <header className="glass-header">
+                <div className="container-wide header-content">
+                    <div className="header-branding">
+                        <div className="branding-icon orange">📅</div>
+                        <div className="branding-text">
+                            <h1>الجداول الدراسية</h1>
+                            <p className="hide-on-mobile">تنظيم ومتابعة المحاضرات واللقاءات التعليمية</p>
+                        </div>
+                    </div>
+
+                    <div className="header-actions">
+                        <div className="view-switcher hide-on-mobile">
+                            <button onClick={() => setViewMode('weekly')} className={viewMode === 'weekly' ? 'active' : ''}>📅</button>
+                            <button onClick={() => setViewMode('list')} className={viewMode === 'list' ? 'active' : ''}>☰</button>
+                        </div>
+                        <div className="header-pills hide-on-mobile">
+                            <span className="pill pill-green">المحاضرات: {lectures.length}</span>
+                        </div>
+                        <button
+                            onClick={() => navigate(`/attendance${selectedId ? `?classId=${selectedId}` : ''}`)}
+                            className="btn-modern btn-orange-gradient"
+                        >
+                            <span className="plus-icon">✓</span>
+                            <span className="hide-on-mobile">تسجيل حضور</span>
+                        </button>
+                    </div>
+
+                </div>
+            </header>
+
+            {/* --- Main Content --- */}
+            <main className="container-wide main-content">
+                {/* Desktop Filters Toolbar */}
+                <section className="filters-toolbar hide-on-mobile">
+                    <div className="filter-type-switcher">
+                        <button
+                            className={`filter-tab ${filterType === 'class' ? 'active' : ''}`}
+                            onClick={() => { setFilterType('class'); setSelectedId(''); }}
+                        >🎓 الفصول</button>
+                        <button
+                            className={`filter-tab ${filterType === 'instructor' ? 'active' : ''}`}
+                            onClick={() => { setFilterType('instructor'); setSelectedId(''); }}
+                        >👨‍🏫 المحاضرين</button>
+                        <button
+                            className={`filter-tab ${filterType === 'student' ? 'active' : ''}`}
+                            onClick={() => { setFilterType('student'); setSelectedId(''); }}
+                        >👤 الطلاب</button>
+                    </div>
+
+                    <div className="divider-v"></div>
+
+                    <div className="search-box-wrapper">
+                        {filterType === 'class' && (
+                            <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)}>
+                                <option value="">اختر الفصل الدراسي...</option>
+                                {classes.map(c => <option key={c.id} value={c.id}>{c.name} ({c.code})</option>)}
+                            </select>
+                        )}
+                        {filterType === 'instructor' && (
+                            <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)}>
+                                <option value="">اختر المحاضر...</option>
+                                {instructors.map(i => <option key={i.id} value={i.id}>{i.firstName} {i.lastName}</option>)}
+                            </select>
+                        )}
+                        {filterType === 'student' && (
+                            <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)}>
+                                <option value="">اختر الطالب...</option>
+                                {students.map(s => <option key={s.id} value={s.id}>{s.user?.firstName} {s.user?.lastName} ({s.studentNumber})</option>)}
+                            </select>
+                        )}
+                    </div>
+
+                    <div className="filters-group">
+                        <div className="divider-v"></div>
+                        <button className="btn-icon-label" onClick={goToPreviousWeek}><span>←</span> الأسبوع السابق</button>
+                        <button onClick={goToCurrentWeek} className="btn-icon-label"><span>📍</span> هذا الأسبوع</button>
+                        <button className="btn-icon-label" onClick={goToNextWeek}>الأسبوع التالي <span>→</span></button>
+                    </div>
+                </section>
+
+
+                {/* Mobile Search Bar */}
+                <section className="show-on-mobile mobile-search-area">
+                    <div className="filter-type-switcher-mobile">
+                        <button className={filterType === 'class' ? 'active' : ''} onClick={() => setFilterType('class')}>🎓</button>
+                        <button className={filterType === 'instructor' ? 'active' : ''} onClick={() => setFilterType('instructor')}>👨‍🏫</button>
+                        <button className={filterType === 'student' ? 'active' : ''} onClick={() => setFilterType('student')}>👤</button>
+                    </div>
+                    <div className="search-box-wrapper" style={{ marginTop: '0.5rem' }}>
+                        {filterType === 'class' && (
+                            <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)}>
+                                <option value="">اختر الفصل...</option>
+                                {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                            </select>
+                        )}
+                        {filterType === 'instructor' && (
+                            <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)}>
+                                <option value="">اختر المحاضر...</option>
+                                {instructors.map(i => <option key={i.id} value={i.id}>{i.firstName}</option>)}
+                            </select>
+                        )}
+                        {filterType === 'student' && (
+                            <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)}>
+                                <option value="">اختر الطالب...</option>
+                                {students.map(s => <option key={s.id} value={s.id}>{s.user?.firstName}</option>)}
+                            </select>
+                        )}
+                        <button className="btn-filter-toggle" onClick={() => setViewMode(viewMode === 'weekly' ? 'list' : 'weekly')}>
+                            {viewMode === 'weekly' ? '☰' : '📅'}
+                        </button>
+                    </div>
+                </section>
+
+
+                {/* Data Display */}
+                <div className={`content-transition-wrapper ${viewMode}`}>
+                    {!selectedId ? (
+                        <div className="empty-state-modern">
+                            <div className="empty-icon">📅</div>
+                            <h2>برجاء اختيار {filterType === 'class' ? 'فصل دراسي' : filterType === 'instructor' ? 'محاضر' : 'طالب'}</h2>
+                            <p>قم بالاختيار من القائمة أعلاه لعرض الجدول الزمني للمحاضرات</p>
+                        </div>
+                    ) : viewMode === 'weekly' ? (
+                        <div key="weekly-view" className="schedule-grid-2026">
+                            <div className="schedule-container-premium">
+                                <div className="schedule-header-premium">
+                                    <div className="time-header-cell">الوقت</div>
+                                    {weekDays.map((day, idx) => (
+                                        <div key={idx} className="day-header-cell">
+                                            <span className="day-name">{day.ar}</span>
+                                            <span className="day-short">{day.short}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="schedule-body-premium">
+                                    {timeSlots.map((time, timeIdx) => (
+                                        <div key={timeIdx} className="schedule-row-premium">
+                                            <div className="time-cell-premium">
+                                                <span className="time-val">{time}</span>
+                                            </div>
+                                            {weekDays.map((_, dayIdx) => {
+                                                const lecture = getLectureAtSlot(dayIdx, time);
+                                                return (
+                                                    <div key={dayIdx} className="day-cell-premium">
+                                                        {lecture && (
+                                                            <div
+                                                                className="lecture-session-card"
+                                                                onClick={() => handleLectureClick(lecture)}
+                                                                style={{
+                                                                    borderRight: `4px solid ${getUnitColor(lecture.unitId)}`,
+                                                                    background: `${getUnitColor(lecture.unitId)}10`
+                                                                }}
+                                                            >
+                                                                <div className="lec-top">
+                                                                    <span className="lec-code" style={{ color: getUnitColor(lecture.unitId) }}>{lecture.unit?.code}</span>
+                                                                    <span className="lec-room">📍 {lecture.room || 'N/A'}</span>
+                                                                </div>
+                                                                <h4 className="lec-title">{lecture.unit?.nameAr}</h4>
+                                                                <div className="lec-meta">
+                                                                    <span className="lec-instructor">👨‍🏫 {lecture.instructor?.firstName} {lecture.instructor?.lastName}</span>
+                                                                    <span className="lec-time">{format(new Date(lecture.scheduledStartTime), 'HH:mm')} - {format(new Date(lecture.scheduledEndTime), 'HH:mm')}</span>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div key="list-view" className="programs-grid-2026">
+                            {lectures.map((lecture) => (
+                                <div
+                                    key={lecture.id}
+                                    className="next-gen-card"
+                                    onClick={() => handleLectureClick(lecture)}
+                                >
+                                    <div className="card-top">
+                                        <span className="card-code">{lecture.unit?.code}</span>
+                                        <div className="card-actions-mini">
+                                            <span className="day-badge">{weekDays[new Date(lecture.scheduledDate).getDay()].ar}</span>
+                                        </div>
+                                    </div>
+                                    <div className="card-info">
+                                        <h3 className="card-title">{lecture.unit?.nameAr}</h3>
+                                        <p className="card-subtitle">{lecture.unit?.nameEn}</p>
+                                        <div className="card-tags">
+                                            <span className="tag-level">📍 {lecture.room || 'N/A'}</span>
+                                            <span className="tag-body">👨‍🏫 {lecture.instructor?.firstName} {lecture.instructor?.lastName}</span>
+                                        </div>
+                                    </div>
+                                    <div className="card-stats-grid">
+                                        <div className="stat-item">
+                                            <span className="stat-val">{format(new Date(lecture.scheduledStartTime), 'HH:mm')}</span>
+                                            <span className="stat-lbl">البداية</span>
+                                        </div>
+                                        <div className="stat-item highlight">
+                                            <span className="stat-val">محاضرة</span>
+                                            <span className="stat-lbl">الفصل: {lecture.class?.code}</span>
+                                        </div>
+                                        <div className="stat-item">
+                                            <span className="stat-val">{format(new Date(lecture.scheduledEndTime), 'HH:mm')}</span>
+                                            <span className="stat-lbl">النهاية</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                </div>
+            </main>
+
+            {/* Toast Notifications */}
+            {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
+
+            {/* --- Global Design System 2026 --- */}
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                :root {
+                    --orange-primary: #DD6B20;
+                    --orange-light: #FEEBC8;
+                    --orange-dark: #7B341E;
+                    --primary: var(--orange-primary);
+                    --primary-light: var(--orange-light);
+                    --primary-dark: var(--orange-dark);
+                    --accent: #3182CE;
+                    --bg-page: #F8FAFC;
+                    --surface: #FFFFFF;
+                    --text-main: #1A202C;
+                    --text-muted: #718096;
+                    --glass-bg: rgba(255, 255, 255, 0.85);
+                    --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+                    --shadow-md: 0 8px 24px rgba(149, 157, 165, 0.2);
+                    --shadow-premium: 0 12px 30px rgba(0, 0, 0, 0.08);
+                    --radius-lg: 16px;
+                    --radius-md: 12px;
+                }
+
+                .next-gen-page-container {
+                    font-family: 'Inter', 'Cairo', sans-serif;
+                    color: var(--text-main);
+                    direction: rtl;
+                    min-height: 100vh;
+                    background: var(--bg-page);
+                }
+
+                .container-wide {
+                    max-width: 1400px;
+                    margin: 0 auto;
+                    padding: 0 1.5rem;
+                }
+
+                /* GLASS HEADER */
+                .glass-header {
+                    position: sticky;
+                    top: 64px;
+                    z-index: 1000;
+                    background: var(--glass-bg);
+                    backdrop-filter: blur(12px);
+                    -webkit-backdrop-filter: blur(12px);
+                    border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+                    height: 80px;
+                    display: flex;
+                    align-items: center;
+                    transition: all 0.3s ease;
+                }
+
+                .header-content {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    width: 100%;
+                }
+
+                .header-branding {
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
+                }
+
+                .branding-icon {
+                    font-size: 2rem;
+                    background: var(--primary-light);
+                    color: var(--primary);
+                    width: 48px;
+                    height: 48px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 12px;
+                }
+                .branding-icon.orange { background: linear-gradient(135deg, #DD6B20 0%, #ED8936 100%); color: white; }
+
+                .branding-text h1 {
+                    font-size: 1.25rem;
+                    font-weight: 800;
+                    margin: 0;
+                    color: var(--primary-dark);
+                }
+
+                .branding-text p {
+                    margin: 0;
+                    font-size: 0.8125rem;
+                    color: var(--text-muted);
+                }
+
+                .header-actions {
+                    display: flex;
+                    align-items: center;
+                    gap: 1.5rem;
+                }
+
+                /* BTN MODERN */
+                .btn-modern {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                    padding: 0.625rem 1.25rem;
+                    border-radius: var(--radius-md);
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                    border: none;
+                }
+
+                .btn-orange-gradient {
+                    background: linear-gradient(135deg, var(--orange-primary) 0%, #ED8936 100%);
+                    color: white;
+                    box-shadow: 0 4px 12px rgba(221, 107, 32, 0.3);
+                }
+
+                .btn-orange-gradient:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 16px rgba(221, 107, 32, 0.4);
+                }
+
+                /* VIEW SWITCHER */
+                .view-switcher {
+                    display: flex;
+                    background: #EDF2F7;
+                    padding: 4px;
+                    border-radius: 10px;
+                }
+
+                .view-switcher button {
+                    width: 36px;
+                    height: 36px;
+                    border: none;
+                    background: transparent;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    color: var(--text-muted);
+                    font-size: 1rem;
+                    transition: all 0.2s;
+                }
+
+                .view-switcher button.active {
+                    background: white;
+                    color: var(--primary);
+                    box-shadow: var(--shadow-sm);
+                }
+
+                .pill {
+                    padding: 0.4rem 1rem;
+                    border-radius: 10px;
+                    font-weight: 700;
+                    font-size: 0.85rem;
+                }
+
+                .pill-green {
+                    background: #C6F6D5;
+                    color: #22543D;
+                }
+
+                /* FILTERS TOOLBAR & TABS */
+                .filters-toolbar {
+                    margin-top: 2rem;
+                    background: white;
+                    padding: 1rem 1.5rem;
+                    border-radius: var(--radius-lg);
+                    box-shadow: var(--shadow-premium);
+                    display: flex;
+                    align-items: center;
+                    gap: 1.5rem;
+                    border: 1px solid rgba(226, 232, 240, 0.5);
+                }
+
+                .filter-type-switcher {
+                    display: flex;
+                    gap: 0.5rem;
+                    background: #F1F5F9;
+                    padding: 4px;
+                    border-radius: 12px;
+                }
+
+                .filter-tab {
+                    padding: 0.5rem 1rem;
+                    border: none;
+                    background: transparent;
+                    border-radius: 8px;
+                    font-size: 0.875rem;
+                    font-weight: 700;
+                    color: var(--text-muted);
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    white-space: nowrap;
+                }
+
+                .filter-tab.active {
+                    background: white;
+                    color: var(--primary);
+                    box-shadow: var(--shadow-sm);
+                }
+
+                .filter-type-switcher-mobile {
+                    display: flex;
+                    justify-content: center;
+                    gap: 1rem;
+                    margin-bottom: 0.75rem;
+                }
+
+                .filter-type-switcher-mobile button {
+                    width: 44px;
+                    height: 44px;
+                    border-radius: 12px;
+                    border: 1px solid #E2E8F0;
+                    background: white;
+                    font-size: 1.25rem;
+                    cursor: pointer;
+                }
+
+                .filter-type-switcher-mobile button.active {
+                    background: var(--primary);
+                    color: white;
+                    border-color: var(--primary);
+                }
+
+
+                .search-box-wrapper {
+                    flex: 1;
+                    position: relative;
+                    display: flex;
+                    align-items: center;
+                }
+
+                .search-icon {
+                    position: absolute;
+                    right: 1rem;
+                    color: var(--text-muted);
+                }
+
+                .search-box-wrapper select,
+                .search-box-wrapper input {
+                    width: 100%;
+                    height: 48px;
+                    padding: 0 3rem 0 1rem;
+                    border: 1px solid #E2E8F0;
+                    border-radius: var(--radius-md);
+                    background: #F8FAFC;
+                    font-size: 0.9375rem;
+                    transition: all 0.2s;
+                }
+
+                .search-box-wrapper select:focus,
+                .search-box-wrapper input:focus {
+                    border-color: var(--primary);
+                    background: white;
+                    box-shadow: 0 0 0 3px rgba(44, 122, 123, 0.1);
+                    outline: none;
+                }
+
+                .filters-group {
+                    display: flex;
+                    gap: 1rem;
+                    align-items: center;
+                }
+
+                .divider-v {
+                    width: 1px;
+                    height: 30px;
+                    background: #E2E8F0;
+                }
+
+                .btn-icon-label {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    padding: 0.5rem 1rem;
+                    border: 1px solid #E2E8F0;
+                    border-radius: var(--radius-md);
+                    background: white;
+                    color: var(--text-main);
+                    font-weight: 600;
+                    font-size: 0.875rem;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+
+                .btn-icon-label:hover {
+                    background: #F8FAFC;
+                    border-color: var(--primary);
+                }
+
+                .main-content {
+                    padding-top: 0;
+                    padding-bottom: 3rem;
+                }
+
+                /* SCHEDULE GRID (Weekly View) */
+                .schedule-grid-2026 {
+                    margin-top: 2rem;
+                    animation: fadeIn 0.4s ease-out;
+                }
+
+                .schedule-container-premium {
+                    background: white;
+                    border-radius: 24px;
+                    overflow: hidden;
+                    border: 1px solid #EDF2F7;
+                    box-shadow: var(--shadow-premium);
+                }
+
+                .schedule-header-premium {
+                    display: grid;
+                    grid-template-columns: 80px repeat(7, 1fr);
+                    background: #F8FAFC;
+                    border-bottom: 1px solid #EDF2F7;
+                }
+
+                .time-header-cell {
+                    padding: 1.5rem;
+                    text-align: center;
+                    font-weight: 800;
+                    color: var(--text-muted);
+                    border-left: 1px solid #EDF2F7;
+                }
+
+                .day-header-cell {
+                    padding: 1.5rem;
+                    text-align: center;
+                    font-weight: 800;
+                    color: var(--text-main);
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                    border-left: 1px solid #EDF2F7;
+                }
+
+                .day-short {
+                    font-size: 0.75rem;
+                    color: var(--text-muted);
+                    font-weight: 600;
+                }
+
+                .schedule-body-premium {
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                .schedule-row-premium {
+                    display: grid;
+                    grid-template-columns: 80px repeat(7, 1fr);
+                    border-bottom: 1px solid #F1F5F9;
+                    min-height: 120px;
+                }
+
+                .time-cell-premium {
+                    padding: 1rem;
+                    display: flex;
+                    align-items: flex-start;
+                    justify-content: center;
+                    background: #F8FAFC;
+                    border-left: 1px solid #EDF2F7;
+                }
+
+                .time-val {
+                    font-size: 0.75rem;
+                    font-weight: 800;
+                    color: var(--primary);
+                    background: var(--primary-light);
+                    padding: 4px 8px;
+                    border-radius: 6px;
+                }
+
+                .day-cell-premium {
+                    padding: 0.5rem;
+                    border-left: 1px solid #F1F5F9;
+                    position: relative;
+                }
+
+                .lecture-session-card {
+                    padding: 0.75rem;
+                    border-radius: 12px;
+                    cursor: pointer;
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 6px;
+                }
+
+                .lecture-session-card:hover {
+                    transform: scale(1.02);
+                    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+                    z-index: 10;
+                }
+
+                .lec-top {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+
+                .lec-code {
+                    font-size: 0.65rem;
+                    font-weight: 900;
+                }
+
+                .lec-room {
+                    font-size: 0.65rem;
+                    color: var(--text-muted);
+                    font-weight: 700;
+                }
+
+                .lec-title {
+                    font-size: 0.8125rem;
+                    font-weight: 800;
+                    margin: 0;
+                    line-height: 1.4;
+                    color: var(--text-main);
+                }
+
+                .lec-meta {
+                    margin-top: auto;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2px;
+                }
+
+                .lec-instructor,
+                .lec-time {
+                    font-size: 0.625rem;
+                    color: var(--text-muted);
+                    font-weight: 600;
+                }
+
+                /* LIST VIEW - using same card style as Programs */
+                .programs-grid-2026 {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+                    gap: 1.5rem;
+                    margin-top: 2rem;
+                    animation: fadeIn 0.4s ease-out;
+                }
+
+                .next-gen-card {
+                    background: var(--surface);
+                    border-radius: var(--radius-lg);
+                    padding: 1.5rem;
+                    border: 1px solid #EDF2F7;
+                    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+                    position: relative;
+                    overflow: hidden;
+                    display: flex;
+                    flex-direction: column;
+                    box-shadow: var(--shadow-sm);
+                    cursor: pointer;
+                }
+
+                .next-gen-card:hover {
+                    transform: translateY(-8px);
+                    box-shadow: var(--shadow-premium);
+                    border-color: var(--primary-light);
+                }
+
+                .card-top {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 1.25rem;
+                }
+
+                .card-code {
+                    font-size: 0.75rem;
+                    font-weight: 800;
+                    color: var(--primary);
+                    background: var(--primary-light);
+                    padding: 0.25rem 0.75rem;
+                    border-radius: 20px;
+                }
+
+                .day-badge {
+                    font-size: 0.7rem;
+                    font-weight: 800;
+                    color: var(--text-muted);
+                    background: #F1F5F9;
+                    padding: 0.25rem 0.75rem;
+                    border-radius: 20px;
+                }
+
+                .card-actions-mini {
+                    display: flex;
+                    gap: 0.5rem;
+                }
+
+                .card-info {
+                    margin-bottom: 1.5rem;
+                }
+
+                .card-title {
+                    font-size: 1.125rem;
+                    font-weight: 800;
+                    color: var(--text-main);
+                    margin: 0 0 0.25rem 0;
+                }
+
+                .card-subtitle {
+                    font-size: 0.8125rem;
+                    color: var(--text-muted);
+                    margin: 0 0 1rem 0;
+                }
+
+                .card-tags {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                }
+
+                .tag-level,
+                .tag-body {
+                    font-size: 0.7rem;
+                    padding: 0.2rem 0.6rem;
+                    border-radius: 6px;
+                    font-weight: 600;
+                    background: #EBF8FF;
+                    color: #2B6CB0;
+                }
+
+                .tag-body {
+                    background: #F7FAFC;
+                    color: #4A5568;
+                    border: 1px solid #E2E8F0;
+                }
+
+                .card-stats-grid {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 0.75rem;
+                    padding: 1rem;
+                    background: #F8FAFC;
+                    border-radius: var(--radius-md);
+                    margin-top: auto;
+                }
+
+                .stat-item {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+
+                .stat-val {
+                    font-size: 1.125rem;
+                    font-weight: 800;
+                    color: var(--text-main);
+                }
+
+                .stat-lbl {
+                    font-size: 0.625rem;
+                    color: var(--text-muted);
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+
+                .stat-item.highlight .stat-val {
+                    color: var(--accent);
+                }
+
+                /* EMPTY STATE */
+                .empty-state-modern {
+                    text-align: center;
+                    padding: 5rem 2rem;
+                    background: white;
+                    border-radius: 24px;
+                    box-shadow: var(--shadow-premium);
+                    border: 1px solid #EDF2F7;
+                    margin-top: 2rem;
+                }
+
+                .empty-icon {
+                    font-size: 4rem;
+                    opacity: 0.3;
+                    margin-bottom: 1.5rem;
+                }
+
+                .empty-state-modern h2 {
+                    font-size: 1.5rem;
+                    font-weight: 800;
+                    color: var(--text-main);
+                    margin: 0 0 0.75rem 0;
+                }
+
+                .empty-state-modern p {
+                    color: var(--text-muted);
+                    font-size: 1rem;
+                    margin: 0;
+                }
+
+                /* MOBILE */
+                .mobile-search-area {
+                    display: none;
+                }
+
+                .hide-on-mobile {
+                    display: block;
+                }
+
+                .show-on-mobile {
+                    display: none;
+                }
+
+                @media (max-width: 768px) {
+                    .hide-on-mobile {
+                        display: none;
+                    }
+
+                    .show-on-mobile {
+                        display: block;
+                    }
+
+                    .glass-header {
+                        margin: 0.5rem;
+                        height: 70px;
+                        top: 64px;
+                        border-radius: 15px;
+                        z-index: 1000;
+                    }
+
+                    .btn-filter-toggle {
+                        width: 48px;
+                        height: 48px;
+                        background: white;
+                        border: 1px solid #E2E8F0;
+                        border-radius: 12px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 1.25rem;
+                        cursor: pointer;
+                        box-shadow: var(--shadow-sm);
+                    }
+
+                    .branding-icon {
+                        width: 40px;
+                        height: 40px;
+                        font-size: 1.5rem;
+                    }
+
+                    .branding-text h1 {
+                        font-size: 1.1rem;
+                    }
+
+                    .main-content {
+                        padding-top: 1.5rem;
+                    }
+
+                    .mobile-search-area {
+                        background: white;
+                        padding: 0.75rem;
+                        border-radius: 16px;
+                        box-shadow: var(--shadow-sm);
+                        margin-bottom: 1.5rem;
+                    }
+
+                    .mobile-search-area .search-box-wrapper {
+                        height: 44px;
+                        justify-content: space-between;
+                        gap: 10px;
+                        border: 1px solid #E2E8F0;
+                        border-radius: var(--radius-md);
+                        background: #F8FAFC;
+                        padding: 0 0.75rem;
+                    }
+
+                    .btn-filter-toggle {
+                        background: var(--primary-light);
+                        color: var(--primary);
+                        border: none;
+                        width: 36px;
+                        height: 36px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-size: 1rem;
+                    }
+
+                    .schedule-header-premium {
+                        grid-template-columns: 60px repeat(7, 1fr);
+                    }
+
+                    .schedule-row-premium {
+                        grid-template-columns: 60px repeat(7, 1fr);
+                    }
+
+                    .time-header-cell {
+                        padding: 1rem 0.5rem;
+                        font-size: 0.7rem;
+                    }
+
+                    .day-header-cell {
+                        padding: 1rem 0.5rem;
+                        font-size: 0.7rem;
+                    }
+
+                    .day-name {
+                        display: none;
+                    }
+
+                    .day-short {
+                        display: block;
+                        font-size: 0.85rem;
+                    }
+
+                    .lec-meta {
+                        display: none;
+                    }
+
+                    .lec-title {
+                        font-size: 0.7rem;
+                    }
+
+                    .programs-grid-2026 {
+                        grid-template-columns: 1fr;
+                    }
+                }
+
+                /* ANIMATIONS */
+                .fade-in {
+                    animation: fadeIn 0.4s ease-out;
+                }
+
+                @keyframes fadeIn {
+                    from {
+                        opacity: 0;
+                        transform: translateY(10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
+                .content-transition-wrapper {
+                    transition: opacity 0.3s ease;
+                }
+
+                /* LOADER */
+                .next-gen-loader {
+                    width: 48px;
+                    height: 48px;
+                    border: 4px solid var(--orange-light);
+                    border-top-color: var(--orange-primary);
+                    border-radius: 50%;
+                    animation: spin 0.8s linear infinite;
+                }
+
+                @keyframes spin {
+                    to {
+                        transform: rotate(360deg);
+                    }
+                }
+                `
+            }} />
+        </div>
+    );
+}

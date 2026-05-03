@@ -1,0 +1,1242 @@
+[
+  {
+    "major": 3,
+    "minor": 112,
+    "time": "2026-02-16T20:43:19+04:00",
+    "netUser": "admin",
+    "remoteHostAddr": "10.255.254.23",
+    "serialNo": 12871,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 121,
+    "time": "2026-02-16T20:43:21+04:00",
+    "netUser": "admin",
+    "remoteHostAddr": "10.255.254.23",
+    "serialNo": 12872,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 112,
+    "time": "2026-02-16T21:19:27+04:00",
+    "remoteHostAddr": "10.255.254.23",
+    "serialNo": 12873,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 112,
+    "time": "2026-02-16T21:46:56+04:00",
+    "remoteHostAddr": "10.255.254.28",
+    "serialNo": 12874,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 21,
+    "time": "2026-02-16T21:54:37+04:00",
+    "doorNo": 1,
+    "serialNo": 12876,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 38,
+    "time": "2026-02-16T21:54:37+04:00",
+    "cardType": 1,
+    "name": "Rabiaa Ben Abdesselam",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "6",
+    "serialNo": 12875,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "checkOut",
+    "label": "Check Out",
+    "mask": "unknown"
+  },
+  {
+    "major": 2,
+    "minor": 1024,
+    "time": "2026-02-17T09:51:06+04:00",
+    "serialNo": 12877,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 112,
+    "time": "2026-02-17T09:53:12+04:00",
+    "netUser": "admin",
+    "remoteHostAddr": "10.255.254.23",
+    "serialNo": 12878,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 121,
+    "time": "2026-02-17T09:53:13+04:00",
+    "netUser": "admin",
+    "remoteHostAddr": "10.255.254.23",
+    "serialNo": 12879,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 76,
+    "time": "2026-02-17T10:08:16+04:00",
+    "cardType": 1,
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "serialNo": 12880,
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "mask": "no",
+    "FaceRect": {
+      "height": 0.112,
+      "width": 0.063,
+      "x": 0.412,
+      "y": 0.397
+    }
+  },
+  {
+    "major": 5,
+    "minor": 76,
+    "time": "2026-02-17T10:08:19+04:00",
+    "cardType": 1,
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "serialNo": 12881,
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "mask": "no",
+    "FaceRect": {
+      "height": 0.128,
+      "width": 0.072,
+      "x": 0.497,
+      "y": 0.432
+    }
+  },
+  {
+    "major": 2,
+    "minor": 1024,
+    "time": "2026-02-17T11:30:26+04:00",
+    "serialNo": 12882,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 112,
+    "time": "2026-02-17T11:32:27+04:00",
+    "netUser": "admin",
+    "remoteHostAddr": "10.255.254.23",
+    "serialNo": 12883,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 121,
+    "time": "2026-02-17T11:32:28+04:00",
+    "netUser": "admin",
+    "remoteHostAddr": "10.255.254.23",
+    "serialNo": 12884,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 112,
+    "time": "2026-02-17T12:08:52+04:00",
+    "remoteHostAddr": "10.255.254.23",
+    "serialNo": 12885,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 112,
+    "time": "2026-02-17T12:10:58+04:00",
+    "remoteHostAddr": "10.255.254.23",
+    "serialNo": 12886,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 113,
+    "time": "2026-02-17T12:11:02+04:00",
+    "remoteHostAddr": "10.255.254.23",
+    "serialNo": 12887,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 1035,
+    "time": "2026-02-17T12:52:05+04:00",
+    "netUser": "admin",
+    "remoteHostAddr": "10.255.254.23",
+    "doorNo": 1,
+    "serialNo": 12888,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 21,
+    "time": "2026-02-17T13:36:43+04:00",
+    "doorNo": 1,
+    "serialNo": 12890,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 75,
+    "time": "2026-02-17T13:36:43+04:00",
+    "cardType": 1,
+    "name": "abdelqader",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "1",
+    "serialNo": 12889,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "checkIn",
+    "label": "Check In",
+    "mask": "no",
+    "FaceRect": {
+      "height": 0.363,
+      "width": 0.206,
+      "x": 0.416,
+      "y": 0.126
+    }
+  },
+  {
+    "major": 5,
+    "minor": 22,
+    "time": "2026-02-17T13:36:48+04:00",
+    "doorNo": 1,
+    "serialNo": 12891,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 21,
+    "time": "2026-02-17T13:36:48+04:00",
+    "doorNo": 1,
+    "serialNo": 12893,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 38,
+    "time": "2026-02-17T13:36:48+04:00",
+    "cardType": 1,
+    "name": "abdelqader",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "1",
+    "serialNo": 12892,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "checkIn",
+    "label": "Check In",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 22,
+    "time": "2026-02-17T13:36:53+04:00",
+    "doorNo": 1,
+    "serialNo": 12894,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 39,
+    "time": "2026-02-17T13:42:18+04:00",
+    "cardType": 1,
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "serialNo": 12895,
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 21,
+    "time": "2026-02-17T13:42:31+04:00",
+    "doorNo": 1,
+    "serialNo": 12897,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 38,
+    "time": "2026-02-17T13:42:31+04:00",
+    "cardType": 1,
+    "name": "Rabiaa Ben Abdesselam",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "6",
+    "serialNo": 12896,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "checkIn",
+    "label": "Check In",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 22,
+    "time": "2026-02-17T13:42:36+04:00",
+    "doorNo": 1,
+    "serialNo": 12898,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 21,
+    "time": "2026-02-17T13:46:40+04:00",
+    "doorNo": 1,
+    "serialNo": 12900,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 75,
+    "time": "2026-02-17T13:46:40+04:00",
+    "cardType": 1,
+    "name": "abdelqader",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "1",
+    "serialNo": 12899,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "checkIn",
+    "label": "Check In",
+    "mask": "no",
+    "FaceRect": {
+      "height": 0.313,
+      "width": 0.177,
+      "x": 0.379,
+      "y": 0.171
+    }
+  },
+  {
+    "major": 5,
+    "minor": 22,
+    "time": "2026-02-17T13:46:45+04:00",
+    "doorNo": 1,
+    "serialNo": 12901,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 21,
+    "time": "2026-02-17T13:48:07+04:00",
+    "doorNo": 1,
+    "serialNo": 12903,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 75,
+    "time": "2026-02-17T13:48:07+04:00",
+    "cardType": 1,
+    "name": "abdelqader",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "1",
+    "serialNo": 12902,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "checkOut",
+    "label": "Check Out",
+    "mask": "no",
+    "FaceRect": {
+      "height": 0.368,
+      "width": 0.208,
+      "x": 0.376,
+      "y": 0.124
+    }
+  },
+  {
+    "major": 5,
+    "minor": 22,
+    "time": "2026-02-17T13:48:12+04:00",
+    "doorNo": 1,
+    "serialNo": 12904,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 21,
+    "time": "2026-02-17T13:56:35+04:00",
+    "doorNo": 1,
+    "serialNo": 12906,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 75,
+    "time": "2026-02-17T13:56:35+04:00",
+    "cardType": 1,
+    "name": "abdelqader",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "1",
+    "serialNo": 12905,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "checkIn",
+    "label": "Check In",
+    "mask": "no",
+    "FaceRect": {
+      "height": 0.333,
+      "width": 0.188,
+      "x": 0.417,
+      "y": 0.162
+    }
+  },
+  {
+    "major": 5,
+    "minor": 22,
+    "time": "2026-02-17T13:56:40+04:00",
+    "doorNo": 1,
+    "serialNo": 12907,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 21,
+    "time": "2026-02-17T13:56:43+04:00",
+    "doorNo": 1,
+    "serialNo": 12909,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 75,
+    "time": "2026-02-17T13:56:43+04:00",
+    "cardType": 1,
+    "name": "abdelqader",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "1",
+    "serialNo": 12908,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "breakIn",
+    "label": "Break In",
+    "mask": "no",
+    "FaceRect": {
+      "height": 0.31,
+      "width": 0.175,
+      "x": 0.479,
+      "y": 0.178
+    }
+  },
+  {
+    "major": 5,
+    "minor": 22,
+    "time": "2026-02-17T13:56:48+04:00",
+    "doorNo": 1,
+    "serialNo": 12910,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 21,
+    "time": "2026-02-17T13:56:53+04:00",
+    "doorNo": 1,
+    "serialNo": 12912,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 38,
+    "time": "2026-02-17T13:56:53+04:00",
+    "cardType": 1,
+    "name": "Rabiaa Ben Abdesselam",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "6",
+    "serialNo": 12911,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "breakIn",
+    "label": "Break In",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 22,
+    "time": "2026-02-17T13:56:58+04:00",
+    "doorNo": 1,
+    "serialNo": 12913,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 21,
+    "time": "2026-02-17T14:23:33+04:00",
+    "doorNo": 1,
+    "serialNo": 12915,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 38,
+    "time": "2026-02-17T14:23:33+04:00",
+    "cardType": 1,
+    "name": "Rabiaa Ben Abdesselam",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "6",
+    "serialNo": 12914,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "breakOut",
+    "label": "Break Out",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 38,
+    "time": "2026-02-17T14:23:37+04:00",
+    "cardType": 1,
+    "name": "Rabiaa Ben Abdesselam",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "6",
+    "serialNo": 12916,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "checkIn",
+    "label": "Check In",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 22,
+    "time": "2026-02-17T14:23:42+04:00",
+    "doorNo": 1,
+    "serialNo": 12917,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 21,
+    "time": "2026-02-17T15:09:58+04:00",
+    "doorNo": 1,
+    "serialNo": 12919,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 75,
+    "time": "2026-02-17T15:09:58+04:00",
+    "cardType": 1,
+    "name": "abdelqader",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "1",
+    "serialNo": 12918,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "breakIn",
+    "label": "Break In",
+    "mask": "no",
+    "FaceRect": {
+      "height": 0.349,
+      "width": 0.198,
+      "x": 0.457,
+      "y": 0.154
+    }
+  },
+  {
+    "major": 5,
+    "minor": 22,
+    "time": "2026-02-17T15:10:03+04:00",
+    "doorNo": 1,
+    "serialNo": 12920,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 21,
+    "time": "2026-02-17T15:10:10+04:00",
+    "doorNo": 1,
+    "serialNo": 12922,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 75,
+    "time": "2026-02-17T15:10:10+04:00",
+    "cardType": 1,
+    "name": "abdelqader",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "1",
+    "serialNo": 12921,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "breakOut",
+    "label": "Break Out",
+    "mask": "no",
+    "FaceRect": {
+      "height": 0.353,
+      "width": 0.199,
+      "x": 0.465,
+      "y": 0.075
+    }
+  },
+  {
+    "major": 5,
+    "minor": 22,
+    "time": "2026-02-17T15:10:16+04:00",
+    "doorNo": 1,
+    "serialNo": 12923,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 112,
+    "time": "2026-02-17T17:19:17+04:00",
+    "remoteHostAddr": "10.255.254.23",
+    "serialNo": 12924,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 112,
+    "time": "2026-02-17T17:21:54+04:00",
+    "remoteHostAddr": "10.255.254.28",
+    "serialNo": 12925,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 21,
+    "time": "2026-02-17T21:16:33+04:00",
+    "doorNo": 1,
+    "serialNo": 12927,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 38,
+    "time": "2026-02-17T21:16:33+04:00",
+    "cardType": 1,
+    "name": "Rabiaa Ben Abdesselam",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "6",
+    "serialNo": 12926,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "checkIn",
+    "label": "Check In",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 38,
+    "time": "2026-02-17T21:16:37+04:00",
+    "cardType": 1,
+    "name": "Rabiaa Ben Abdesselam",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "6",
+    "serialNo": 12928,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "breakIn",
+    "label": "Break In",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 38,
+    "time": "2026-02-17T21:16:41+04:00",
+    "cardType": 1,
+    "name": "Rabiaa Ben Abdesselam",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "6",
+    "serialNo": 12929,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "breakOut",
+    "label": "Break Out",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 38,
+    "time": "2026-02-17T21:16:43+04:00",
+    "cardType": 1,
+    "name": "Rabiaa Ben Abdesselam",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "6",
+    "serialNo": 12930,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "checkOut",
+    "label": "Check Out",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 22,
+    "time": "2026-02-17T21:16:49+04:00",
+    "doorNo": 1,
+    "serialNo": 12931,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 2,
+    "minor": 1024,
+    "time": "2026-02-18T09:22:00+04:00",
+    "serialNo": 12932,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 112,
+    "time": "2026-02-18T09:22:06+04:00",
+    "netUser": "admin",
+    "remoteHostAddr": "10.255.254.23",
+    "serialNo": 12933,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 121,
+    "time": "2026-02-18T09:22:07+04:00",
+    "netUser": "admin",
+    "remoteHostAddr": "10.255.254.23",
+    "serialNo": 12934,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 2,
+    "minor": 1024,
+    "time": "2026-02-18T10:00:48+04:00",
+    "serialNo": 12935,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 112,
+    "time": "2026-02-18T10:01:12+04:00",
+    "netUser": "admin",
+    "remoteHostAddr": "10.255.254.23",
+    "serialNo": 12936,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 121,
+    "time": "2026-02-18T10:01:12+04:00",
+    "netUser": "admin",
+    "remoteHostAddr": "10.255.254.23",
+    "serialNo": 12937,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 21,
+    "time": "2026-02-18T11:47:25+04:00",
+    "doorNo": 1,
+    "serialNo": 12939,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 75,
+    "time": "2026-02-18T11:47:25+04:00",
+    "cardType": 1,
+    "name": "abdelqader",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "1",
+    "serialNo": 12938,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "checkIn",
+    "label": "Check In",
+    "mask": "no",
+    "FaceRect": {
+      "height": 0.466,
+      "width": 0.264,
+      "x": 0.312,
+      "y": 0.116
+    }
+  },
+  {
+    "major": 5,
+    "minor": 22,
+    "time": "2026-02-18T11:47:30+04:00",
+    "doorNo": 1,
+    "serialNo": 12940,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 80,
+    "time": "2026-02-18T12:13:20+04:00",
+    "serialNo": 12941,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 2,
+    "minor": 1024,
+    "time": "2026-02-18T12:31:02+04:00",
+    "serialNo": 12942,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 112,
+    "time": "2026-02-18T12:31:16+04:00",
+    "netUser": "admin",
+    "remoteHostAddr": "10.255.254.23",
+    "serialNo": 12943,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 121,
+    "time": "2026-02-18T12:31:16+04:00",
+    "netUser": "admin",
+    "remoteHostAddr": "10.255.254.23",
+    "serialNo": 12944,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 80,
+    "time": "2026-02-18T12:31:46+04:00",
+    "serialNo": 12945,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 93,
+    "time": "2026-02-18T12:32:26+04:00",
+    "serialNo": 12946,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 1072,
+    "time": "2026-02-18T12:33:18+04:00",
+    "serialNo": 12947,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 1072,
+    "time": "2026-02-18T12:33:40+04:00",
+    "serialNo": 12948,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 2,
+    "minor": 1024,
+    "time": "2026-02-18T20:25:11+04:00",
+    "serialNo": 12949,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 112,
+    "time": "2026-02-18T20:28:07+04:00",
+    "netUser": "admin",
+    "remoteHostAddr": "10.255.254.23",
+    "serialNo": 12950,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 3,
+    "minor": 121,
+    "time": "2026-02-18T20:28:08+04:00",
+    "netUser": "admin",
+    "remoteHostAddr": "10.255.254.23",
+    "serialNo": 12951,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 21,
+    "time": "2026-02-18T21:06:14+04:00",
+    "doorNo": 1,
+    "serialNo": 12953,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 38,
+    "time": "2026-02-18T21:06:14+04:00",
+    "cardType": 1,
+    "name": "Rabiaa Ben Abdesselam",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "6",
+    "serialNo": 12952,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "checkIn",
+    "label": "Check In",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 22,
+    "time": "2026-02-18T21:06:19+04:00",
+    "doorNo": 1,
+    "serialNo": 12954,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 21,
+    "time": "2026-02-18T21:07:06+04:00",
+    "doorNo": 1,
+    "serialNo": 12956,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 75,
+    "time": "2026-02-18T21:07:06+04:00",
+    "cardType": 1,
+    "name": "abdelqader",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "1",
+    "serialNo": 12955,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "checkIn",
+    "label": "Check In",
+    "mask": "no",
+    "FaceRect": {
+      "height": 0.278,
+      "width": 0.157,
+      "x": 0.487,
+      "y": 0.202
+    }
+  },
+  {
+    "major": 5,
+    "minor": 22,
+    "time": "2026-02-18T21:07:11+04:00",
+    "doorNo": 1,
+    "serialNo": 12957,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 21,
+    "time": "2026-02-18T22:08:51+04:00",
+    "doorNo": 1,
+    "serialNo": 12959,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 75,
+    "time": "2026-02-18T22:08:51+04:00",
+    "cardType": 1,
+    "name": "abdelqader",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "1",
+    "serialNo": 12958,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "checkIn",
+    "label": "Check In",
+    "mask": "no",
+    "FaceRect": {
+      "height": 0.204,
+      "width": 0.115,
+      "x": 0.535,
+      "y": 0.237
+    }
+  },
+  {
+    "major": 5,
+    "minor": 22,
+    "time": "2026-02-18T22:08:56+04:00",
+    "doorNo": 1,
+    "serialNo": 12960,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 21,
+    "time": "2026-02-18T22:12:56+04:00",
+    "doorNo": 1,
+    "serialNo": 12962,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 75,
+    "time": "2026-02-18T22:12:56+04:00",
+    "cardType": 1,
+    "name": "abdelqader",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "1",
+    "serialNo": 12961,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "breakIn",
+    "label": "Break In",
+    "mask": "no",
+    "FaceRect": {
+      "height": 0.397,
+      "width": 0.225,
+      "x": 0.426,
+      "y": 0.103
+    }
+  },
+  {
+    "major": 5,
+    "minor": 22,
+    "time": "2026-02-18T22:13:01+04:00",
+    "doorNo": 1,
+    "serialNo": 12963,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 21,
+    "time": "2026-02-18T22:21:25+04:00",
+    "doorNo": 1,
+    "serialNo": 12965,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 75,
+    "time": "2026-02-18T22:21:25+04:00",
+    "cardType": 1,
+    "name": "abdelqader",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "1",
+    "serialNo": 12964,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "checkIn",
+    "label": "Check In",
+    "mask": "no",
+    "FaceRect": {
+      "height": 0.447,
+      "width": 0.253,
+      "x": 0.409,
+      "y": 0.111
+    }
+  },
+  {
+    "major": 5,
+    "minor": 22,
+    "time": "2026-02-18T22:21:30+04:00",
+    "doorNo": 1,
+    "serialNo": 12966,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 21,
+    "time": "2026-02-18T22:21:35+04:00",
+    "doorNo": 1,
+    "serialNo": 12968,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 75,
+    "time": "2026-02-18T22:21:35+04:00",
+    "cardType": 1,
+    "name": "abdelqader",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "1",
+    "serialNo": 12967,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "breakOut",
+    "label": "Break Out",
+    "mask": "no",
+    "FaceRect": {
+      "height": 0.458,
+      "width": 0.259,
+      "x": 0.416,
+      "y": 0.092
+    }
+  },
+  {
+    "major": 5,
+    "minor": 22,
+    "time": "2026-02-18T22:21:40+04:00",
+    "doorNo": 1,
+    "serialNo": 12969,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 21,
+    "time": "2026-02-18T22:21:45+04:00",
+    "doorNo": 1,
+    "serialNo": 12971,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 75,
+    "time": "2026-02-18T22:21:45+04:00",
+    "cardType": 1,
+    "name": "abdelqader",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "1",
+    "serialNo": 12970,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "breakIn",
+    "label": "Break In",
+    "mask": "no",
+    "FaceRect": {
+      "height": 0.454,
+      "width": 0.257,
+      "x": 0.411,
+      "y": 0.052
+    }
+  },
+  {
+    "major": 5,
+    "minor": 22,
+    "time": "2026-02-18T22:21:50+04:00",
+    "doorNo": 1,
+    "serialNo": 12972,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 21,
+    "time": "2026-02-18T22:21:54+04:00",
+    "doorNo": 1,
+    "serialNo": 12974,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  },
+  {
+    "major": 5,
+    "minor": 75,
+    "time": "2026-02-18T22:21:54+04:00",
+    "cardType": 1,
+    "name": "abdelqader",
+    "cardReaderNo": 1,
+    "doorNo": 1,
+    "employeeNoString": "1",
+    "serialNo": 12973,
+    "userType": "normal",
+    "currentVerifyMode": "faceOrFpOrCardOrPw",
+    "attendanceStatus": "checkOut",
+    "label": "Check Out",
+    "mask": "no",
+    "FaceRect": {
+      "height": 0.465,
+      "width": 0.263,
+      "x": 0.397,
+      "y": 0.045
+    }
+  },
+  {
+    "major": 5,
+    "minor": 22,
+    "time": "2026-02-18T22:21:59+04:00",
+    "doorNo": 1,
+    "serialNo": 12975,
+    "currentVerifyMode": "invalid",
+    "mask": "unknown"
+  }
+]

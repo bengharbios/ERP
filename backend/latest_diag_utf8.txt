@@ -1,0 +1,34 @@
+﻿--- Checking the END of Device Memory ---
+Total events in device: 12941
+Fetching 50 events starting from position 12891...
+--- The ABSOLUTE NEWEST Records Found (30) ---
+[12892] Emp: undefined | Time: 2026-02-17T13:36:48+04:00 | Name: N/A
+[12893] Emp: 1 | Time: 2026-02-17T13:36:48+04:00 | Name: abdelqader
+[12894] Emp: undefined | Time: 2026-02-17T13:36:53+04:00 | Name: N/A
+[12895] Emp: undefined | Time: 2026-02-17T13:42:18+04:00 | Name: N/A
+[12896] Emp: undefined | Time: 2026-02-17T13:42:31+04:00 | Name: N/A
+[12897] Emp: 6 | Time: 2026-02-17T13:42:31+04:00 | Name: Rabiaa Ben Abdesselam
+[12898] Emp: undefined | Time: 2026-02-17T13:42:36+04:00 | Name: N/A
+[12899] Emp: undefined | Time: 2026-02-17T13:46:40+04:00 | Name: N/A
+[12900] Emp: 1 | Time: 2026-02-17T13:46:40+04:00 | Name: abdelqader
+[12901] Emp: undefined | Time: 2026-02-17T13:46:45+04:00 | Name: N/A
+[12902] Emp: undefined | Time: 2026-02-17T13:48:07+04:00 | Name: N/A
+[12903] Emp: 1 | Time: 2026-02-17T13:48:07+04:00 | Name: abdelqader
+[12904] Emp: undefined | Time: 2026-02-17T13:48:12+04:00 | Name: N/A
+[12905] Emp: undefined | Time: 2026-02-17T13:56:35+04:00 | Name: N/A
+[12906] Emp: 1 | Time: 2026-02-17T13:56:35+04:00 | Name: abdelqader
+[12907] Emp: undefined | Time: 2026-02-17T13:56:40+04:00 | Name: N/A
+[12908] Emp: undefined | Time: 2026-02-17T13:56:43+04:00 | Name: N/A
+[12909] Emp: 1 | Time: 2026-02-17T13:56:43+04:00 | Name: abdelqader
+[12910] Emp: undefined | Time: 2026-02-17T13:56:48+04:00 | Name: N/A
+[12911] Emp: undefined | Time: 2026-02-17T13:56:53+04:00 | Name: N/A
+[12912] Emp: 6 | Time: 2026-02-17T13:56:53+04:00 | Name: Rabiaa Ben Abdesselam
+[12913] Emp: undefined | Time: 2026-02-17T13:56:58+04:00 | Name: N/A
+[12914] Emp: undefined | Time: 2026-02-17T14:23:33+04:00 | Name: N/A
+[12915] Emp: 6 | Time: 2026-02-17T14:23:33+04:00 | Name: Rabiaa Ben Abdesselam
+[12916] Emp: 6 | Time: 2026-02-17T14:23:37+04:00 | Name: Rabiaa Ben Abdesselam
+[12917] Emp: undefined | Time: 2026-02-17T14:23:42+04:00 | Name: N/A
+[12918] Emp: undefined | Time: 2026-02-17T15:09:58+04:00 | Name: N/A
+[12919] Emp: 1 | Time: 2026-02-17T15:09:58+04:00 | Name: abdelqader
+[12920] Emp: undefined | Time: 2026-02-17T15:10:03+04:00 | Name: N/A
+[12921] Emp: undefined | Time: 2026-02-17T15:10:10+04:00 | Name: N/A

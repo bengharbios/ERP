@@ -1,0 +1,96 @@
+/* Schedule Page Icon Fixes */
+
+/* Button Icons - Perfect Alignment */
+.view-toggle button,
+.btn-refresh,
+.btn-icon,
+.btn-icon-primary,
+.nav-btn,
+.filter-btn,
+.card-view-btn,
+.week-nav-mobile button {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Remove font-size from icon containers */
+.view-toggle button,
+.btn-icon,
+.btn-icon-primary {
+    font-size: inherit !important;
+}
+
+/* Primary Button with Icon + Text */
+.btn-primary {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.5rem !important;
+}
+
+/* Stat Card Icons */
+.stat-icon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: inherit !important;
+}
+
+/* Brand Icon */
+.brand-icon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: inherit !important;
+}
+
+/* Search Icon */
+.search-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    color: #94A3B8 !important;
+}
+
+/* Mobile View Toggle */
+.view-toggle-mobile button {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.375rem !important;
+}
+
+/* Inline Icons (in text) */
+.inline-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    vertical-align: middle !important;
+    margin-left: 4px !important;
+}
+
+/* Modal/Drawer Icons */
+.modal-icon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.drawer-close,
+.modal-close {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Lecture Card Instructor Icon */
+.lec-instructor {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.25rem !important;
+}
+
+/* Meta Tags with Icons */
+.meta-tag {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.25rem !important;
+}

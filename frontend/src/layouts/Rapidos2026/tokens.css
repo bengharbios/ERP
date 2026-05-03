@@ -1,0 +1,152 @@
+/* ============================================================
+   RAPIDOS HORIZON 2030 — Design Tokens
+   تصميم من الصفر | رؤية 2030 للمستقبل الرقمي
+   ============================================================ */
+
+:root {
+   /* === HORIZON BRAND PALETTE ===
+       مستوحاة من سماء الخليج + تقنية المستقبل */
+   --hz-void: #02040A;
+   /* خلفية الكون */
+   --hz-dark: #080D1A;
+   /* الخلفية الداكنة الأساسية */
+   --hz-deep: #0D1526;
+   /* طبقة الأسطح الداكنة */
+   --hz-surface: #121C33;
+   /* الكرت / البانل */
+   --hz-surface-2: #172038;
+   /* طبقة ثانية */
+   --hz-surface-3: #1C2840;
+   /* hover / selected */
+   --hz-glass: rgba(18, 28, 51, 0.75);
+   /* تأثير الزجاج */
+
+   /* === ELECTRIC ACCENTS ===
+       ألوان الطاقة والمستقبل */
+   --hz-cyan: #00D4FF;
+   /* أزرق كهربائي - لون الأساس */
+   --hz-cyan-glow: rgba(0, 212, 255, 0.15);
+   --hz-cyan-border: rgba(0, 212, 255, 0.25);
+   --hz-cyan-dark: #0099CC;
+   --hz-neon: #00F5A0;
+   /* أخضر نيون - نجاح */
+   --hz-neon-glow: rgba(0, 245, 160, 0.15);
+   --hz-gold: #FFB800;
+   /* ذهبي - تميز / تحذير */
+   --hz-gold-glow: rgba(255, 184, 0, 0.15);
+   --hz-plasma: #C84BFF;
+   /* بنفسجي بلازما */
+   --hz-plasma-glow: rgba(200, 75, 255, 0.15);
+   --hz-coral: #FF4D6A;
+   /* أحمر فاخر - خطأ */
+   --hz-coral-glow: rgba(255, 77, 106, 0.15);
+
+   /* === TEXT SYSTEM === */
+   --hz-text-bright: #FFFFFF;
+   --hz-text-primary: rgba(255, 255, 255, 0.92);
+   --hz-text-secondary: rgba(255, 255, 255, 0.60);
+   --hz-text-muted: rgba(255, 255, 255, 0.35);
+   --hz-text-dim: rgba(255, 255, 255, 0.18);
+
+   /* === BORDER SYSTEM === */
+   --hz-border-subtle: rgba(255, 255, 255, 0.06);
+   --hz-border-soft: rgba(255, 255, 255, 0.10);
+   --hz-border-glow: var(--hz-cyan-border);
+
+   /* === SHADOW SYSTEM === */
+   --hz-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.4);
+   --hz-shadow-md: 0 8px 32px rgba(0, 0, 0, 0.5);
+   --hz-shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.6);
+   --hz-shadow-cyan: 0 0 20px rgba(0, 212, 255, 0.3), 0 4px 16px rgba(0, 0, 0, 0.4);
+   --hz-shadow-neon: 0 0 20px rgba(0, 245, 160, 0.3);
+
+   /* === BLUR SYSTEM === */
+   --hz-blur-sm: blur(8px);
+   --hz-blur-md: blur(16px);
+   --hz-blur-lg: blur(28px);
+
+   /* === RADIUS === */
+   --hz-radius-xs: 6px;
+   --hz-radius-sm: 10px;
+   --hz-radius-md: 16px;
+   --hz-radius-lg: 22px;
+   --hz-radius-xl: 32px;
+   --hz-radius-pill: 999px;
+
+   /* === TYPOGRAPHY === */
+   --hz-font: 'Cairo', 'Inter', -apple-system, sans-serif;
+   --hz-font-en: 'Inter', 'SF Pro Display', sans-serif;
+
+   --hz-text-xs: 0.68rem;
+   --hz-text-sm: 0.80rem;
+   --hz-text-base: 0.90rem;
+   --hz-text-md: 0.95rem;
+   --hz-text-lg: 1.10rem;
+   --hz-text-xl: 1.30rem;
+   --hz-text-2xl: 1.65rem;
+   --hz-text-3xl: 2.20rem;
+
+   /* === SPACING (4px grid) === */
+   --hz-sp-1: 4px;
+   --hz-sp-2: 8px;
+   --hz-sp-3: 12px;
+   --hz-sp-4: 16px;
+   --hz-sp-5: 20px;
+   --hz-sp-6: 24px;
+   --hz-sp-8: 32px;
+   --hz-sp-10: 40px;
+   --hz-sp-12: 48px;
+
+   /* === LAYOUT === */
+   --hz-topnav-height: 64px;
+   --hz-subnav-height: 48px;
+   --hz-content-max: 1440px;
+   --hz-mobile-bar: 68px;
+
+   /* === MOTION === */
+   --hz-ease: cubic-bezier(0.4, 0, 0.2, 1);
+   --hz-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+   --hz-dur-fast: 140ms;
+   --hz-dur-mid: 260ms;
+   --hz-dur-slow: 400ms;
+}
+
+/* ═══════════════════════════════════════════════
+   LIGHT MODE OVERRIDES
+═══════════════════════════════════════════════ */
+[data-theme="light"] {
+   --hz-void: #F1F5F9;
+   --hz-dark: #F8FAFC;
+   --hz-deep: #E2E8F0;
+   --hz-surface: #FFFFFF;
+   --hz-surface-2: #F1F5F9;
+   --hz-surface-3: #E2E8F0;
+   --hz-glass: rgba(255, 255, 255, 0.85);
+
+   --hz-text-bright: #0F172A;
+   --hz-text-primary: #334155;
+   --hz-text-secondary: #64748B;
+   --hz-text-muted: #94A3B8;
+   --hz-text-dim: #CBD5E1;
+
+   --hz-border-subtle: rgba(15, 23, 42, 0.08);
+   --hz-border-soft: rgba(15, 23, 42, 0.12);
+
+   --hz-cyan: #0EA5E9;
+   --hz-cyan-glow: rgba(14, 165, 233, 0.12);
+   --hz-cyan-border: rgba(14, 165, 233, 0.25);
+   --hz-cyan-dark: #0369A1;
+
+   --hz-neon: #10B981;
+   --hz-neon-glow: rgba(16, 185, 129, 0.1);
+   --hz-gold: #F59E0B;
+   --hz-gold-glow: rgba(245, 158, 11, 0.1);
+   --hz-plasma: #8B5CF6;
+   --hz-plasma-glow: rgba(139, 92, 246, 0.1);
+   --hz-coral: #EF4444;
+   --hz-coral-glow: rgba(239, 68, 68, 0.1);
+
+   --hz-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.1);
+   --hz-shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+   --hz-shadow-lg: 0 12px 24px rgba(15, 23, 42, 0.12);
+}

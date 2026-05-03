@@ -1,0 +1,325 @@
+.invoices-page {
+    padding: 2rem;
+    direction: rtl;
+    font-family: 'Cairo', sans-serif;
+}
+
+/* Stats Grid */
+.invoices-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-invoice-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 24px;
+    border: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+}
+
+.stat-invoice-card .icon-box {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat-invoice-card.issued .icon-box {
+    background: #eff6ff;
+    color: #3b82f6;
+}
+
+.stat-invoice-card.paid .icon-box {
+    background: #f0fdf4;
+    color: #22c55e;
+}
+
+.stat-invoice-card.overdue .icon-box {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+.stat-invoice-card .stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-invoice-card .stat-label {
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.stat-invoice-card .stat-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+/* Filters */
+.invoices-filters {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 20px;
+    border: 1px solid #f1f5f9;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 200px;
+}
+
+.filter-group label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #94a3b8;
+}
+
+.filter-input {
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    padding: 0 1rem;
+    font-family: inherit;
+    font-weight: 600;
+}
+
+/* Actions */
+.invoice-actions-top {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+}
+
+/* Professional Table */
+.invoices-table-container {
+    background: white;
+    border-radius: 24px;
+    border: 1px solid #f1f5f9;
+    overflow: hidden;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.invoices-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.invoices-table th {
+    background: #f8fafc;
+    padding: 1.25rem 1.5rem;
+    text-align: right;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #64748b;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.invoices-table td {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+    font-weight: 600;
+    font-size: 0.9375rem;
+}
+
+.invoice-number {
+    font-family: 'Inter', sans-serif;
+    color: #f97316;
+    font-weight: 800;
+}
+
+.status-pill {
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.status-pill.issued {
+    background: #eff6ff;
+    color: #3b82f6;
+}
+
+.status-pill.paid {
+    background: #f0fdf4;
+    color: #22c55e;
+}
+
+.status-pill.overdue {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+/* Tax Invoice Modal (Arabic/English Professional) */
+.invoice-modal-content {
+    max-width: 850px !important;
+    width: 95% !important;
+    padding: 0 !important;
+}
+
+.invoice-document {
+    background: white;
+    padding: 3rem;
+    color: #1e293b;
+    position: relative;
+    overflow: hidden;
+}
+
+.invoice-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 3rem;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 1.5rem;
+}
+
+.company-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.company-brand h2 {
+    font-size: 1.75rem;
+    font-weight: 900;
+    color: #1e293b;
+    margin: 0;
+}
+
+.brand-en {
+    font-size: 1.1rem;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.invoice-label h1 {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #f97316;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+.invoice-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.detail-block h4 {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 0.25rem;
+}
+
+.invoice-items-table {
+    width: 100%;
+    margin-bottom: 3rem;
+    border-collapse: collapse;
+}
+
+.invoice-items-table th {
+    background: #1e293b;
+    color: white;
+    padding: 0.75rem 1rem;
+    text-align: right;
+    font-size: 0.8rem;
+}
+
+.invoice-items-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.875rem;
+}
+
+.invoice-totals {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.totals-box {
+    width: 300px;
+    background: #f8fafc;
+    padding: 1.5rem;
+    border-radius: 16px;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.total-row.grand-total {
+    border-top: 2px solid #e2e8f0;
+    padding-top: 0.75rem;
+    font-weight: 900;
+    font-size: 1.1rem;
+    color: #f97316;
+}
+
+.invoice-footer-info {
+    margin-top: 4rem;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.bank-info-box {
+    background: #eff6ff;
+    padding: 1.25rem;
+    border-radius: 12px;
+    border: 1px solid #dbeafe;
+}
+
+.bank-info-box h5 {
+    color: #2563eb;
+    margin-bottom: 0.5rem;
+    font-weight: 800;
+}
+
+.bank-details {
+    font-size: 0.8rem;
+    color: #1e40af;
+    line-height: 1.6;
+}
+
+@media print {
+
+    .invoices-page,
+    .modal-header,
+    .modal-footer,
+    .nav-item,
+    .sidebar {
+        display: none !important;
+    }
+
+    .invoice-document {
+        padding: 0 !important;
+    }
+}

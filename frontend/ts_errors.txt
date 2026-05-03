@@ -1,0 +1,117 @@
+﻿src/components/AssignmentDetailsModal.tsx(36,9): error TS2304: Cannot find name 'setLoading'.
+src/components/AssignmentDetailsModal.tsx(77,13): error TS2304: Cannot find name 'setStudents'.
+src/components/AssignmentDetailsModal.tsx(105,13): error TS2304: Cannot find name 'setLoading'.
+src/components/AssignmentSubmissionsModal.tsx(39,12): error TS6133: 'editingId' is declared but its value is never read.
+src/pages/Achievement.tsx(7,5): error TS6133: 'CheckCircle2' is declared but its value is never read.
+src/pages/Achievement.tsx(11,5): error TS6133: 'Calendar' is declared but its value is never read.
+src/pages/Achievement.tsx(13,5): error TS6133: 'ChevronDown' is declared but its value is never read.
+src/pages/Achievement.tsx(14,5): error TS6133: 'CheckCircle' is declared but its value is never read.
+src/pages/Achievement.tsx(15,5): error TS6133: 'AlertCircle' is declared but its value is never read.
+src/pages/Achievement.tsx(16,5): error TS6133: 'Clock' is declared but its value is never read.
+src/pages/Achievement.tsx(17,5): error TS6133: 'XCircle' is declared but its value is never read.
+src/pages/Achievement.tsx(34,12): error TS6133: 'error' is declared but its value is never read.
+src/pages/Assignments.tsx(9,5): error TS6133: 'CheckCircle2' is declared but its value is never read.
+src/pages/Assignments.tsx(10,5): error TS6133: 'Clock' is declared but its value is never read.
+src/pages/Assignments.tsx(11,5): error TS6133: 'AlertCircle' is declared but its value is never read.
+src/pages/Attendance.tsx(12,5): error TS6133: 'FileUp' is declared but its value is never read.
+src/pages/Attendance.tsx(15,44): error TS6133: 'isSameDay' is declared but its value is never read.
+src/pages/Attendance.tsx(15,55): error TS6133: 'parseISO' is declared but its value is never read.
+src/pages/Attendance.tsx(97,33): error TS2551: Property 'getClassDetails' does not exist on type '{ getPrograms(isActive?: boolean | undefined): Promise<ApiResponse<{ programs: Program[]; total: number; }>>; getProgramById(id: string): Promise<ApiResponse<{ ...; }>>; ... 17 more ...; getUnitStudents(unitId: string): Promise<...>; }'. Did you mean 'getClasses'?
+src/pages/Attendance.tsx(117,35): error TS2339: Property 'lectures' does not exist on type 'Lecture[]'.
+src/pages/AttendanceReports.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/pages/AttendanceReports.tsx(3,10): error TS6133: 'LineChart' is declared but its value is never read.
+src/pages/AttendanceReports.tsx(3,21): error TS6133: 'Line' is declared but its value is never read.
+src/pages/Classes.tsx(15,5): error TS6133: 'Edit3' is declared but its value is never read.
+src/pages/Classes.tsx(16,5): error TS6133: 'Trash2' is declared but its value is never read.
+src/pages/Classes.tsx(19,1): error TS6133: 'useNavigate' is declared but its value is never read.
+src/pages/Classes.tsx(20,17): error TS6133: 'Program' is declared but its value is never read.
+src/pages/Classes.tsx(416,50): error TS2345: Argument of type 'string | Date | undefined' is not assignable to parameter of type 'string | undefined'.
+  Type 'Date' is not assignable to type 'string'.
+src/pages/Classes.tsx(417,48): error TS2345: Argument of type 'string | Date | undefined' is not assignable to parameter of type 'string | undefined'.
+  Type 'Date' is not assignable to type 'string'.
+src/pages/Classes.tsx(743,120): error TS2345: Argument of type 'string | Date | undefined' is not assignable to parameter of type 'string | undefined'.
+  Type 'Date' is not assignable to type 'string'.
+src/pages/Classes.tsx(743,164): error TS2345: Argument of type 'string | Date | undefined' is not assignable to parameter of type 'string | undefined'.
+  Type 'Date' is not assignable to type 'string'.
+src/pages/Classes.tsx(804,128): error TS2345: Argument of type 'string | Date | undefined' is not assignable to parameter of type 'string | undefined'.
+  Type 'Date' is not assignable to type 'string'.
+src/pages/Classes.tsx(804,171): error TS2345: Argument of type 'string | Date | undefined' is not assignable to parameter of type 'string | undefined'.
+  Type 'Date' is not assignable to type 'string'.
+src/pages/Classes.tsx(840,109): error TS2339: Property 'split' does not exist on type 'string | Date'.
+  Property 'split' does not exist on type 'Date'.
+src/pages/Classes.tsx(1103,85): error TS2339: Property 'programLevel' does not exist on type 'Partial<Program>'.
+src/pages/Classes.tsx(1104,90): error TS2339: Property 'awardingBody' does not exist on type 'Partial<Program>'.
+src/pages/Classes.tsx(1178,57): error TS2345: Argument of type 'string | Date | undefined' is not assignable to parameter of type 'string | undefined'.
+  Type 'Date' is not assignable to type 'string'.
+src/pages/Classes.tsx(1182,57): error TS2345: Argument of type 'string | Date | undefined' is not assignable to parameter of type 'string | undefined'.
+  Type 'Date' is not assignable to type 'string'.
+src/pages/CRM/Leads/LeadDetail.tsx(3,19): error TS6133: 'activityApi' is declared but its value is never read.
+src/pages/CRM/Leads/LeadDetail.tsx(4,34): error TS6133: 'AlertTriangle' is declared but its value is never read.
+src/pages/CRM/Leads/LeadsList.tsx(4,52): error TS6133: 'Edit' is declared but its value is never read.
+src/pages/CRM/Pipeline/Pipeline.tsx(3,1): error TS6133: 'Plus' is declared but its value is never read.
+src/pages/CRM/Teams/TeamsList.tsx(3,17): error TS6133: 'TrendingUp' is declared but its value is never read.
+src/pages/CRM/Teams/TeamsList.tsx(3,29): error TS6133: 'Target' is declared but its value is never read.
+src/pages/CRM/Teams/TeamsList.tsx(3,37): error TS6133: 'DollarSign' is declared but its value is never read.
+src/pages/Dashboard.tsx(6,75): error TS6133: 'ArrowLeft' is declared but its value is never read.
+src/pages/Dashboard.tsx(10,11): error TS6133: 'settings' is declared but its value is never read.
+src/pages/Dashboard.tsx(75,48): error TS2561: Object literal may only specify known properties, but 'flexσû«┘ü' does not exist in type 'Properties<string | number, string & {}>'. Did you mean to write 'flex'?
+src/pages/finance/FinancialReports.tsx(3,5): error TS6133: 'PieChart' is declared but its value is never read.
+src/pages/finance/FinancialReports.tsx(8,5): error TS6133: 'Calendar' is declared but its value is never read.
+src/pages/finance/FinancialReports.tsx(65,25): error TS2322: Type '{ children: Element; style: { marginBottom: string; }; }' is not assignable to type 'IntrinsicAttributes & ModernCardProps'.
+  Property 'style' does not exist on type 'IntrinsicAttributes & ModernCardProps'.
+src/pages/finance/FinancialReports.tsx(136,41): error TS2322: Type '{ children: Element; style: { borderColor: string; background: string; }; }' is not assignable to type 'IntrinsicAttributes & ModernCardProps'.
+  Property 'style' does not exist on type 'IntrinsicAttributes & ModernCardProps'.
+src/pages/HorizonDashboard.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/pages/HorizonDashboard.tsx(3,57): error TS6133: 'Layers' is declared but its value is never read.
+src/pages/HorizonDashboard.tsx(4,20): error TS6133: 'Bell' is declared but its value is never read.
+src/pages/HorizonDashboard.tsx(4,26): error TS6133: 'Zap' is declared but its value is never read.
+src/pages/HorizonDashboard.tsx(4,31): error TS6133: 'ArrowUpRight' is declared but its value is never read.
+src/pages/HorizonDashboard.tsx(4,45): error TS6133: 'ArrowDownRight' is declared but its value is never read.
+src/pages/HorizonDashboard.tsx(5,15): error TS6133: 'Clock' is declared but its value is never read.
+src/pages/HorizonDashboard.tsx(5,22): error TS6133: 'CheckCircle2' is declared but its value is never read.
+src/pages/HorizonDashboard.tsx(5,36): error TS6133: 'AlertCircle' is declared but its value is never read.
+src/pages/HorizonDashboard.tsx(6,16): error TS6133: 'Sparkles' is declared but its value is never read.
+src/pages/HorizonDashboard.tsx(9,13): error TS6133: 'HzCardHeader' is declared but its value is never read.
+src/pages/HorizonDashboard.tsx(9,27): error TS6133: 'HzCardTitle' is declared but its value is never read.
+src/pages/HorizonDashboard.tsx(9,40): error TS6133: 'HzPageHeader' is declared but its value is never read.
+src/pages/HorizonDashboard.tsx(10,5): error TS6133: 'HzStatsGrid' is declared but its value is never read.
+src/pages/HorizonDashboard.tsx(10,18): error TS6133: 'HzStat' is declared but its value is never read.
+src/pages/HorizonDashboard.tsx(10,26): error TS6133: 'HzBadge' is declared but its value is never read.
+src/pages/HorizonDashboard.tsx(10,35): error TS6133: 'HzBtn' is declared but its value is never read.
+src/pages/HorizonDashboard.tsx(134,48): error TS6133: 'i' is declared but its value is never read.
+src/pages/HorizonDashboard.tsx(182,33): error TS6133: 'i' is declared but its value is never read.
+src/pages/HRSettings.tsx(2,8): error TS6133: 'React' is declared but its value is never read.
+src/pages/JournalEntries.tsx(315,56): error TS2339: Property 'journal' does not exist on type 'JournalEntry'.
+src/pages/JournalEntries.tsx(316,94): error TS2339: Property 'journal' does not exist on type 'JournalEntry'.
+src/pages/JournalEntries.tsx(317,65): error TS2339: Property 'journal' does not exist on type 'JournalEntry'.
+src/pages/LeaveRequests.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/pages/Reports.tsx(8,5): error TS6133: 'Trophy' is declared but its value is never read.
+src/pages/Reports.tsx(12,5): error TS6133: 'ChevronRight' is declared but its value is never read.
+src/pages/Reports.tsx(14,5): error TS6133: 'FileText' is declared but its value is never read.
+src/pages/Reports.tsx(16,5): error TS6133: 'User' is declared but its value is never read.
+src/pages/Reports.tsx(25,5): error TS6133: 'ZAxis' is declared but its value is never read.
+src/pages/Reports.tsx(29,5): error TS6133: 'Cell' is declared but its value is never read.
+src/pages/StudentFees.tsx(2,61): error TS6133: 'FeeType' is declared but its value is never read.
+src/pages/Students.tsx(6,24): error TS6133: 'Filter' is declared but its value is never read.
+src/pages/Students.tsx(6,47): error TS6133: 'MoreHorizontal' is declared but its value is never read.
+src/pages/Students.tsx(6,63): error TS6133: 'FileDown' is declared but its value is never read.
+src/pages/Students.tsx(6,73): error TS6133: 'FileUp' is declared but its value is never read.
+src/pages/Students.tsx(6,152): error TS6133: 'CalendarIcon' is declared but its value is never read.
+src/pages/Students.tsx(6,166): error TS6133: 'MapPin' is declared but its value is never read.
+src/pages/Students.tsx(9,22): error TS6133: 'ModernStat' is declared but its value is never read.
+src/pages/Students.tsx(30,12): error TS6133: 'showMobileFilters' is declared but its value is never read.
+src/pages/Students.tsx(30,31): error TS6133: 'setShowMobileFilters' is declared but its value is never read.
+src/pages/Students.tsx(31,12): error TS6133: 'showHeader' is declared but its value is never read.
+src/pages/Students.tsx(209,67): error TS2339: Property 'id' does not exist on type 'string'.
+src/pages/Students.tsx(426,11): error TS6133: 'handleStatusChange' is declared but its value is never read.
+src/pages/Students.tsx(852,33): error TS2322: Type '{ children: Element[]; style: { display: string; flexDirection: string; justifyContent: string; gap: string; }; }' is not assignable to type 'IntrinsicAttributes & ModernCardProps'.
+  Property 'style' does not exist on type 'IntrinsicAttributes & ModernCardProps'.
+src/pages/Units.tsx(17,11): error TS6133: 'theme' is declared but its value is never read.
+src/pages/Units.tsx(119,17): error TS7034: Variable 'res' implicitly has type 'any' in some locations where its type cannot be determined.
+src/pages/Units.tsx(123,78): error TS7005: Variable 'res' implicitly has an 'any' type.
+src/pages/Units.tsx(129,39): error TS7005: Variable 'res' implicitly has an 'any' type.
+src/services/api.ts(83,14): error TS6133: 'T' is declared but its value is never read.
+src/services/api.ts(100,15): error TS6133: 'T' is declared but its value is never read.
+src/services/api.ts(105,14): error TS6133: 'T' is declared but its value is never read.
+src/services/api.ts(110,17): error TS6133: 'T' is declared but its value is never read.
+src/services/api.ts(115,16): error TS6133: 'T' is declared but its value is never read.

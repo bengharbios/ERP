@@ -1,0 +1,36 @@
+﻿--- Comprehensive Biometric Event Fetch ---
+Connecting to: ╪¿┘ê╪º╪¿╪⌐ ╪º┘ä┘à┘ê╪╕┘ü┘è┘å  at http://10.255.254.30:80...
+Fetching latest 500 events from device memory...
+Total events in memory: 12940
+Retrieved: 30 latest events
+--- Printing latest 50 for inspection ---
+[1] Emp: undefined | Time: 2024-10-17T18:44:46+04:00 | Name: N/A | Major: 2 | Minor: 1024
+[2] Emp: undefined | Time: 2024-10-17T18:44:54+04:00 | Name: N/A | Major: 2 | Minor: 39
+[3] Emp: undefined | Time: 2024-10-17T18:45:31+04:00 | Name: N/A | Major: 3 | Minor: 240
+[4] Emp: undefined | Time: 2024-10-17T18:46:40+04:00 | Name: N/A | Major: 2 | Minor: 1031
+[5] Emp: undefined | Time: 2024-10-17T18:47:46+04:00 | Name: N/A | Major: 3 | Minor: 112
+[6] Emp: undefined | Time: 2024-10-17T18:47:47+04:00 | Name: N/A | Major: 3 | Minor: 121
+[7] Emp: undefined | Time: 2024-10-17T18:47:49+04:00 | Name: N/A | Major: 2 | Minor: 39
+[8] Emp: undefined | Time: 2024-10-17T18:47:51+04:00 | Name: N/A | Major: 3 | Minor: 122
+[9] Emp: undefined | Time: 2024-10-17T18:48:38+04:00 | Name: N/A | Major: 2 | Minor: 1024
+[10] Emp: undefined | Time: 2024-10-17T18:48:54+04:00 | Name: N/A | Major: 2 | Minor: 39
+[11] Emp: undefined | Time: 2024-10-17T18:49:10+04:00 | Name: N/A | Major: 3 | Minor: 80
+[12] Emp: undefined | Time: 2024-10-17T18:49:46+04:00 | Name: N/A | Major: 2 | Minor: 1031
+[13] Emp: undefined | Time: 2024-10-17T18:51:06+04:00 | Name: N/A | Major: 3 | Minor: 112
+[14] Emp: undefined | Time: 2024-10-17T18:51:07+04:00 | Name: N/A | Major: 3 | Minor: 112
+[15] Emp: undefined | Time: 2024-10-17T18:51:09+04:00 | Name: N/A | Major: 3 | Minor: 121
+[16] Emp: undefined | Time: 2024-10-17T18:51:30+04:00 | Name: N/A | Major: 3 | Minor: 112
+[17] Emp: undefined | Time: 2024-10-17T18:52:29+04:00 | Name: N/A | Major: 5 | Minor: 21
+[18] Emp: 1 | Time: 2024-10-17T18:52:29+04:00 | Name: ASAD | Major: 5 | Minor: 75
+[19] Emp: undefined | Time: 2024-10-17T18:52:34+04:00 | Name: N/A | Major: 5 | Minor: 22
+[20] Emp: undefined | Time: 2024-10-17T18:52:40+04:00 | Name: N/A | Major: 5 | Minor: 21
+[21] Emp: 2 | Time: 2024-10-17T18:52:40+04:00 | Name: SALMA | Major: 5 | Minor: 75
+[22] Emp: 2 | Time: 2024-10-17T18:52:44+04:00 | Name: SALMA | Major: 5 | Minor: 75
+[23] Emp: 2 | Time: 2024-10-17T18:52:48+04:00 | Name: SALMA | Major: 5 | Minor: 75
+[24] Emp: undefined | Time: 2024-10-17T18:52:51+04:00 | Name: N/A | Major: 5 | Minor: 39
+[25] Emp: 2 | Time: 2024-10-17T18:52:52+04:00 | Name: SALMA | Major: 5 | Minor: 75
+[26] Emp: 2 | Time: 2024-10-17T18:52:55+04:00 | Name: SALMA | Major: 5 | Minor: 75
+[27] Emp: undefined | Time: 2024-10-17T18:53:01+04:00 | Name: N/A | Major: 5 | Minor: 22
+[28] Emp: undefined | Time: 2024-10-17T18:53:02+04:00 | Name: N/A | Major: 5 | Minor: 21
+[29] Emp: 2 | Time: 2024-10-17T18:53:02+04:00 | Name: SALMA | Major: 5 | Minor: 75
+[30] Emp: undefined | Time: 2024-10-17T18:53:07+04:00 | Name: N/A | Major: 5 | Minor: 22

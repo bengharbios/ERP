@@ -1,0 +1,245 @@
+/* Units Table Styles */
+.units-table-container {
+    width: 100%;
+    overflow-x: auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.units-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.units-table thead {
+    background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+    color: white;
+}
+
+.units-table th {
+    padding: 1rem;
+    text-align: right;
+    font-weight: 700;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.units-table tbody tr {
+    border-bottom: 1px solid #f1f5f9;
+    transition: all 0.2s;
+}
+
+.units-table tbody tr:hover {
+    background: #fef3c7;
+}
+
+.units-table td {
+    padding: 1rem;
+    text-align: right;
+    vertical-align: middle;
+}
+
+/* Unit Code Badge */
+.unit-code-badge {
+    background: #fff7ed;
+    color: #f97316;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border: 1px solid #fed7aa;
+}
+
+/* Unit Name Cell */
+.unit-name-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.unit-name-cell strong {
+    color: #1e293b;
+    font-size: 0.95rem;
+}
+
+.unit-name-cell small {
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+/* Current Badge */
+.current-badge {
+    background: #dbeafe;
+    color: #1e40af;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid #93c5fd;
+    white-space: nowrap;
+}
+
+/* Status Badge Table */
+.status-badge-table {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.status-badge-table.completed {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #86efac;
+}
+
+.status-badge-table.in_progress {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #93c5fd;
+}
+
+.status-badge-table.scheduled {
+    background: #f3e8ff;
+    color: #7c3aed;
+    border: 1px solid #d8b4fe;
+}
+
+.status-badge-table.missing {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+}
+
+.status-badge-table.exempted {
+    background: #fef3c7;
+    color: #ca8a04;
+    border: 1px solid #fde047;
+}
+
+.status-badge-table.not_started {
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+}
+
+/* Grade Badge Table */
+.grade-badge-table {
+    background: #dcfce7;
+    color: #15803d;
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    border: 1px solid #86efac;
+}
+
+/* Inline Inputs */
+.inline-select,
+.inline-input {
+    padding: 0.5rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    outline: none;
+    transition: all 0.2s;
+    background: white;
+}
+
+.inline-select:focus,
+.inline-input:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+.inline-select {
+    min-width: 140px;
+}
+
+.inline-input {
+    width: 80px;
+    text-align: center;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.btn-edit-table,
+.btn-save-table,
+.btn-cancel-table {
+    padding: 0.5rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-edit-table {
+    background: #fff7ed;
+    color: #f97316;
+}
+
+.btn-edit-table:hover {
+    background: #fed7aa;
+    transform: scale(1.1);
+}
+
+.btn-save-table {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.btn-save-table:hover {
+    background: #86efac;
+    transform: scale(1.1);
+}
+
+.btn-cancel-table {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.btn-cancel-table:hover {
+    background: #fca5a5;
+    transform: scale(1.1);
+}
+
+/* Row Status Indicator */
+.unit-row.completed {
+    background: linear-gradient(90deg, #dcfce7 0%, transparent 2%);
+}
+
+.unit-row.in_progress {
+    background: linear-gradient(90deg, #dbeafe 0%, transparent 2%);
+}
+
+.unit-row.scheduled {
+    background: linear-gradient(90deg, #f3e8ff 0%, transparent 2%);
+}
+
+.unit-row.missing {
+    background: linear-gradient(90deg, #fee2e2 0%, transparent 2%);
+}
+
+.unit-row.exempted {
+    background: linear-gradient(90deg, #fef3c7 0%, transparent 2%);
+}
+
+.unit-row.not_started {
+    background: linear-gradient(90deg, #f1f5f9 0%, transparent 2%);
+}

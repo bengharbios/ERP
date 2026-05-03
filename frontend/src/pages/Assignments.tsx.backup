@@ -1,0 +1,1356 @@
+import { useState, useEffect } from 'react';
+import {
+    FileText,
+    Search,
+    Plus,
+    Grid,
+    List,
+    Filter,
+    Calendar,
+    BookOpen,
+    CheckCircle2,
+    Clock,
+    AlertCircle,
+    BarChart2,
+    Target,
+    Save,
+    FilePenLine,
+    Pencil,
+    X,
+    Trash2,
+    User
+} from 'lucide-react';
+import { academicService } from '../services/academic.service';
+import { assignmentsService, Assignment } from '../services/assignments.service';
+import { AssignmentSubmissionsModal } from '../components/AssignmentSubmissionsModal';
+import { Toast, ToastType } from '../components/Toast';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+
+export default function Assignments() {
+    const [assignments, setAssignments] = useState<Assignment[]>([]);
+    const [units, setUnits] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    // UI States
+    const [viewMode, setViewMode] = useState<'table' | 'cards'>('cards'); // Default to cards for mobile-first feel
+    const [showModal, setShowModal] = useState(false);
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [showSubmissionsModal, setShowSubmissionsModal] = useState(false);
+    const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+    // Selected Assignment for Edit/Details
+    const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
+    const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
+
+    // Filters
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterStatus, setFilterStatus] = useState('all');
+    const [filterUnit, setFilterUnit] = useState('');
+
+    // Feedback
+    const [toast, setToast] = useState<{ type: ToastType, message: string } | null>(null);
+    const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; type: 'danger' | 'warning' | 'info'; onConfirm: () => void; } | null>(null);
+
+    // Form Data
+    const [formData, setFormData] = useState({
+        unitId: '',
+        title: '',
+        description: '',
+        submissionDeadline: '',
+        totalMarks: 100,
+        passThreshold: 50,
+        meritThreshold: 70,
+        distinctionThreshold: 90,
+        status: 'draft'
+    });
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    const loadData = async () => {
+        setLoading(true);
+        try {
+            const [unitsRes, assignmentsRes] = await Promise.all([
+                academicService.getUnits(),
+                assignmentsService.getAssignments()
+            ]);
+
+            if (unitsRes.data) setUnits(unitsRes.data.units);
+            if (assignmentsRes.data) setAssignments(assignmentsRes.data.assignments);
+        } catch (error) {
+            console.error("Failed to load data", error);
+            setToast({ type: 'error', message: 'فشل تحميل البيانات' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+
+
+
+    // Filter Logic
+    const filteredAssignments = assignments.filter(assignment => {
+        const matchesSearch = assignment.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            assignment.id.includes(searchTerm);
+        const matchesStatus = filterStatus === 'all' || assignment.status === filterStatus;
+        const matchesUnit = filterUnit === '' || assignment.unit?.nameAr === filterUnit;
+        return matchesSearch && matchesStatus && matchesUnit;
+    });
+
+    const handleEdit = (assignment: Assignment) => {
+        setEditingAssignment(assignment);
+        setFormData({
+            unitId: assignment.unitId,
+            title: assignment.title,
+            description: assignment.description || '',
+            submissionDeadline: assignment.submissionDeadline ? new Date(assignment.submissionDeadline).toISOString().split('T')[0] : '',
+            totalMarks: assignment.totalMarks || 100,
+            passThreshold: 50, // Default or fetch if available
+            meritThreshold: 70,
+            distinctionThreshold: 90,
+            status: 'draft'
+        });
+        setShowModal(true);
+    };
+
+    const handleDelete = async (assignment: Assignment) => {
+        setConfirmDialog({
+            title: 'حذف الواجب',
+            message: 'هل أنت متأكد من حذف هذا الواجب؟ سيتم حذف جميع التسليمات المرتبطة به.',
+            type: 'danger',
+            onConfirm: async () => {
+                try {
+                    await assignmentsService.deleteAssignment(assignment.id);
+                    setToast({ type: 'success', message: 'تم حذف الواجب بنجاح' });
+                    loadData();
+                } catch (error) {
+                    setToast({ type: 'error', message: 'فشل حذف الواجب' });
+                }
+                setConfirmDialog(null);
+            }
+        });
+    };
+
+    const resetForm = () => {
+        setFormData({
+            unitId: '',
+            title: '',
+            description: '',
+            submissionDeadline: '',
+            totalMarks: 100,
+            passThreshold: 50,
+            meritThreshold: 70,
+            distinctionThreshold: 90,
+            status: 'draft'
+        });
+        setEditingAssignment(null);
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const payload = {
+                unitId: formData.unitId,
+                title: formData.title,
+                description: formData.description,
+                dueDate: formData.submissionDeadline, // Mapping to Backend format
+                maxScore: formData.totalMarks,
+                passThreshold: formData.passThreshold,
+                meritThreshold: formData.meritThreshold,
+                distinctionThreshold: formData.distinctionThreshold,
+                passCriteria: 'Standard', // Default
+            };
+
+            if (editingAssignment) {
+                await assignmentsService.updateAssignment(editingAssignment.id, payload);
+                setToast({ type: 'success', message: 'تم تحديث الواجب بنجاح' });
+            } else {
+                await assignmentsService.createAssignment(payload);
+                setToast({ type: 'success', message: 'تم إنشاء الواجب بنجاح' });
+            }
+            setShowModal(false);
+            resetForm();
+            loadData();
+        } catch (error: any) {
+            console.error(error);
+            const errorMsg = error.response?.data?.message || 'حدث خطأ أثناء الحفظ';
+            setToast({ type: 'error', message: errorMsg });
+        }
+    };
+
+    const getStatusBadge = (status: string) => {
+        switch (status) {
+            case 'published':
+                return { text: 'منشور', bg: '#C6F6D5', color: '#22543D', icon: <CheckCircle2 size={12} /> };
+            case 'draft':
+                return { text: 'مسودة', bg: '#F7FAFC', color: '#718096', icon: <FileText size={12} /> };
+            case 'closed':
+                return { text: 'مغلق', bg: '#FED7D7', color: '#C53030', icon: <Clock size={12} /> };
+            default:
+                return { text: status, bg: '#F7FAFC', color: '#718096', icon: <AlertCircle size={12} /> };
+        }
+    };
+
+    const getDaysLeft = (deadline: string) => {
+        return Math.ceil((new Date(deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+    };
+
+    const publishedCount = assignments.filter(a => a.status === 'published').length;
+    const draftCount = assignments.filter(a => a.status === 'draft').length;
+
+    if (loading && filteredAssignments.length === 0) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#F8FAFC' }}>
+                <div className="next-gen-loader"></div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="next-gen-page-container">
+            {/* --- Premium Floating Header --- Standardized for Ultimate 2026 --- */}
+            <header className="glass-header">
+                <div className="container-wide header-content">
+                    <div className="header-branding">
+                        <div className="branding-icon orange">
+                            <FileText size={24} strokeWidth={2.5} />
+                        </div>
+                        <div className="branding-text">
+                            <h1>الواجبات والتقييم</h1>
+                            <p className="hide-on-mobile">BTEC Assessment Management System</p>
+                        </div>
+                    </div>
+
+                    <div className="header-actions">
+                        <div className="view-switcher hide-on-mobile">
+                            <button onClick={() => setViewMode('cards')} className={viewMode === 'cards' ? 'active' : ''} title="عرض الشبكة">
+                                <Grid size={18} strokeWidth={2.2} />
+                            </button>
+                            <button onClick={() => setViewMode('table')} className={viewMode === 'table' ? 'active' : ''} title="عرض الجدول">
+                                <List size={18} strokeWidth={2.2} />
+                            </button>
+                        </div>
+                        <button onClick={() => { resetForm(); setShowModal(true); }} className="btn-modern btn-orange-gradient hide-on-mobile">
+                            <Plus size={20} strokeWidth={3} />
+                            <span>واجب جديد</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            {/* Mobile Floating Action Button - Exact Match to Academic Page (Icon Centered) */}
+            <button className="show-on-mobile fab-mobile" onClick={() => { resetForm(); setShowModal(true); }}>
+                <Plus size={32} strokeWidth={2} />
+            </button>
+
+            {/* --- Step 2: Search & Filters --- */}
+
+            {/* Mobile Search Bar (Moved UP) --- White Card Style > Input (Right) + Filter (Left) */}
+            <section className="show-on-mobile mobile-search-area">
+                <div className="search-box-wrapper">
+                    {/* Input First = Right in RTL */}
+                    <input type="text" placeholder="بحث عن واجب..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                    {/* Button Second = Left in RTL */}
+                    <button onClick={() => setShowMobileFilters(true)} className="btn-filter-toggle">
+                        <Filter size={18} strokeWidth={2.2} />
+                    </button>
+                </div>
+            </section>
+
+            {/* --- Step 3: Stats Grid (Premium 2026 Layout) --- */}
+
+            {/* Mobile Stats Grid (Now UNDER Search) */}
+            <div className="stats-grid show-on-mobile mobile-stats-grid">
+                <div className="stat-card-mini" style={{ borderRight: '4px solid #3182CE' }}>
+                    <div className="stat-label">قائم الآن</div>
+                    <div className="stat-value">5</div>
+                </div>
+                <div className="stat-card-mini" style={{ borderRight: '4px solid #38A169' }}>
+                    <div className="stat-label">مكتمل</div>
+                    <div className="stat-value">12</div>
+                </div>
+                <div className="stat-card-mini" style={{ borderRight: '4px solid #A0AEC0' }}>
+                    <div className="stat-label">لم يبدأ</div>
+                    <div className="stat-value">8</div>
+                </div>
+                <div className="stat-card-mini" style={{ borderRight: '4px solid #DD6B20' }}>
+                    <div className="stat-label">مفقود</div>
+                    <div className="stat-value">2</div>
+                </div>
+            </div>
+
+            {/* Desktop Search Filter Toolbar */}
+            <section className="filters-toolbar hide-on-mobile">
+                <div className="search-box-wrapper">
+                    <span className="search-icon">
+                        <Search size={18} strokeWidth={2.2} />
+                    </span>
+                    <input type="text" placeholder="البحث بالعنوان، الوصف أو الوحدة..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                </div>
+                <div className="divider-v"></div>
+                <div className="filters-group">
+                    <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+                        <option value="all">الحالة: الكل</option>
+                        <option value="published">منشور</option>
+                        <option value="draft">مسودة</option>
+                        <option value="closed">مغلق</option>
+                    </select>
+                    <select value={filterUnit} onChange={(e) => setFilterUnit(e.target.value)}>
+                        <option value="">كافة الوحدات</option>
+                        {units.map(unit => (
+                            <option key={unit.id} value={unit.nameAr}>{unit.nameAr}</option>
+                        ))}
+                    </select>
+                </div>
+            </section>
+
+            {/* Desktop Stats Grid */}
+            <div className="stats-grid hide-on-mobile">
+                <div className="stat-card-mini" style={{ borderRight: '4px solid #3182CE' }}>
+                    <div className="stat-label">قائم الآن</div>
+                    <div className="stat-value">{assignments.filter(a => a.status === 'published').length}</div>
+                </div>
+                <div className="stat-card-mini" style={{ borderRight: '4px solid #38A169' }}>
+                    <div className="stat-label">مكتمل</div>
+                    <div className="stat-value">{assignments.filter(a => a.status === 'closed').length}</div>
+                </div>
+                <div className="stat-card-mini" style={{ borderRight: '4px solid #A0AEC0' }}>
+                    <div className="stat-label">مسودة</div>
+                    <div className="stat-value">{assignments.filter(a => a.status === 'draft').length}</div>
+                </div>
+                <div className="stat-card-mini" style={{ borderRight: '4px solid #DD6B20' }}>
+                    <div className="stat-label">مفقود</div>
+                    <div className="stat-value">0</div> {/* Placeholder: Logic for 'missing' requires student context */}
+                </div>
+            </div>
+
+            {/* --- Main Content - Step 4: Data Display --- */}
+            <main className="container-wide main-content">
+
+                {filteredAssignments.length === 0 ? (
+                    <div className="empty-state-modern">
+                        <div className="empty-icon"><FileText size={48} strokeWidth={1} /></div>
+                        <h2>لا توجد واجبات</h2>
+                        <p>لا توجد واجبات تطابق معايير البحث الحالية.</p>
+                        <button onClick={() => { setSearchTerm(''); setFilterStatus('all'); setFilterUnit(''); }} className="btn-link">
+                            إعادة ضبط الفلاتر
+                        </button>
+                    </div>
+                ) : (
+                    <>
+                        {/* Mobile List View (Cards) */}
+                        <div className="show-on-mobile mobile-cards-grid">
+                            {filteredAssignments.map(assignment => (
+                                <div key={assignment.id} className="mobile-assignment-card">
+                                    <div className="card-header">
+                                        <div className="card-unit-badge">{assignment.unit.nameAr}</div>
+                                        <div className="card-actions-mini">
+                                            <button
+                                                onClick={() => { setSelectedAssignment(assignment); setShowDetailsModal(true); }}
+                                                className="action-btn-mini edit"
+                                                title="التفاصيل"
+                                            >
+                                                <User size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setEditingAssignment(assignment); setFormData({
+                                                        unitId: assignment.unitId,
+                                                        title: assignment.title,
+                                                        description: assignment.description || '',
+                                                        submissionDeadline: assignment.submissionDeadline ? new Date(assignment.submissionDeadline).toISOString().split('T')[0] : '',
+                                                        totalMarks: assignment.totalMarks || 100,
+                                                        passThreshold: 50,
+                                                        meritThreshold: 70,
+                                                        distinctionThreshold: 90,
+                                                        status: assignment.status
+                                                    }); setShowModal(true);
+                                                }}
+                                                className="action-btn-mini edit"
+                                            >
+                                                <Pencil size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(assignment)}
+                                                className="action-btn-mini delete"
+                                            >
+                                                <X size={18} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <h3 className="card-title">{assignment.title}</h3>
+                                    <h3 className="card-title">{assignment.title}</h3>
+
+                                    {/* Stats Grid Footer (Student Style) */}
+                                    <div className="card-stats-grid">
+                                        <div className="stat-item">
+                                            <span className={`stat-val ${assignment.status === 'published' ? 'text-green' : assignment.status === 'draft' ? 'text-gray' : 'text-red'}`}>
+                                                {assignment.status === 'published' ? 'منشور' : assignment.status === 'draft' ? 'مسودة' : 'مغلق'}
+                                            </span>
+                                            <span className="stat-lbl">الحالة</span>
+                                        </div>
+                                        <div className="stat-item">
+                                            <span className="stat-val">{assignment.submissions}</span>
+                                            <span className="stat-lbl">تسليم</span>
+                                        </div>
+                                        <div className="stat-item highlight">
+                                            <span className="stat-val" style={{ fontSize: '0.9rem' }}>{assignment.submissionDeadline}</span>
+                                            <span className="stat-lbl">المهلة</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Desktop Table View - World Class Design */}
+                        <div className="desktop-table-container hide-on-mobile next-gen-table-container">
+                            <table className="modern-data-table">
+                                <thead>
+                                    <tr>
+                                        <th style={{ width: '40%' }}>العنوان / الوحدة</th>
+                                        <th className="text-center">الحالة</th>
+                                        <th className="text-center">آخر موعد</th>
+                                        <th className="text-center">الإحصائيات</th>
+                                        <th className="text-center">الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredAssignments.map(assignment => (
+                                        <tr key={assignment.id}>
+                                            <td>
+                                                <div className="table-primary-text">{assignment.title}</div>
+                                                <div className="table-secondary-text">{assignment.unit.nameAr} • {assignment.unit.nameEn}</div>
+                                            </td>
+                                            <td className="text-center">
+                                                <span className={`status-badge status-${assignment.status}`}>
+                                                    {assignment.status === 'published' ? 'منشور' : assignment.status === 'draft' ? 'مسودة' : 'مغلق'}
+                                                </span>
+                                            </td>
+                                            <td className="text-center ltr-text font-medium text-muted">
+                                                {new Date(assignment.submissionDeadline).toLocaleDateString('en-GB')}
+                                            </td>
+                                            <td>
+                                                <div className="flex-center-col">
+                                                    <div className="progress-bar-mini" style={{ marginBottom: '6px' }}>
+                                                        <div className="fill" style={{ width: `${(assignment.submissions / 20) * 100}%`, background: assignment.status === 'published' ? '#38A169' : '#CBD5E0' }}></div>
+                                                    </div>
+                                                    <span className="small-text text-muted">{assignment.submissions} / 20 تسليم</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div className="actions-flex justify-center">
+                                                    <button onClick={() => { setSelectedAssignment(assignment); setShowDetailsModal(true); }} className="btn-icon-mini view" title="التفاصيل والتصحيح">
+                                                        <User size={18} />
+                                                    </button>
+                                                    <button onClick={() => {
+                                                        setEditingAssignment(assignment); setFormData({
+                                                            unitId: assignment.unitId,
+                                                            title: assignment.title,
+                                                            description: assignment.description || '',
+                                                            submissionDeadline: assignment.submissionDeadline ? new Date(assignment.submissionDeadline).toISOString().split('T')[0] : '',
+                                                            totalMarks: assignment.totalMarks || 100,
+                                                            passThreshold: assignment.passThreshold || 50,
+                                                            meritThreshold: assignment.meritThreshold || 70,
+                                                            distinctionThreshold: assignment.distinctionThreshold || 90,
+                                                            status: assignment.status
+                                                        }); setShowModal(true);
+                                                    }} className="btn-icon-mini edit" title="تعديل">
+                                                        <FilePenLine size={18} />
+                                                    </button>
+                                                    <button onClick={() => handleDelete(assignment)} className="btn-icon-mini danger" title="حذف">
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </>
+                )}
+            </main>
+
+
+
+
+
+            {/* --- Premium Modal 2026 --- */}
+            {
+                showModal && (
+                    <div className="modal-overlay-2026" onClick={() => { setShowModal(false); resetForm(); }}>
+                        <div className="modal-content-2026 premium-modal" onClick={(e) => e.stopPropagation()}>
+                            <div className="modal-header">
+                                <div className="header-info">
+                                    <h2>{editingAssignment ? 'تعديل بيانات الواجب' : 'إضافة واجب وتقييم جديد'}</h2>
+                                    <p>يرجى إدخال تفاصيل ومعايير التقييم بدقة</p>
+                                </div>
+                                <button className="close-modal" onClick={() => { setShowModal(false); resetForm(); }}>✕</button>
+                            </div>
+                            <div className="modal-body-scroll">
+                                <form onSubmit={handleSubmit} className="premium-form">
+                                    <div className="form-section">
+                                        <h3 className="section-title">المعلومات الأساسية</h3>
+                                        <div className="form-group">
+                                            <label>الوحدة الأكاديمية *</label>
+                                            <select
+                                                className="input-premium"
+                                                value={formData.unitId}
+                                                onChange={(e) => setFormData({ ...formData, unitId: e.target.value })}
+                                                required
+                                            >
+                                                <option value="">اختر الوحدة الدراسية</option>
+                                                {/* In a real app, units would come from props/api. For now using unique ones from mock */}
+                                                {units.map((unit) => (
+                                                    <option key={unit.id} value={unit.id}>{unit.nameAr} - {unit.nameEn}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="form-grid">
+                                            <div className="form-group">
+                                                <label>عنوان الواجب *</label>
+                                                <input
+                                                    type="text"
+                                                    className="input-premium"
+                                                    placeholder="مثال: مشروع تصميم قواعد البيانات"
+                                                    value={formData.title}
+                                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                                    required
+                                                />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>تاريخ التسليم *</label>
+                                                <input
+                                                    type="date"
+                                                    className="input-premium"
+                                                    value={formData.submissionDeadline}
+                                                    onChange={(e) => setFormData({ ...formData, submissionDeadline: e.target.value })}
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="form-group">
+                                            <label>وصف ومتطلبات الواجب</label>
+                                            <textarea
+                                                className="input-premium textarea-premium"
+                                                rows={4}
+                                                placeholder="اكتب وصفاً دقيقاً للمطلوب من الطالب..."
+                                                value={formData.description}
+                                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                            ></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div className="form-section highlight-bg">
+                                        <h3 className="section-title">معايير التقييم (Grading Criteria)</h3>
+                                        <div className="form-grid">
+                                            <div className="form-group">
+                                                <label>الدرجة الكلية</label>
+                                                <input
+                                                    className="input-premium"
+                                                    type="number"
+                                                    value={formData.totalMarks}
+                                                    onChange={(e) => setFormData({ ...formData, totalMarks: e.target.value ? parseInt(e.target.value) : 0 })}
+                                                />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>حد النجاح (Pass)</label>
+                                                <input
+                                                    type="number"
+                                                    className="input-premium"
+                                                    value={formData.passThreshold}
+                                                    onChange={(e) => setFormData({ ...formData, passThreshold: e.target.value ? parseInt(e.target.value) : 0 })}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="form-grid">
+                                            <div className="form-group">
+                                                <label>حد التميز (Merit)</label>
+                                                <input
+                                                    type="number"
+                                                    className="input-premium"
+                                                    value={formData.meritThreshold}
+                                                    onChange={(e) => setFormData({ ...formData, meritThreshold: e.target.value ? parseInt(e.target.value) : 0 })}
+                                                />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>حد التفوق (Distinction)</label>
+                                                <input
+                                                    type="number"
+                                                    className="input-premium"
+                                                    value={formData.distinctionThreshold}
+                                                    onChange={(e) => setFormData({ ...formData, distinctionThreshold: e.target.value ? parseInt(e.target.value) : 0 })}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="modal-footer">
+                                        <button type="button" className="btn-cancel" onClick={() => { setShowModal(false); resetForm(); }}>إلغاء</button>
+                                        <button type="submit" className="btn-save btn-orange-gradient">
+                                            <Save size={18} />
+                                            <span>حفظ الواجب</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+
+            {/* Mobile Filters Drawer */}
+            {
+                showMobileFilters && (
+                    <div className="drawer-overlay" onClick={() => setShowMobileFilters(false)}>
+                        <div className="drawer-content" onClick={(e) => e.stopPropagation()}>
+                            <div className="drawer-header">
+                                <h3>تصفية الواجبات</h3>
+                                <button className="btn-close-drawer" onClick={() => setShowMobileFilters(false)}>✕</button>
+                            </div>
+                            <div className="drawer-body-scroll">
+                                <div className="drawer-section">
+                                    <label>حالة الواجب</label>
+                                    <select className="input-premium" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+                                        <option value="all">الكل</option>
+                                        <option value="published">منشور</option>
+                                        <option value="draft">مسودة</option>
+                                        <option value="closed">مغلق</option>
+                                    </select>
+                                </div>
+                                <div className="drawer-section">
+                                    <label>الوحدة الأكاديمية</label>
+                                    <select className="input-premium" value={filterUnit} onChange={(e) => setFilterUnit(e.target.value)}>
+                                        <option value="">كافة الوحدات</option>
+                                        {units.map(unit => (
+                                            <option key={unit.id} value={unit.nameAr}>{unit.nameAr}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="drawer-footer">
+                                <button onClick={() => { setSearchTerm(''); setFilterStatus('all'); setFilterUnit(''); setShowMobileFilters(false); }} className="btn-reset-drawer">إعادة ضبط</button>
+                                <button onClick={() => setShowMobileFilters(false)} className="btn-apply-drawer">تطبيق الفلاتر</button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {showDetailsModal && selectedAssignment && (
+                <AssignmentDetailsModal
+                    assignment={selectedAssignment}
+                    onClose={() => setShowDetailsModal(false)}
+                />
+            )}
+
+            {confirmDialog && (
+                <ConfirmDialog
+                    title={confirmDialog.title}
+                    message={confirmDialog.message}
+                    type={confirmDialog.type}
+                    onConfirm={confirmDialog.onConfirm}
+                    onCancel={() => setConfirmDialog(null)}
+                />
+            )}
+            {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
+
+            {/* --- Global Design System 2026 (Abdelkader Template) --- */}
+            <style dangerouslySetInnerHTML={{
+                __html: `
+:root {
+    --orange-primary: #DD6B20;
+    --orange-light: #FFF5F0;
+    --orange-dark: #9C4221;
+    --primary: var(--orange-primary);
+    --primary-light: var(--orange-light);
+    --primary-dark: var(--orange-dark);
+    --accent: #2C7A7B;
+    --bg-page: #F8FAFC;
+    --surface: #FFFFFF;
+    --text-main: #1A202C;
+    --text-muted: #718096;
+    --glass-bg: rgba(255, 255, 255, 0.9);
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+    --shadow-md: 0 8px 24px rgba(149,157,165,0.1);
+    --shadow-premium: 10px 10px 20px #bebebe, -10px -10px 20px #ffffff;
+    --radius-lg: 20px;
+    --radius-md: 12px;
+}
+
+.next-gen-page-container {
+    font-family: 'Inter', 'Cairo', sans-serif;
+    color: var(--text-main);
+    direction: rtl;
+    min-height: 100vh;
+    background: var(--bg-page);
+    padding-bottom: 5rem;
+}
+
+.container-wide {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* GLASS HEADER */
+.glass-header {
+    position: sticky;
+    top: 80px;
+    z-index: 999;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 20px;
+    margin: 0.75rem;
+    height: 75px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.header-branding {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.branding-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.branding-icon.orange { 
+    background: #FFF5F5; 
+    color: var(--orange-primary);
+}
+
+.branding-text h1 {
+    font-family: 'Cairo', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 800;
+    margin: 0;
+    color: var(--primary-dark);
+}
+
+.branding-text p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+/* UI ELEMENTS */
+.btn-modern {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.btn-orange-gradient {
+    background: linear-gradient(135deg, var(--orange-primary) 0%, #ED8936 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(221, 107, 32, 0.3);
+}
+
+.btn-orange-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(221, 107, 32, 0.4);
+}
+
+.view-switcher {
+    display: flex;
+    background: #EDF2F7;
+    padding: 4px;
+    border-radius: 10px;
+    gap: 4px;
+}
+
+.view-switcher button {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.view-switcher button.active {
+    background: white;
+    color: var(--primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.header-pills { display: flex; gap: 0.75rem; }
+.pill { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+.pill-green { background: #E6FFFA; color: #2C7A7B; border: 1px solid #B2F5EA; }
+.pill-muted { background: #F7FAFC; color: #718096; border: 1px solid #E2E8F0; }
+
+/* FILTERS TOOLBAR */
+.filters-toolbar {
+    margin-top: 1rem;
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 20px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    border: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.search-box-wrapper { flex: 1; position: relative; display: flex; align-items: center; }
+.search-icon { position: absolute; right: 1rem; color: var(--text-muted); }
+.search-box-wrapper input {
+    width: 100%; height: 48px; padding: 0 3rem 0 1rem;
+    border: 1px solid #E2E8F0; border-radius: 12px;
+    background: #F8FAFC; font-size: 0.95rem; transition: all 0.2s;
+}
+.search-box-wrapper input:focus {
+    border-color: var(--orange-primary); background: white; outline: none; box-shadow: 0 0 0 4px rgba(221, 107, 32, 0.1);
+}
+
+.divider-v { width: 1px; height: 32px; background: #E2E8F0; margin: 0 0.5rem; }
+.filters-group { display: flex; gap: 1rem; align-items: center; }
+.filters-group select {
+    height: 48px; padding: 0 1rem; border: 1px solid #E2E8F0;
+    border-radius: 12px; background: #F8FAFC; color: var(--text-main); font-weight: 600; cursor: pointer;
+}
+
+/* STATS GRID */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin: 1rem 0 2rem 0;
+}
+.stat-card-mini {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 20px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid #EDF2F7;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.stat-label { font-size: 0.8rem; color: #718096; font-weight: 700; margin: 0; }
+.stat-value { font-size: 1.8rem; font-weight: 800; color: #2D3748; line-height: 1; }
+
+@media (max-width: 1024px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+    .stats-grid { grid-template-columns: 1fr; }
+}
+
+/* CARDS */
+.programs-grid-2026 {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.5rem; margin-top: 2rem;
+}
+
+.next-gen-card {
+    background: white; border-radius: var(--radius-lg); padding: 1.5rem;
+    border: 1px solid #EDF2F7; transition: all 0.3s ease; position: relative;
+    display: flex; flex-direction: column; box-shadow: var(--shadow-sm);
+}
+.next-gen-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-md); border-color: var(--primary-light); }
+
+.card-top { display: flex; justify-content: space-between; margin-bottom: 1.25rem; align-items: center; }
+.status-pill { 
+    display: flex; align-items: center; gap: 4px; padding: 4px 10px; 
+    border-radius: 10px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+}
+.card-actions-mini { display: flex; gap: 0.5rem; }
+.card-actions-mini button {
+    width: 32px; height: 32px; border-radius: 8px; border: none; background: #F7FAFC;
+    color: #718096; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+}
+.card-actions-mini button:hover { background: #EDF2F7; color: var(--primary); }
+.card-actions-mini button.danger:hover { background: #FFF5F5; color: #E53E3E; }
+
+.card-title { font-size: 1.1rem; font-weight: 800; margin: 0 0 0.5rem 0; color: #2D3748; }
+.card-subtitle { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem; line-height: 1.5; }
+
+.tag-level, .tag-body {
+    font-size: 0.75rem; padding: 4px 10px; border-radius: 8px; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 4px;
+}
+.tag-level { background: #EBF8FF; color: #2B6CB0; }
+.tag-body { background: #F7FAFC; color: #4A5568; border: 1px solid #E2E8F0; }
+
+.card-stats-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;
+    background: #F8FAFC; padding: 1rem; border-radius: 14px; margin-bottom: 1.5rem;
+}
+.stat-val { display: block; font-size: 1.1rem; font-weight: 800; margin-bottom: 2px; }
+.stat-lbl { font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+
+/* TABLE */
+.next-gen-table-container { 
+    background: white; border-radius: var(--radius-lg); margin-top: 2rem; 
+    border: 1px solid #F1F5F9; overflow: hidden; box-shadow: var(--shadow-sm);
+}
+.modern-data-table { width: 100%; border-collapse: collapse; }
+.modern-data-table th { 
+    background: #F8FAFC; padding: 1.25rem; text-align: right; 
+    font-size: 0.75rem; font-weight: 800; color: #718096; border-bottom: 1px solid #EDF2F7;
+}
+.modern-data-table td { padding: 1.25rem; border-bottom: 1px solid #F1F5F9; }
+.modern-data-table tr:hover { background: #F8FAFC; }
+
+.table-primary-text { font-weight: 700; font-size: 0.9rem; color: #2D3748; }
+.table-secondary-text { font-size: 0.75rem; color: #A0AEC0; margin-top: 2px; }
+.count-pill { 
+    display: inline-flex; background: #EDF2F7; padding: 4px 12px; 
+    border-radius: 12px; font-weight: 800; font-size: 0.85rem; 
+}
+
+/* BTEC SECTION */
+.btec-info-section { 
+    margin-top: 3rem; background: white; padding: 2rem; border-radius: 24px; 
+    border: 1px solid #EDF2F7; box-shadow: var(--shadow-sm); 
+}
+.section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; }
+.section-header h3 { font-size: 1.1rem; font-weight: 800; color: #2D3748; margin: 0; }
+.grading-metrics-grid { 
+    display: grid; 
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 1.25rem; 
+}
+
+@media (max-width: 1024px) {
+    .grading-metrics-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+    .grading-metrics-grid { grid-template-columns: 1fr; }
+}
+.grade-card { 
+    display: flex; align-items: center; gap: 12px; padding: 1rem; 
+    border-radius: 16px; border: 2px solid transparent; 
+}
+.grade-box { 
+    width: 40px; height: 40px; border-radius: 10px; display: flex; 
+    align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 1.2rem;
+}
+.grade-info { display: flex; flex-direction: column; }
+.grade-label { font-size: 0.85rem; font-weight: 800; }
+.grade-threshold { font-size: 0.75rem; color: #718096; margin-top: 2px; }
+
+/* MODAL PREMIUM */
+.modal-overlay-2026 { 
+    position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); 
+    backdrop-filter: blur(8px); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+}
+.premium-modal { width: 100%; max-width: 700px; background: white; border-radius: 32px; overflow: hidden; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.25); }
+.modal-header { padding: 1.75rem 2rem; border-bottom: 1px solid #F1F5F9; display: flex; justify-content: space-between; align-items: center; }
+.header-info h2 { font-size: 1.4rem; font-weight: 900; color: #1A202C; margin: 0; }
+.header-info p { font-size: 0.85rem; color: #718096; margin: 4px 0 0 0; }
+.close-modal { width: 40px; height: 40px; border-radius: 50%; border: none; background: #F8FAFC; font-size: 1rem; cursor: pointer; transition: 0.2s; }
+.close-modal:hover { background: #FEE2E2; color: #EF4444; transform: rotate(90deg); }
+
+.modal-body-scroll { padding: 2rem; max-height: calc(85vh - 100px); overflow-y: auto; }
+.form-section { margin-bottom: 2rem; }
+.section-title { font-size: 0.9rem; font-weight: 800; color: var(--orange-primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.25rem; border-right: 4px solid var(--orange-primary); padding-right: 12px; }
+.highlight-bg { background: #FFF5F0; padding: 1.5rem; border-radius: 20px; border: 1px dashed var(--orange-primary); }
+
+.input-premium { 
+    width: 100%; height: 50px; padding: 0 1rem; border-radius: 14px; 
+    border: 1px solid #E2E8F0; background: #F8FAFC; font-size: 1rem; font-weight: 600; transition: 0.2s; 
+}
+.input-premium:focus { border-color: var(--orange-primary); background: white; outline: none; box-shadow: 0 0 0 4px rgba(221, 107, 32, 0.1); }
+textarea.input-premium { height: auto; padding: 1rem; }
+
+.input-with-icon { position: relative; display: flex; align-items: center; }
+.input-with-icon svg { position: absolute; right: 1rem; color: #A0AEC0; pointer-events: none; }
+.input-with-icon .input-premium { padding-right: 3rem; }
+
+.modal-footer-premium { display: flex; gap: 1rem; margin-top: 1rem; }
+.btn-primary-premium { flex: 2; height: 56px; border-radius: 16px; border: none; background: var(--orange-primary); color: white; font-weight: 800; font-size: 1rem; cursor: pointer; transition: 0.3s; }
+.btn-primary-premium:hover { background: var(--orange-dark); transform: translateY(-2px); box-shadow: 0 8px 16px rgba(221, 107, 32, 0.2); }
+.btn-secondary-premium { flex: 1; height: 56px; border-radius: 16px; border: none; background: #EDF2F7; color: #4A5568; font-weight: 700; cursor: pointer; transition: 0.2s; }
+
+/* MOBILE UTILITIES */
+.show-on-mobile { display: none !important; }
+.mobile-search-area { display: none !important; }
+
+/* MOBILE STYLES */
+@media (max-width: 768px) {
+    .show-on-mobile { display: block !important; }
+    .fab-mobile { display: flex !important; }
+    .glass-header { 
+        height: auto !important; min-height: 80px; 
+        /* Sticky Position for Mobile */
+        position: sticky !important; top: 1rem !important; z-index: 100 !important;
+        margin: 0 0.75rem 0.5rem !important; /* Reduced bottom margin slightly */
+        border-radius: 24px !important; 
+        display: flex !important; align-items: center !important; justify-content: center !important; 
+        background: white !important; box-shadow: var(--shadow-sm) !important; border: none !important;
+        padding: 1rem !important; backdrop-filter: none !important;
+    }
+    .header-content { display: block !important; text-align: center !important; padding: 0 !important; width: 100% !important; }
+    .header-branding { 
+        display: flex !important; flex-direction: row !important; 
+        align-items: center !important; justify-content: center !important; 
+        width: 100%; position: static !important;
+    }
+    .branding-icon { 
+        width: 42px !important; height: 42px !important; 
+        background: #FFF5F0 !important; border-radius: 12px !important;
+        display: flex !important; align-items: center !important; justify-content: center !important;
+        /* Icon moved to the RIGHT */
+        position: absolute !important; right: 1.5rem !important; left: auto !important; top: 50% !important; transform: translateY(-50%) !important;
+    }
+    .branding-text { 
+        display: flex !important; flex-direction: column !important; 
+        justify-content: center !important; align-items: center !important;
+        width: 100% !important;
+    }
+    .branding-text h1 { 
+        font-family: 'Cairo', sans-serif !important;
+        font-size: 1.25rem !important; margin: 0 !important; padding: 0 !important; 
+        font-weight: 800 !important; color: #2D3748 !important; text-align: center !important;
+    }
+    .branding-text p { display: none !important; }
+    
+    .mobile-search-area {
+        background: white !important;
+        padding: 1.25rem !important; /* Larger Padding */
+        border-radius: 24px !important; /* Larger Radius */
+        box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05) !important;
+        /* Added 1.5rem margin-top to separate from Header */
+        margin: 1.5rem 0.75rem 1.5rem !important;
+        box-sizing: border-box;
+        display: block !important;
+    }
+
+    .mobile-search-area .search-box-wrapper {
+        height: 52px !important; /* Taller inputs */
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 1rem !important; /* Larger Scale Gap */
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .mobile-search-area .search-box-wrapper input { 
+        flex: 1 !important;
+        min-width: 0 !important;
+        height: 52px !important;
+        border: 1px solid #EDF2F7 !important;
+        border-radius: 16px !important; /* Larger Radius */
+        background: #F7FAFC !important; /* Slightly darker than white */
+        font-size: 1rem !important;
+        padding: 0 1.25rem !important;
+        box-shadow: none !important;
+        color: #2D3748 !important;
+    }
+    
+    .btn-filter-toggle { 
+        width: 52px !important; height: 52px !important; 
+        min-width: 52px !important; min-height: 52px !important;
+        background: white !important; 
+        border: 1px solid #EDF2F7 !important;
+        border-radius: 16px !important; margin: 0 !important;
+        display: flex !important; align-items: center !important; justify-content: center !important;
+        box-shadow: var(--shadow-sm);
+        color: #4A5568 !important;
+    }
+
+    /* FAB Exact Match */
+    .fab-mobile {
+        width: 64px !important; height: 64px !important;
+        background: linear-gradient(135deg, #ED8936 0%, #DD6B20 100%) !important;
+        border-radius: 50% !important;
+        display: flex !important; align-items: center !important; justify-content: center !important;
+        color: white !important;
+        /* Icon based styling - Removed font properties */
+        box-shadow: 0 12px 24px -6px rgba(221, 107, 32, 0.5) !important;
+        border: none !important; /* No Border */
+        position: fixed !important; bottom: 2rem !important; left: 1.5rem !important; /* Left aligned for RTL/Thumb */
+        z-index: 100 !important;
+        padding: 0 !important;
+    }
+
+    .hide-on-mobile { display: none !important; }
+    
+    /* Step 3: Stats Grid Mobile Styles */
+    .mobile-stats-grid {
+        display: grid !important;
+        /* 2 Columns for Mobile */
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.75rem !important;
+        margin: 0 0.75rem 1.5rem !important;
+        padding-bottom: 50px; /* Space for FAB */
+    }
+
+    .stat-card-mini {
+        background: white;
+        padding: 1rem;
+        border-radius: 16px;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        flex-direction: row; /* Row layout: Label Right, Value Left */
+        justify-content: space-between;
+        align-items: center;
+        /* Border Right is applied inline */
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: #718096;
+        font-weight: 600;
+        text-align: right;
+    }
+
+    .stat-value {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #2D3748;
+    }
+
+                @media (max-width: 768px) {
+                    .container-wide { padding: 0 !important; }
+                    
+                    .mobile-cards-grid {
+                        display: flex; flex-direction: column; 
+                        gap: 1rem; 
+                        margin: 0; 
+                        padding: 0 0.75rem 4rem;
+                        width: 100%;
+                    }
+                }
+
+    
+    .mobile-assignment-card {
+        width: 100%; /* Force full width */
+        background: white;
+        border-radius: 16px; 
+        padding: 1rem 1.25rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border: 1px solid #EDF2F7;
+        margin-bottom: 0.5rem;
+        position: relative;
+    }
+
+    .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+    
+    .card-actions-mini { display: flex; gap: 8px; align-items: center; }
+    
+    .action-btn-mini {
+        background: transparent; border: none; cursor: pointer; padding: 4px;
+        color: #A0AEC0; transition: color 0.2s; display: flex; align-items: center; justify-content: center;
+    }
+    .action-btn-mini.edit:hover { color: #3182CE; }
+    .action-btn-mini.delete:hover { color: #E53E3E; }
+
+    .card-unit-badge { font-size: 0.8rem; background: #EBF8FF; color: #2B6CB0; padding: 4px 10px; border-radius: 99px; font-weight: 700; letter-spacing: -0.02em; }
+    
+    .status-badge { padding: 6px 14px; border-radius: 99px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
+    .status-published { background: #F0FFF4; color: #38A169; }
+    .status-draft { background: #EDF2F7; color: #718096; }
+    .status-closed { background: #FFF5F5; color: #E53E3E; }
+
+    .card-title { font-size: 1.25rem; font-weight: 800; color: #1A202C; margin: 0.5rem 0 1.5rem 0; font-family: 'Cairo'; line-height: 1.4; text-align: center; }
+
+    /* Stats Grid Footer Style */
+    .card-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+        padding: 1rem;
+        background: #F8FAFC;
+        border-radius: 12px;
+        margin-top: 1rem;
+    }
+
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-val { font-size: 1.1rem; font-weight: 800; color: #2D3748; margin-bottom: 2px; }
+    .stat-lbl { font-size: 0.7rem; color: #718096; font-weight: 600; }
+    
+    .text-green { color: #38A169; }
+    .text-gray { color: #718096; }
+    .text-red { color: #E53E3E; }
+    .highlight .stat-val { color: #3182CE; }
+
+    /* Desktop World Class Table Styles (2026 Floating Rows) */
+    .next-gen-table-container { 
+        background: transparent; /* Container is transparent, Rows are cards */
+        box-shadow: none;
+        border: none;
+        overflow: visible; 
+        margin-bottom: 2rem;
+    }
+    .modern-data-table { 
+        width: 100%; 
+        border-collapse: separate; 
+        border-spacing: 0 12px; /* Gap between floating rows */
+    }
+    
+    .modern-data-table thead th { 
+        background: transparent; 
+        color: #718096; 
+        font-weight: 700; 
+        padding: 0 1.5rem 0.5rem; /* No background, just text labels */
+        text-align: right; 
+        font-size: 0.85rem; 
+        border: none;
+        letter-spacing: 0.02em;
+    }
+    
+    .modern-data-table tbody tr {
+        background: white;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); /* Ultra soft shadow */
+        border: 1px solid rgba(226, 232, 240, 0.6); /* Very subtle border */
+        border-radius: 16px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+    
+    .modern-data-table tbody tr:hover { 
+        transform: translateY(-3px) scale(1.002);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.08), 0 5px 15px rgba(0,0,0,0.05);
+        z-index: 10;
+        background: white; /* Ensure bg stays white on hover */
+    }
+
+    .modern-data-table td { 
+        padding: 1.25rem 1.5rem; 
+        border: none; /* No internal borders */
+        color: #4A5568; 
+        font-size: 0.95rem; 
+        vertical-align: middle; 
+    }
+    
+    .modern-data-table td:first-child { border-top-right-radius: 16px; border-bottom-right-radius: 16px; }
+    .modern-data-table td:last-child { border-top-left-radius: 16px; border-bottom-left-radius: 16px; }
+
+    .table-primary-text { font-weight: 800; color: #2D3748; margin-bottom: 4px; font-size: 1.05rem; font-family: 'Cairo'; }
+    .table-secondary-text { font-size: 0.8rem; color: #A0AEC0; font-weight: 600; }
+    
+    .actions-flex { display: flex; gap: 8px; justify-content: flex-end; opacity: 0.9; }
+    .type-badge { font-family: 'Inter'; font-weight: 700; letter-spacing: 0.05em; font-size: 0.7rem; }
+    .justify-center { justify-content: center; }
+    .flex-center-col { display: flex; flex-direction: column; align-items: center; }
+    .font-medium { font-weight: 500; }
+    .text-muted { color: #64748B; }
+
+    .btn-icon-mini { 
+        width: 34px; height: 34px; border-radius: 10px; 
+        display: flex; align-items: center; justify-content: center; 
+        background: white; border: 1px solid #E2E8F0; /* Clean border */
+        color: #718096; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+    }
+    .btn-icon-mini:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    
+    .btn-icon-mini.view { color: #3182CE; background: #EBF8FF; border-color: #BEE3F8; }
+    .btn-icon-mini.view:hover { background: #3182CE; color: white; border-color: #3182CE; }
+    
+    .btn-icon-mini.edit { color: #D69E2E; background: #FFFFF0; border-color: #FEFCBF; }
+    .btn-icon-mini.edit:hover { background: #D69E2E; color: white; border-color: #D69E2E; }
+    
+    .btn-icon-mini.danger { color: #E53E3E; background: #FFF5F5; border-color: #FED7D7; }
+    .btn-icon-mini.danger:hover { background: #E53E3E; color: white; border-color: #E53E3E; box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3); }
+
+    .progress-bar-mini { width: 100px; height: 6px; background: #EDF2F7; border-radius: 3px; overflow: hidden; margin-bottom: 4px; }
+    .progress-bar-mini .fill { height: 100%; background: #3182CE; border-radius: 3px; }
+    .small-text { font-size: 0.75rem; color: #718096; }
+
+    .empty-state-modern { text-align: center; padding: 3rem 1rem; color: #718096; }
+    .empty-icon { width: 80px; height: 80px; background: #F7FAFC; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: #CBD5E0; }
+    .btn-link { background: none; border: none; color: #3182CE; font-weight: 700; cursor: pointer; text-decoration: underline; margin-top: 1rem; }
+    .table-secondary-text { font-size: 0.7rem !important; }
+    .status-pill { font-size: 0.65rem !important; padding: 3px 8px !important; }
+    .modern-data-table th { font-size: 0.7rem !important; padding: 1rem 0.75rem !important; }
+    .modern-data-table td { padding: 1rem 0.75rem !important; }
+
+    .fab-mobile {
+        position: fixed; bottom: 1.5rem; left: 1.5rem; width: 56px; height: 56px;
+        border-radius: 50%; background: var(--orange-primary); color: white;
+        font-size: 2.2rem; font-weight: 200 !important; border: none; 
+        box-shadow: 0 8px 16px rgba(221, 107, 32, 0.4);
+        z-index: 1000; display: flex; align-items: center; justify-content: center;
+        line-height: normal !important; padding-bottom: 2px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        margin: 0.5rem 0.75rem 1.5rem !important;
+        gap: 0.75rem !important;
+    }
+}
+
+.stat-item { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.stat-lbl { order: 1; margin-bottom: 2px; }
+.stat-val { order: 2; }
+
+/* DRAWER */
+.drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 3000; }
+.drawer-content { 
+    position: absolute; left: 0; top: 0; height: 100%; width: 85%; max-width: 320px; 
+    background: white; display: flex; flex-direction: column; animation: slideIn 0.3s ease-out; 
+}
+@keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+
+.drawer-header { padding: 1.5rem; border-bottom: 1px solid #F1F5F9; display: flex; justify-content: space-between; align-items: center; }
+.drawer-header h3 { margin: 0; font-size: 1.1rem; font-weight: 800; }
+.btn-close-drawer { background: #F8FAFC; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; }
+
+.drawer-body-scroll { flex: 1; padding: 1.5rem; overflow-y: auto; }
+.drawer-section { margin-bottom: 1.5rem; }
+.drawer-section label { display: block; font-size: 0.85rem; font-weight: 700; color: #718096; margin-bottom: 0.75rem; }
+
+.drawer-footer { padding: 1.5rem; border-top: 1px solid #F1F5F9; display: flex; flex-direction: column; gap: 0.75rem; }
+.btn-apply-drawer { height: 50px; border-radius: 12px; border: none; background: var(--orange-primary); color: white; font-weight: 800; cursor: pointer; }
+.btn-reset-drawer { height: 50px; border-radius: 12px; border: 1px solid #E2E8F0; background: white; color: #718096; font-weight: 700; cursor: pointer; }
+
+` }} />
+        </div >
+    );
+}

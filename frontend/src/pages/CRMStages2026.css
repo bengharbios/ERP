@@ -1,0 +1,258 @@
+/* ══════════════════════════════════════════════════════
+   CRM STAGES 2026 — PREMIUM GLASSMORPHISM
+   التصميم الفائق لإدارة مراحل البيع
+   ══════════════════════════════════════════════════════ */
+
+.crm-stages-root {
+    height: calc(100vh - 140px);
+}
+
+.crm-card-actions {
+    display: flex;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.crm-card:hover .crm-card-actions {
+    opacity: 1;
+}
+
+.crm-icon-trash {
+    color: var(--hz-text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.crm-icon-trash:hover {
+    color: #ff4d4d;
+}
+
+.crm-table-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+[data-theme="dark"] .crm-stages-root .crm-sidebar {
+    background: var(--hz-surface);
+}
+
+.stage-status-toggle.won-toggle.active {
+    border-color: rgba(255, 184, 0, 0.4);
+    background: rgba(255, 184, 0, 0.05);
+}
+
+[data-theme='light'] .stage-status-toggle.won-toggle.active {
+    background: #fff8e6;
+}
+
+.stage-status-toggle.lost-toggle.active {
+    border-color: rgba(255, 70, 70, 0.4);
+    background: rgba(255, 70, 70, 0.05);
+}
+
+[data-theme='light'] .stage-status-toggle.lost-toggle.active {
+    background: #ffebeb;
+}
+
+.stage-status-toggle.folded-toggle.active {
+    border-color: rgba(0, 212, 255, 0.4);
+    background: rgba(0, 212, 255, 0.05);
+}
+
+[data-theme='light'] .stage-status-toggle.folded-toggle.active {
+    background: #e6fbff;
+}
+
+.stages-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 0;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--hz-border-soft);
+}
+
+.stages-title {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--hz-text-bright);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.stages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.stage-card {
+    background: var(--hz-surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--hz-border-glass);
+    border-radius: 20px;
+    padding: 24px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    cursor: default;
+}
+
+.stage-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--hz-cyan-glass);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3),
+        0 0 20px rgba(0, 212, 255, 0.1);
+}
+
+.stage-card-glow {
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 100px;
+    height: 100px;
+    background: var(--hz-cyan);
+    filter: blur(60px);
+    opacity: 0.1;
+    transition: opacity 0.3s;
+}
+
+.stage-card:hover .stage-card-glow {
+    opacity: 0.2;
+}
+
+.stage-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.stage-seq {
+    width: 28px;
+    height: 28px;
+    background: var(--hz-surface-3);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 900;
+    color: var(--hz-cyan);
+    border: 1px solid var(--hz-border-soft);
+}
+
+.stage-name-ar {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--hz-text-bright);
+    margin-bottom: 4px;
+}
+
+.stage-name-en {
+    font-size: 0.85rem;
+    color: var(--hz-text-muted);
+    font-family: inherit;
+}
+
+.stage-meta {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--hz-border-soft);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stage-probability {
+    font-size: 0.9rem;
+    font-weight: 900;
+    color: var(--hz-orange);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.stage-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.stage-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--hz-border-soft);
+    background: var(--hz-surface-2);
+    color: var(--hz-text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.stage-btn:hover {
+    background: var(--hz-surface-3);
+    color: var(--hz-text-bright);
+    border-color: var(--hz-border-glass);
+}
+
+.stage-btn.del:hover {
+    background: rgba(255, 77, 77, 0.1);
+    color: #ff4d4d;
+    border-color: rgba(255, 77, 77, 0.2);
+}
+
+/* Modal Specifics */
+.stage-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.stage-status-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--hz-surface-2);
+    border-radius: 12px;
+    border: 1px solid var(--hz-border-soft);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+[data-theme='light'] .stage-status-toggle {
+    background: #f8fafc;
+}
+
+.stage-status-toggle.active {
+    border-color: var(--hz-green-glass);
+    background: rgba(0, 255, 136, 0.03);
+}
+
+[data-theme='light'] .stage-status-toggle.active {
+    background: #e6f8f1;
+}
+
+.stage-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #555;
+}
+
+.stage-status-toggle.active .stage-status-dot {
+    background: var(--hz-green);
+    box-shadow: 0 0 10px var(--hz-green);
+}
+
+@media (max-width: 768px) {
+    .stages-grid {
+        grid-template-columns: 1fr;
+    }
+}

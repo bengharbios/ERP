@@ -1,0 +1,34 @@
+﻿≡ƒöì Scanning Device specifically for Feb 17 & 18, 2026...
+≡ƒôí Sending specific date-range search request to device...
+≡ƒôè Found 87 matches for these dates.
+--- Printing ALL matches found ---
+[1] Emp: undefined | Time: 2026-02-16T20:43:19+04:00 | Name: undefined
+[2] Emp: undefined | Time: 2026-02-16T20:43:21+04:00 | Name: undefined
+[3] Emp: undefined | Time: 2026-02-16T21:19:27+04:00 | Name: undefined
+[4] Emp: undefined | Time: 2026-02-16T21:46:56+04:00 | Name: undefined
+[5] Emp: undefined | Time: 2026-02-16T21:54:37+04:00 | Name: undefined
+[6] Emp: 6 | Time: 2026-02-16T21:54:37+04:00 | Name: Rabiaa Ben Abdesselam
+[7] Emp: undefined | Time: 2026-02-17T09:51:06+04:00 | Name: undefined
+[8] Emp: undefined | Time: 2026-02-17T09:53:12+04:00 | Name: undefined
+[9] Emp: undefined | Time: 2026-02-17T09:53:13+04:00 | Name: undefined
+[10] Emp: undefined | Time: 2026-02-17T10:08:16+04:00 | Name: undefined
+[11] Emp: undefined | Time: 2026-02-17T10:08:19+04:00 | Name: undefined
+[12] Emp: undefined | Time: 2026-02-17T11:30:26+04:00 | Name: undefined
+[13] Emp: undefined | Time: 2026-02-17T11:32:27+04:00 | Name: undefined
+[14] Emp: undefined | Time: 2026-02-17T11:32:28+04:00 | Name: undefined
+[15] Emp: undefined | Time: 2026-02-17T12:08:52+04:00 | Name: undefined
+[16] Emp: undefined | Time: 2026-02-17T12:10:58+04:00 | Name: undefined
+[17] Emp: undefined | Time: 2026-02-17T12:11:02+04:00 | Name: undefined
+[18] Emp: undefined | Time: 2026-02-17T12:52:05+04:00 | Name: undefined
+[19] Emp: undefined | Time: 2026-02-17T13:36:43+04:00 | Name: undefined
+[20] Emp: 1 | Time: 2026-02-17T13:36:43+04:00 | Name: abdelqader
+[21] Emp: undefined | Time: 2026-02-17T13:36:48+04:00 | Name: undefined
+[22] Emp: undefined | Time: 2026-02-17T13:36:48+04:00 | Name: undefined
+[23] Emp: 1 | Time: 2026-02-17T13:36:48+04:00 | Name: abdelqader
+[24] Emp: undefined | Time: 2026-02-17T13:36:53+04:00 | Name: undefined
+[25] Emp: undefined | Time: 2026-02-17T13:42:18+04:00 | Name: undefined
+[26] Emp: undefined | Time: 2026-02-17T13:42:31+04:00 | Name: undefined
+[27] Emp: 6 | Time: 2026-02-17T13:42:31+04:00 | Name: Rabiaa Ben Abdesselam
+[28] Emp: undefined | Time: 2026-02-17T13:42:36+04:00 | Name: undefined
+[29] Emp: undefined | Time: 2026-02-17T13:46:40+04:00 | Name: undefined
+[30] Emp: 1 | Time: 2026-02-17T13:46:40+04:00 | Name: abdelqader

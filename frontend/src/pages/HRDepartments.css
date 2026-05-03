@@ -1,0 +1,423 @@
+/* ══════════════════════════════════════════════════════
+   ULTIMATE 2026 DESIGN — HR DEPARTMENTS
+   تصميم الأقسام والهيكل التنظيمي | رؤية 2030
+   ══════════════════════════════════════════════════════ */
+
+.ag-root {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 450px;
+    position: relative;
+    background: var(--hz-dark);
+    border: 1px solid var(--hz-border-soft);
+    border-radius: 12px;
+    overflow: hidden;
+    color: var(--hz-text-primary);
+    box-shadow: var(--hz-shadow-lg);
+    font-family: var(--hz-font);
+}
+
+/* ── HEADER ── */
+.ag-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 70px;
+    padding: 0 24px;
+    background: var(--hz-surface);
+    border-bottom: 1px solid var(--hz-border-subtle);
+    flex-shrink: 0;
+}
+
+.ag-header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.ag-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--hz-text-bright);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+}
+
+.ag-title svg {
+    color: var(--hz-plasma);
+}
+
+/* ── BODY ── */
+.ag-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* ── SIDEBAR CONTROLS ── */
+.ag-sidebar {
+    width: 280px;
+    background: var(--hz-dark);
+    border-left: 1px solid var(--hz-border-subtle);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.ag-sidebar-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    border-bottom: 1px solid var(--hz-border-subtle);
+}
+
+.ag-sidebar-head-title {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--hz-text-bright);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.ag-sidebar-pane {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    flex: 1;
+}
+
+.ag-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ag-filter-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--hz-plasma);
+    margin-bottom: 4px;
+}
+
+.ag-input,
+.ag-select {
+    width: 100%;
+    background: var(--hz-surface-2) !important;
+    border: 1px solid var(--hz-border-soft);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--hz-text-primary) !important;
+    font-size: 0.85rem;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.ag-input:focus {
+    border-color: var(--hz-plasma);
+}
+
+/* ── MAIN CONTENT ── */
+.ag-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    background: var(--hz-void);
+    padding: 24px;
+    gap: 24px;
+}
+
+/* ── DEPT GRID ── */
+.ag-dept-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.ag-dept-card {
+    background: var(--hz-surface);
+    border: 1px solid var(--hz-border-soft);
+    border-radius: 24px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.ag-dept-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 6px;
+    height: 100%;
+    background: var(--hz-plasma);
+    opacity: 0.4;
+}
+
+.ag-dept-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--hz-plasma);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.ag-dept-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.ag-dept-icon {
+    width: 52px;
+    height: 52px;
+    background: var(--hz-surface-2);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--hz-plasma);
+    flex-shrink: 0;
+    border: 1px solid var(--hz-border-soft);
+}
+
+.ag-dept-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+}
+
+.ag-dept-name {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--hz-text-bright);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ag-dept-subtitle {
+    font-size: 0.8rem;
+    color: var(--hz-text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.ag-dept-desc {
+    font-size: 0.85rem;
+    color: var(--hz-text-secondary);
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 2.7em;
+}
+
+.ag-dept-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.ag-stat-box {
+    background: var(--hz-surface-2);
+    border: 1px solid var(--hz-border-soft);
+    border-radius: 14px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.ag-stat-num {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: var(--hz-text-bright);
+}
+
+.ag-stat-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: var(--hz-text-muted);
+    text-transform: uppercase;
+}
+
+.ag-dept-footer {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+/* ── BUTTONS ── */
+.ag-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    justify-content: center;
+}
+
+.ag-btn-primary {
+    background: var(--hz-plasma);
+    color: #FFF;
+}
+
+.ag-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(200, 75, 255, 0.2);
+}
+
+.ag-btn-ghost {
+    background: transparent;
+    border: 1px solid var(--hz-border-soft);
+    color: var(--hz-text-secondary);
+}
+
+.ag-btn-ghost:hover {
+    background: var(--hz-surface-2);
+    color: var(--hz-text-bright);
+}
+
+.ag-btn-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--hz-surface-2);
+    border: 1px solid var(--hz-border-soft);
+    color: var(--hz-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ag-btn-icon:hover {
+    border-color: var(--hz-plasma);
+    color: var(--hz-plasma);
+}
+
+/* ── MODALS (THABAT AL-FORM) ── */
+.ag-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.ag-modal {
+    background: var(--hz-surface);
+    width: 100%;
+    max-width: 500px;
+    border-radius: 24px;
+    border: 1px solid var(--hz-border-soft);
+    box-shadow: var(--hz-shadow-lg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.ag-modal-head {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--hz-border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.ag-modal-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.ag-modal-foot {
+    padding: 20px 24px;
+    background: var(--hz-dark);
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+/* ── MOBILE ── */
+@media (max-width: 992px) {
+    .ag-sidebar {
+        position: fixed;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 1000;
+        transform: translateX(100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: -10px 0 50px rgba(0, 0, 0, 0.5);
+    }
+
+    .ag-sidebar.show {
+        transform: translateX(0);
+    }
+
+    .ag-sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        z-index: 999;
+        display: none;
+    }
+
+    .ag-sidebar-overlay.show {
+        display: block;
+    }
+}
+
+@media (max-width: 768px) {
+    .ag-modal-overlay {
+        padding: 0;
+    }
+
+    .ag-modal {
+        border-radius: 0;
+        max-height: 100vh;
+        height: 100%;
+    }
+}
+
+.mobile-only {
+    display: none !important;
+}
+
+@media (max-width: 992px) {
+    .hide-mobile {
+        display: none !important;
+    }
+
+    .mobile-only {
+        display: flex !important;
+    }
+}

@@ -1,0 +1,135 @@
+@import './tokens.css';
+
+.mg26-layout-wrapper {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--mg26-surface-low);
+    direction: rtl;
+}
+
+/* 1. Metronic Dark Sidebar */
+.mg26-sidebar {
+    width: var(--mg26-sidebar-width);
+    background-color: var(--mg26-sidebar-bg);
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--mg26-space-xl) 0;
+    transition: all var(--mg26-transition-standard);
+    overflow: hidden;
+    z-index: 100;
+}
+
+.mg26-sidebar:hover {
+    width: var(--mg26-sidebar-expanded);
+}
+
+.mg26-nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mg26-space-xs);
+    width: 100%;
+    padding: 0 var(--mg26-space-md);
+}
+
+.mg26-nav-item {
+    display: flex;
+    align-items: center;
+    gap: var(--mg26-space-lg);
+    padding: 0.875rem 1rem;
+    color: var(--mg26-text-muted);
+    text-decoration: none;
+    border-radius: var(--mg26-radius-element);
+    transition: all var(--mg26-transition-quick);
+    white-space: nowrap;
+}
+
+.mg26-nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: white;
+}
+
+.mg26-nav-item.active {
+    background-color: var(--mg26-primary);
+    color: white;
+}
+
+.mg26-nav-icon {
+    min-width: 28px;
+    display: flex;
+    justify-content: center;
+    color: inherit;
+}
+
+.mg26-nav-label {
+    opacity: 0;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transform: translateX(10px);
+    transition: all var(--mg26-transition-standard);
+}
+
+.mg26-sidebar:hover .mg26-nav-label {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* 2. Main Content Area */
+.mg26-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+/* 3. Omni Header Styles */
+.mg26-header {
+    height: var(--mg26-header-height);
+    background-color: var(--mg26-surface-glass);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--mg26-border-subtle);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--mg26-space-2xl);
+    position: sticky;
+    top: 0;
+    z-index: 90;
+}
+
+.mg26-content-canvas {
+    flex: 1;
+    padding: var(--mg26-space-2xl) var(--mg26-space-xl);
+    width: 100%;
+    max-width: var(--mg26-content-max-width);
+    margin: 0 auto;
+}
+
+/* 4. Responsive Adjustments */
+@media (max-width: 992px) {
+    .mg26-sidebar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100% !important;
+        height: 70px;
+        flex-direction: row;
+        padding: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-right: none;
+    }
+
+    .mg26-nav {
+        flex-direction: row;
+        justify-content: space-around;
+        padding: 0;
+        gap: 0;
+    }
+
+    .mg26-nav-label {
+        display: none;
+    }
+}

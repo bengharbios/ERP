@@ -1,0 +1,236 @@
+/* ══════════════════════════════════════════════════════
+   ULTIMATE 2026 DESIGN — SHIFTS & ROSTERS
+   ══════════════════════════════════════════════════════ */
+
+.sh-root {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 450px;
+    background: var(--hz-dark);
+    border: 1px solid var(--hz-border-soft);
+    border-radius: 12px;
+    overflow: hidden;
+    color: var(--hz-text-primary);
+    box-shadow: var(--hz-shadow-lg);
+    font-family: var(--hz-font);
+}
+
+/* ── HEADER ── */
+.sh-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 70px;
+    padding: 0 24px;
+    background: var(--hz-surface);
+    border-bottom: 1px solid var(--hz-border-subtle);
+}
+
+.sh-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--hz-text-bright);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sh-title svg {
+    color: #DD6B20;
+}
+
+/* ── STATS ── */
+.sh-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    padding: 24px;
+    background: var(--hz-void);
+}
+
+.sh-stat-card {
+    background: var(--hz-surface);
+    border: 1px solid var(--hz-border-soft);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.sh-stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.sh-stat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sh-stat-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: var(--hz-text-muted);
+    text-transform: uppercase;
+}
+
+.sh-stat-val {
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: var(--hz-text-bright);
+}
+
+/* ── MAIN ── */
+.sh-main {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+    background: var(--hz-void);
+}
+
+.sh-table-wrap {
+    background: var(--hz-surface);
+    border: 1px solid var(--hz-border-soft);
+    border-radius: 20px;
+    overflow-x: auto;
+}
+
+.sh-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: right;
+    min-width: 900px;
+}
+
+.sh-table th {
+    padding: 16px;
+    background: var(--hz-surface-2);
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--hz-text-muted);
+    border-bottom: 1px solid var(--hz-border-subtle);
+}
+
+.sh-table td {
+    padding: 16px;
+    border-bottom: 1px solid var(--hz-border-subtle);
+    font-size: 0.85rem;
+    color: var(--hz-text-secondary);
+}
+
+.sh-row:hover {
+    background: rgba(221, 107, 32, 0.03);
+}
+
+/* ── LABELS & PILLS ── */
+.sh-type-pill {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 800;
+}
+
+.sh-type-pill.morning {
+    background: rgba(0, 245, 160, 0.1);
+    color: #00F5A0;
+}
+
+.sh-type-pill.evening {
+    background: rgba(255, 126, 95, 0.1);
+    color: #FF7E5F;
+}
+
+.sh-type-pill.combined {
+    background: rgba(200, 75, 255, 0.1);
+    color: #C84BFF;
+}
+
+.sh-time-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: var(--hz-surface-2);
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 0.8rem;
+    color: var(--hz-text-bright);
+}
+
+/* ── FORM ── */
+.sh-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.sh-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sh-label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--hz-text-muted);
+}
+
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+    .sh-table-wrap {
+        border: none;
+        background: transparent;
+    }
+
+    .sh-table {
+        display: block;
+        min-width: 0;
+    }
+
+    .sh-table thead {
+        display: none;
+    }
+
+    .sh-table tbody {
+        display: grid;
+        gap: 16px;
+    }
+
+    .sh-row {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        background: var(--hz-surface);
+        border: 1px solid var(--hz-border-soft);
+        border-radius: 20px;
+        padding: 20px;
+    }
+
+    .sh-row td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0;
+        border: none;
+    }
+
+    .sh-row td::before {
+        content: attr(data-label);
+        font-size: 0.7rem;
+        font-weight: 800;
+        color: var(--hz-text-muted);
+    }
+
+    .sh-form-grid {
+        grid-template-columns: 1fr;
+    }
+}

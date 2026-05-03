@@ -1,0 +1,251 @@
+/* ========================================= */
+/*    CHART OF ACCOUNTS - Ultimate 2026    */
+/* ========================================= */
+
+/* Import base Ultimate 2026 styles from ReceiptVouchers */
+@import './finance/ReceiptVouchers.css';
+
+/* Chart of Accounts Specific Styles */
+
+/* Tree View Container */
+.coa-tree-container {
+    background: white;
+    border-radius: 24px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(226, 232, 240, 0.5);
+    overflow: hidden;
+}
+
+/* Tree Header */
+.coa-tree-header {
+    background: #F8FAFC;
+    border-bottom: 2px solid #E2E8F0;
+    padding: 1.25rem 1.5rem;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1.25fr 140px;
+    gap: 1rem;
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: #475569;
+}
+
+.coa-tree-header .col {
+    display: flex;
+    align-items: center;
+}
+
+/* Tree Body */
+.coa-tree-body {
+    max-height: 800px;
+    overflow-y: auto;
+}
+
+/* Tree Node */
+.coa-node-wrapper {
+    border-bottom: 1px solid #F1F5F9;
+}
+
+.coa-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1.25fr 140px;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    transition: all 0.2s ease;
+    align-items: center;
+}
+
+.coa-row:hover {
+    background: #F8FAFC;
+}
+
+.coa-row.inactive {
+    opacity: 0.5;
+}
+
+.coa-row.level-0 {
+    background: linear-gradient(to left, transparent, rgba(221, 107, 32, 0.03));
+    font-weight: 700;
+}
+
+.coa-row.level-1 {
+    background: rgba(226, 232, 240, 0.3);
+}
+
+/* Column Styles */
+.col {
+    display: flex;
+    align-items: center;
+}
+
+.col.text-center {
+    justify-content: center;
+}
+
+.col.text-left {
+    justify-content: flex-start;
+}
+
+/* Account Main Column */
+.account-main-col {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.account-expand {
+    width: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.expand-btn-2026 {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    color: #64748B;
+    transition: all 0.2s;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.expand-btn-2026:hover {
+    background: rgba(221, 107, 32, 0.1);
+    color: var(--orange-primary);
+}
+
+.no-expand-2026 {
+    width: 16px;
+    display: inline-block;
+}
+
+.account-ident {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.account-code-badge {
+    background: linear-gradient(135deg, var(--orange-primary), #ED8936);
+    color: white;
+    padding: 0.35rem 0.75rem;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    min-width: 70px;
+    text-align: center;
+}
+
+.name-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.name-ar {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #1E293B;
+}
+
+.name-en {
+    font-size: 0.8rem;
+    color: #64748B;
+}
+
+/* Type Pill */
+.type-pill-2026 {
+    padding: 0.4rem 0.9rem;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Balance Display */
+.balance-display {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    justify-content: center;
+}
+
+.balance-display .amount {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #1E293B;
+}
+
+.balance-display .amount.positive {
+    color: #10B981;
+}
+
+.balance-display .amount.negative {
+    color: #EF4444;
+}
+
+.balance-display .currency {
+    font-size: 0.75rem;
+    color: #94A3B8;
+    font-weight: 600;
+}
+
+/* Actions Stack */
+.actions-stack {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-start;
+}
+
+.btn-icon-2026 {
+    background: white;
+    border: 1.5px solid #E2E8F0;
+    color: #64748B;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.btn-icon-2026:hover {
+    border-color: var(--orange-primary);
+    background: rgba(221, 107, 32, 0.05);
+    color: var(--orange-primary);
+}
+
+.btn-icon-2026.edit:hover {
+    border-color: #3B82F6;
+    background: rgba(59, 130, 246, 0.05);
+    color: #3B82F6;
+}
+
+.btn-icon-2026.delete:hover {
+    border-color: #EF4444;
+    background: rgba(239, 68, 68, 0.05);
+    color: #EF4444;
+}
+
+/* Empty State */
+.empty-state-2026 {
+    padding: 4rem 2rem;
+    text-align: center;
+    color: #94A3B8;
+}
+
+.empty-state-2026 p {
+    margin-top: 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+}

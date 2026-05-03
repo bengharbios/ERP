@@ -1,0 +1,273 @@
+/* Expenses.css - Ultimate 2026 Design Standard */
+@import "./finance/ReceiptVouchers.css";
+
+/* Expense Specific Styles */
+.category-pill-2026 {
+    background: #EFF6FF;
+    color: #1D4ED8;
+    padding: 6px 14px;
+    border-radius: 99px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    border: 1px solid #DBEAFE;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.amount-total-pill.orange {
+    background: #FFF7ED;
+    color: #C2410C;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-weight: 800;
+    border: 1px solid #FFEDD5;
+    font-size: 1rem;
+}
+
+/* Category Manage Styles */
+.category-form-card-2026 {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.category-action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.modern-list-item-2026 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: white;
+    border: 1px solid #F1F5F9;
+    border-radius: 12px;
+    margin-bottom: 0.75rem;
+    transition: all 0.2s;
+}
+
+.modern-list-item-2026:hover {
+    border-color: var(--orange-primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transform: translateX(-4px);
+}
+
+.modern-list-item-2026 .item-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.modern-list-item-2026 .item-info .title {
+    font-weight: 700;
+    color: #1E293B;
+}
+
+.modern-list-item-2026 .item-info .subtitle {
+    font-size: 0.75rem;
+    color: #64748B;
+}
+
+.item-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.icon-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.icon-action-btn.edit {
+    background: #F1F5F9;
+    color: #475569;
+}
+
+.icon-action-btn.edit:hover {
+    background: #E2E8F0;
+    color: #1E293B;
+}
+
+.icon-action-btn.delete {
+    background: #FEF2F2;
+    color: #EF4444;
+}
+
+.icon-action-btn.delete:hover {
+    background: #FEE2E2;
+}
+
+.total-preview-orange-2026 {
+    background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
+    border: 2px dashed #FDBA74;
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+}
+
+.total-preview-orange-2026 .preview-label {
+    font-weight: 700;
+    color: #C2410C;
+    font-size: 1.1rem;
+}
+
+.total-preview-orange-2026 .preview-value {
+    font-size: 1.75rem;
+    font-weight: 900;
+    color: #9A3412;
+}
+
+/* Voucher Print Design 2026 */
+.voucher-paper-2026 {
+    background: white;
+    padding: 3rem;
+    border-radius: 4px;
+    color: #0F172A;
+    font-family: 'Inter', sans-serif;
+    position: relative;
+    border: 1px solid #E2E8F0;
+}
+
+.voucher-header-2026 {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 3px solid #F1F5F9;
+    padding-bottom: 2rem;
+    margin-bottom: 2.5rem;
+}
+
+.institute-branding h2 {
+    color: var(--orange-primary);
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+.voucher-title-badge {
+    text-align: left;
+}
+
+.voucher-title-badge h1 {
+    font-size: 2.5rem;
+    font-weight: 900;
+    margin: 0;
+    color: #1E293B;
+    letter-spacing: -1px;
+}
+
+.v-number {
+    font-family: monospace;
+    font-size: 1.25rem;
+    color: var(--orange-primary);
+    font-weight: 700;
+}
+
+.v-field-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.v-field-row.highlighter {
+    background: #F8FAFC;
+    padding: 1rem;
+    border-radius: 12px;
+}
+
+.v-label {
+    min-width: 120px;
+    font-weight: 800;
+    color: #475569;
+}
+
+.v-value-dotted {
+    flex: 1;
+    border-bottom: 2px dotted #E2E8F0;
+    padding: 4px 8px;
+    font-size: 1.15rem;
+}
+
+.v-value-dotted.amount-big {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #0F172A;
+    border: none;
+}
+
+.v-tax-summary-2026 {
+    margin-top: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    font-weight: 700;
+    color: #64748B;
+}
+
+.voucher-footer-2026 {
+    margin-top: 5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 2rem;
+}
+
+.signature-block {
+    text-align: center;
+}
+
+.signature-block span {
+    display: block;
+    margin-bottom: 3rem;
+    font-weight: 700;
+    color: #475569;
+}
+
+.under-line {
+    border-bottom: 2px solid #CBD5E1;
+    width: 80%;
+    margin: 0 auto;
+}
+
+.stamp-placeholder {
+    width: 100px;
+    height: 100px;
+    border: 3px dashed #E2E8F0;
+    border-radius: 50%;
+    margin: 0 auto;
+}
+
+@media print {
+    .premium-modal-overlay {
+        background: white !important;
+        position: static;
+        padding: 0;
+    }
+
+    .premium-modal-container {
+        box-shadow: none !important;
+        max-width: 100% !important;
+    }
+
+    .voucher-paper-2026 {
+        border: none !important;
+        padding: 1cm !important;
+    }
+}

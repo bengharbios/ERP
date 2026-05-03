@@ -1,0 +1,16 @@
+
+=== DEBUGGING INSTRUCTIONS ===
+
+1. Stop the backend server running in your terminal (Press Ctrl+C).
+2. Open a terminal in the `backend` folder:
+   cd backend
+3. Run the following command to update the database client:
+   npx prisma generate
+4. Restart the backend server:
+   npm run dev
+5. Try to add the student again.
+6. If an error occurs, it will now show a detailed message (e.g., "Installment validation failed"). Please share this message with me.
+
+=== TECHNICAL DETAILS ===
+The error "An error occurred while updating the student" was generic. I have updated the backend to return the specific error message from the database or validation logic.
+I have also ensured that the 'InstallmentPlan' and 'StudentFeeCalculation' models are correctly defined in the schema.

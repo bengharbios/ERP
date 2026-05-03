@@ -1,0 +1,13 @@
+--- DB Connection Check ---
+Device: لالاتلاتلات (10.255.254.30)
+Fetching users from device via ISAPI...
+Found 8 users on device.
+--- Fetching Employees from DB ---
+Found 8 employees in DB.
+
+--- COMPARISON ---
+
+[OK] All device users are linked to an Employee record.
+
+[INFO] Possible Match found on device: ID=1, Name=abdelqader
+[OK] Linked to DB Employee: abdelqader - (BioID: 1)

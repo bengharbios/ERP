@@ -1,0 +1,147 @@
+/* Payroll Specific Styles */
+
+.stepper-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+    z-index: 1;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.step-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #EDF2F7;
+    border: 2px solid #E2E8F0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: #718096;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+}
+
+.step-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #718096;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.step-line {
+    position: absolute;
+    top: 20px;
+    right: 50%;
+    width: 100%;
+    height: 2px;
+    background: #E2E8F0;
+    z-index: -1;
+}
+
+.step-item.active .step-circle {
+    background: #DD6B20;
+    border-color: #DD6B20;
+    color: white;
+    box-shadow: 0 0 15px rgba(221, 107, 32, 0.3);
+    transform: scale(1.1);
+}
+
+.step-item.active .step-label {
+    color: #DD6B20;
+}
+
+.step-item.completed .step-circle {
+    background: #38A169;
+    border-color: #38A169;
+    color: white;
+}
+
+.step-item.completed .step-label {
+    color: #38A169;
+}
+
+.step-item.completed .step-line {
+    background: #38A169;
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Modal Content Tweaks */
+.side-panel {
+    background: white;
+    box-shadow: var(--shadow-premium);
+}
+
+.modern-form {
+    display: block;
+}
+
+.form-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+.btn-modern {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    font-family: inherit;
+}
+
+.btn-orange-gradient {
+    background: linear-gradient(135deg, #DD6B20 0%, #ED8936 100%);
+    color: white;
+    box-shadow: 0 4px 6px rgba(221, 107, 32, 0.2);
+}
+
+.btn-outline {
+    background: #EDF2F7;
+    color: #4A5568;
+}
+
+.btn-modern:hover:not(:disabled) {
+    transform: translateY(-2px);
+    filter: brightness(110%);
+}
+
+.btn-modern:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

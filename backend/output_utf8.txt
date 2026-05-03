@@ -1,0 +1,14 @@
+﻿--- Biometric Diagnostic Start ---
+Connecting to: ╪¿┘ê╪º╪¿╪⌐ ╪º┘ä┘à┘ê╪╕┘ü┘è┘å  at http://10.255.254.30:80...
+Device Internal Time: "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<Time version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<timeMode>manual</timeMode>\r\n<localTime>2026-02-18T11:56:01+04:00</localTime>\r\n<timeZone>CST-4:00:00</timeZone>\r\n</Time>\r\n"
+--- Last 10 Raw Events on Device ---
+Emp: undefined | Time: 2024-10-17T18:52:29+04:00 | Name: N/A
+Emp: 1 | Time: 2024-10-17T18:52:29+04:00 | Name: ASAD
+Emp: undefined | Time: 2024-10-17T18:52:34+04:00 | Name: N/A
+Emp: undefined | Time: 2024-10-17T18:52:40+04:00 | Name: N/A
+Emp: 2 | Time: 2024-10-17T18:52:40+04:00 | Name: SALMA
+Emp: 2 | Time: 2024-10-17T18:52:44+04:00 | Name: SALMA
+Emp: 2 | Time: 2024-10-17T18:52:48+04:00 | Name: SALMA
+Emp: undefined | Time: 2024-10-17T18:52:51+04:00 | Name: N/A
+Emp: 2 | Time: 2024-10-17T18:52:52+04:00 | Name: SALMA
+Emp: 2 | Time: 2024-10-17T18:52:55+04:00 | Name: SALMA

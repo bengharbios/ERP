@@ -1,0 +1,247 @@
+.guide-page {
+    padding-bottom: 3rem;
+    direction: rtl;
+}
+
+.guide-header {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    padding: 2.5rem;
+    border-radius: 20px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.guide-header .header-info {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.header-icon {
+    width: 48px;
+    height: 48px;
+    color: #fb923c;
+}
+
+.guide-header h1 {
+    font-size: 1.8rem;
+    margin: 0;
+    font-weight: 800;
+}
+
+.guide-header p {
+    margin: 0.5rem 0 0 0;
+    opacity: 0.7;
+    font-size: 0.95rem;
+}
+
+.header-badge {
+    background: rgba(34, 197, 94, 0.2);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #4ade80;
+    padding: 0.5rem 1rem;
+    border-radius: 99px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.guide-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.guide-card {
+    background: white;
+    border-radius: 20px;
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.guide-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.05);
+    border-color: #fb923c;
+}
+
+.card-head {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.icon-box {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-orange {
+    color: #f97316;
+}
+
+.icon-blue {
+    color: #3b82f6;
+}
+
+.icon-green {
+    color: #22c55e;
+}
+
+.icon-red {
+    color: #ef4444;
+}
+
+.icon-purple {
+    color: #8b5cf6;
+}
+
+.icon-gold {
+    color: #eab308;
+}
+
+.guide-card h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #1e293b;
+    font-weight: 700;
+}
+
+.function-badge {
+    background: #f1f5f9;
+    padding: 0.6rem 0.8rem;
+    border-radius: 10px;
+    color: #475569;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    border-right: 3px solid #64748b;
+}
+
+.details-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.details-list li {
+    position: relative;
+    padding-right: 1.5rem;
+    margin-bottom: 0.6rem;
+    font-size: 0.9rem;
+    color: #64748b;
+    line-height: 1.6;
+}
+
+.details-list li::before {
+    content: "•";
+    position: absolute;
+    right: 0;
+    color: #fb923c;
+    font-weight: bold;
+}
+
+/* Workflow Section */
+.workflow-section {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    border: 1px solid #e2e8f0;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    color: #1e293b;
+}
+
+.section-title h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 800;
+}
+
+.flow-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.flow-step {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.step-num {
+    width: 24px;
+    height: 24px;
+    background: #fb923c;
+    color: white;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.step-box {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    padding: 1rem 1.5rem;
+    border-radius: 15px;
+    font-weight: 700;
+    color: #1e293b;
+    width: 100%;
+    text-align: center;
+}
+
+.step-arrow {
+    font-size: 20px;
+    color: #cbd5e1;
+    margin: 0.5rem 0;
+    transform: rotate(180deg);
+}
+
+.step-desc {
+    font-size: 0.85rem;
+    color: #64748b;
+    text-align: center;
+    font-weight: 600;
+}
+
+@media (max-width: 1024px) {
+    .flow-container {
+        flex-direction: column;
+    }
+
+    .step-arrow {
+        transform: rotate(270deg);
+    }
+}

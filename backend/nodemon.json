@@ -1,0 +1,15 @@
+{
+    "watch": [
+        "src"
+    ],
+    "ext": "ts,json",
+    "ignore": [
+        "node_modules",
+        ".wwebjs_auth",
+        ".wwebjs_cache",
+        "dist",
+        "*.test.ts",
+        "prisma/migrations"
+    ],
+    "exec": "tsx src/index.ts"
+}

@@ -1,0 +1,206 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Cairo:wght@200..1000&display=swap');
+
+/* Import Design System */
+@import './styles/tokens.css';
+@import './layouts/Rapidos2026/tokens.css';
+@import './styles/animations.css';
+@import './styles/icon-fixes.css';
+
+:root {
+  font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+
+  line-height: 1.6;
+  font-weight: 400;
+
+  /* --- Ultimate 2026 Design System --- */
+  --primary-color: #2C7A7B;
+  --primary-gradient: linear-gradient(135deg, #2C7A7B 0%, #285E61 100%);
+  --secondary-color: #7c3aed;
+  --success-color: #38A169;
+  --danger-color: #E53E3E;
+  --warning-color: #DD6B20;
+  --orange-gradient: linear-gradient(135deg, #DD6B20 0%, #C05621 100%);
+
+  --bg-color: #F8FAFC;
+  --text-color: #1A202C;
+  --text-primary: #1A202C;
+  --border-color: #EDF2F7;
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(226, 232, 240, 0.6);
+
+  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+}
+
+[data-theme="dark"] {
+  --bg-color: #02040A;
+  --text-color: rgba(255, 255, 255, 0.92);
+  --text-primary: rgba(255, 255, 255, 0.92);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(18, 28, 51, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- Global Glassmorphic Utilities --- */
+.premium-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1.5rem;
+}
+
+.premium-modal-content {
+  background: white;
+  border-radius: var(--radius-xl);
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--glass-border);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease forwards;
+}
+
+/* RTL Support */
+[dir="rtl"] {
+  text-align: right;
+}
+
+[dir="ltr"] {
+  text-align: left;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- FORM INPUT FIXES --- */
+/* Default Light Mode Overrides */
+input,
+select,
+textarea {
+  color: var(--text-primary, #1A202C) !important;
+  background-color: white !important;
+}
+
+/* Ensure placeholder is visible but lighter */
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-neutral-400, #94A3B8) !important;
+  opacity: 1;
+}
+
+/* Specific fix for select elements */
+select {
+  color: var(--text-primary, #1A202C) !important;
+}
+
+/* Fix for disabled inputs */
+input:disabled,
+select:disabled,
+textarea:disabled {
+  background-color: var(--color-neutral-100, #F1F5F9) !important;
+  color: var(--color-neutral-500, #64748B) !important;
+  cursor: not-allowed;
+}
+
+/* Fix for date inputs */
+input[type="date"],
+input[type="datetime-local"],
+input[type="month"],
+input[type="time"] {
+  color: var(--text-primary, #1A202C) !important;
+}
+
+/* --- DARK MODE OVERRIDES --- */
+
+/* Dark Mode Form Input Overrides */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea,
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] input[type="datetime-local"],
+[data-theme="dark"] input[type="month"],
+[data-theme="dark"] input[type="time"] {
+  color: rgba(255, 255, 255, 0.92) !important;
+  background-color: var(--hz-surface-2, rgba(23, 32, 56, 1)) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Specific fix for modal bodies and forms in dark mode to prevent white backgrounds */
+[data-theme="dark"] .premium-modal-content {
+  background-color: var(--hz-surface-2, #172038) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .ag-modal-body,
+[data-theme="dark"] .ag-modal-form,
+[data-theme="dark"] form.ag-modal-form,
+[data-theme="dark"] .ag-modal-body>.fade-in {
+  background-color: transparent !important;
+}
+
+/* Fix Autocomplete/Autofill yellow/white background in Chrome for dark mode */
+[data-theme="dark"] input:-webkit-autofill,
+[data-theme="dark"] input:-webkit-autofill:hover,
+[data-theme="dark"] input:-webkit-autofill:focus,
+[data-theme="dark"] select:-webkit-autofill,
+[data-theme="dark"] textarea:-webkit-autofill {
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.92) !important;
+  -webkit-box-shadow: 0 0 0px 1000px #172038 inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Dark Mode Placeholders */
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: rgba(255, 255, 255, 0.35) !important;
+}

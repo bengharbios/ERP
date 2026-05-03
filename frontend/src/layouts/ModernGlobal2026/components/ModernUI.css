@@ -1,0 +1,227 @@
+/* Modern Global 2026 Component Styles */
+
+/* 1. Modern Card */
+.mg26-card {
+    background: var(--mg26-surface-high);
+    border: none;
+    border-radius: var(--mg26-radius-component);
+    padding: var(--mg26-space-xl);
+    box-shadow: var(--mg26-shadow-md);
+    transition: all var(--mg26-transition-standard);
+}
+
+.mg26-card:hover {
+    box-shadow: var(--mg26-shadow-lg);
+    transform: translateY(-2px);
+}
+
+.mg26-card.interactive {
+    cursor: pointer;
+}
+
+.mg26-card-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--mg26-text-primary);
+    margin-bottom: var(--mg26-space-xs);
+    letter-spacing: -0.02em;
+}
+
+.mg26-card-subtitle {
+    font-size: 0.875rem;
+    color: var(--mg26-text-muted);
+    margin-bottom: var(--mg26-space-xl);
+    font-weight: 500;
+}
+
+/* 2. Modern Stats */
+.mg26-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--mg26-space-xl);
+    margin-bottom: var(--mg26-space-2xl);
+}
+
+.mg26-stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mg26-space-xs);
+    padding: var(--mg26-space-xl);
+    background: var(--mg26-surface-high);
+    border-radius: var(--mg26-radius-component);
+    box-shadow: var(--mg26-shadow-sm);
+}
+
+.mg26-stat-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--mg26-text-secondary);
+}
+
+.mg26-stat-value {
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: var(--mg26-text-primary);
+    letter-spacing: -0.02em;
+}
+
+.mg26-stat-trend {
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    width: fit-content;
+}
+
+.mg26-stat-trend.up {
+    color: var(--mg26-success);
+    background: rgba(23, 198, 83, 0.1);
+}
+
+.mg26-stat-trend.down {
+    color: var(--mg26-error);
+    background: rgba(248, 40, 90, 0.1);
+}
+
+/* 3. Modern Table */
+.mg26-table-container {
+    overflow-x: auto;
+    border-radius: var(--mg26-radius-component);
+    background: var(--mg26-surface-high);
+    box-shadow: var(--mg26-shadow-sm);
+}
+
+.mg26-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: right;
+}
+
+.mg26-table th {
+    padding: var(--mg26-space-xl) var(--mg26-space-lg);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--mg26-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--mg26-border-subtle);
+}
+
+.mg26-table td {
+    padding: var(--mg26-space-xl) var(--mg26-space-lg);
+    font-size: 0.93rem;
+    color: var(--mg26-text-secondary);
+    border-bottom: 1px solid var(--mg26-border-subtle);
+    font-weight: 500;
+}
+
+.mg26-table tr:last-child td {
+    border-bottom: none;
+}
+
+.mg26-table tr:hover td {
+    background: #FAFAFB;
+}
+
+/* 4. Modern Buttons */
+.mg26-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--mg26-space-sm);
+    padding: 0.75rem 1.5rem;
+    font-weight: 700;
+    font-size: 0.925rem;
+    border-radius: var(--mg26-radius-component);
+    cursor: pointer;
+    transition: all var(--mg26-transition-standard);
+    border: none;
+    outline: none;
+}
+
+.mg26-btn-primary {
+    background: var(--mg26-primary);
+    color: white;
+}
+
+.mg26-btn-primary:hover {
+    background: var(--mg26-primary-active);
+    box-shadow: 0px 4px 10px rgba(27, 132, 255, 0.2);
+}
+
+.mg26-btn-secondary {
+    background: var(--mg26-primary-soft);
+    color: var(--mg26-primary);
+}
+
+.mg26-btn-secondary:hover {
+    background: #E1EFFF;
+}
+
+.mg26-btn-outline {
+    background: transparent;
+    border: 1px solid var(--mg26-border-strong);
+    color: var(--mg26-text-secondary);
+}
+
+.mg26-btn-outline:hover {
+    background: var(--mg26-surface-low);
+    color: var(--mg26-text-primary);
+}
+
+.mg26-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--mg26-border-strong);
+    border-radius: var(--mg26-radius-component);
+    background: #F9F9F9;
+    color: var(--mg26-text-primary);
+    font-size: 0.925rem;
+    font-weight: 500;
+    transition: all var(--mg26-transition-standard);
+}
+
+.mg26-input:focus {
+    border-color: var(--mg26-primary);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(27, 132, 255, 0.1);
+    outline: none;
+}
+
+.mg26-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.mg26-label {
+    font-size: 0.93rem;
+    font-weight: 700;
+    color: #181C32;
+    /* Metronic Active Dark */
+}
+
+.mg26-loader-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: var(--mg26-space-xl);
+}
+
+.mg26-loader {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--mg26-bg-soft);
+    border-top-color: var(--mg26-primary);
+    border-radius: 50%;
+    animation: mg26-spin 0.8s linear infinite;
+}
+
+@keyframes mg26-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

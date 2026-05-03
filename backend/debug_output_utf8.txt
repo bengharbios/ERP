@@ -1,0 +1,11 @@
+﻿--- Starting Debug Shifting ---
+Created Class: d0dc0d15-1802-4b02-af48-253feb50ee3f (Debug Shifting Class)
+prisma:error 
+Invalid `prisma.lecture.createMany()` invocation in
+C:\Users\Al Salam\Desktop\Coding\institute-erp\backend\scripts\debug_shifting.ts:40:26
+
+  37 console.log(`Created Class: ${cls.id} (${cls.name})`);
+  38 
+  39 // 2. Create Dummy Lectures (Mon Feb 02, Wed Feb 04, Mon Feb 09)
+ΓåÆ 40 await prisma.lecture.createMany(
+Foreign key constraint violated: `lectures_unit_id_fkey (index)`

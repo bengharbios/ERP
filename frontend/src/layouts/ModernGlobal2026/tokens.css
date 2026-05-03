@@ -1,0 +1,77 @@
+/* Modern Global 2026 - Design System Tokens */
+:root {
+    /* 1. Spacing Scale (4px base) */
+    --mg26-space-xs: 4px;
+    --mg26-space-sm: 8px;
+    --mg26-space-md: 12px;
+    --mg26-space-lg: 16px;
+    --mg26-space-xl: 24px;
+    --mg26-space-2xl: 32px;
+    --mg26-space-3xl: 48px;
+    --mg26-space-4xl: 64px;
+
+    /* 2. Metronic Demo 3 Functional Colors */
+    --mg26-primary: #1B84FF;
+    /* Metronic Blue */
+    --mg26-primary-soft: #EEF6FF;
+    /* Metronic Blue Light */
+    --mg26-primary-active: #056EE9;
+    --mg26-primary-hover: #1572e8;
+
+    --mg26-surface-low: #F9F9F9;
+    /* Metronic Body BG */
+    --mg26-surface-high: #FFFFFF;
+    /* Metronic Card/Input BG */
+    --mg26-surface-glass: rgba(255, 255, 255, 0.8);
+
+    --mg26-text-primary: #071437;
+    /* Metronic Heading */
+    --mg26-text-secondary: #4B5675;
+    /* Metronic Slate (Text) */
+    --mg26-text-muted: #99A1B7;
+    /* Metronic Muted */
+
+    --mg26-border-strong: #DBDFE9;
+    /* Metronic Input/Border */
+    --mg26-border-subtle: #F1F1F4;
+    /* Metronic Light Border */
+
+    --mg26-sidebar-bg: #131428;
+    /* Metronic Dark Sidebar (Dark Blue-Gray) */
+    --mg26-sidebar-active: #1B84FF;
+
+    /* 3. Semantic Signals */
+    --mg26-success: #17C653;
+    --mg26-warning: #F6C000;
+    --mg26-error: #F8285A;
+
+    /* 4. Radius & Shadows - Metronic Demo 3 uses ~10px decimal radii */
+    --mg26-radius-container: 14px;
+    --mg26-radius-component: 10px;
+    /* 0.65rem approx */
+    --mg26-radius-element: 8px;
+    --mg26-radius-pill: 9999px;
+
+    --mg26-shadow-sm: 0px 3px 4px rgba(0, 0, 0, 0.02);
+    --mg26-shadow-md: 0px 10px 30px rgba(0, 0, 0, 0.03);
+    --mg26-shadow-lg: 0px 15px 50px rgba(0, 0, 0, 0.05);
+
+    /* 5. Motion */
+    --mg26-transition-standard: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --mg26-transition-quick: 150ms ease;
+
+    /* 6. Layout Constants */
+    --mg26-sidebar-width: 80px;
+    --mg26-sidebar-expanded: 280px;
+    --mg26-header-height: 70px;
+    --mg26-content-max-width: 1580px;
+}
+
+/* Global Reset Utilities for the Template */
+.mg26-root {
+    font-family: 'Inter', 'Outfit', system-ui, -apple-system, sans-serif;
+    color: var(--mg26-text-primary);
+    background-color: var(--mg26-surface-low);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
