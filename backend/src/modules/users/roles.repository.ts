@@ -73,8 +73,8 @@ export class RolesRepository {
         // createMany is supported in modern Prisma for relational DBs
         return prisma.rolePermission.createMany({
             data,
-            skipDuplicates: true
         });
+
     }
 
     async removePermissions(roleId: string, permissionIds: string[]) {
