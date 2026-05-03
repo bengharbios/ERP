@@ -29,8 +29,8 @@
     "@google/genai": "^1.42.0",
     "@libsql/client": "^0.17.3",
     "@mhoc/axios-digest-auth": "^0.8.0",
-    "@prisma/adapter-libsql": "^7.8.0",
-    "@prisma/client": "^5.22.0",
+    "@prisma/adapter-libsql": "5.22.0",
+    "@prisma/client": "5.22.0",
     "@types/multer": "^2.0.0",
     "axios": "^1.13.4",
     "bcrypt": "^5.1.1",
@@ -57,7 +57,7 @@
     "@types/node": "^20.10.6",
     "@types/xml2js": "^0.4.14",
     "nodemon": "^3.0.2",
-    "prisma": "^5.7.0",
+    "prisma": "5.22.0",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3"
   }
