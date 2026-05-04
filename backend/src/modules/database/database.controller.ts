@@ -1,9 +1,7 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../../common/db/prisma';
 import { exec } from 'child_process';
 import path from 'path';
-
-const prisma = new PrismaClient();
 
 /**
  * Export all database data as JSON

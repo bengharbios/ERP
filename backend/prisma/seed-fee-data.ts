@@ -1,6 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-
-const prisma = new PrismaClient();
+import prisma from '../src/common/db/prisma';
 
 async function main() {
     console.log('💰 Seeding Fee Data...');

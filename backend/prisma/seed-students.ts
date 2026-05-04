@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '../src/common/db/prisma';
 import * as bcrypt from 'bcrypt';
-
-const prisma = new PrismaClient();
 
 async function main() {
     console.log('🌱 Starting students and classes seed...');
@@ -61,7 +59,7 @@ async function main() {
                 startDate: new Date('2026-01-01'),
                 durationMonths: 6,
                 studyDaysPerWeek: 3,
-                studyDays: ['Sunday', 'Tuesday', 'Thursday'],
+                studyDays: JSON.stringify(['Sunday', 'Tuesday', 'Thursday']),
                 studyLanguage: classData.studyLanguage,
                 maxStudents: 30,
                 status: 'active'

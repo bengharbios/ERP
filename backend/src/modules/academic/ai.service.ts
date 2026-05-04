@@ -46,7 +46,7 @@ Analyze the assignment against the rubric and output a JSON object with exactly 
 
         try {
             const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
+                model: 'gemini-1.5-flash',
                 contents: prompt,
             });
 
@@ -66,8 +66,11 @@ Analyze the assignment against the rubric and output a JSON object with exactly 
 
             const result = JSON.parse(cleanText);
             return result;
-        } catch (error) {
-            console.error("AI Analysis Error:", error);
+        } catch (error: any) {
+            console.error("AI Analysis Error Details:");
+            if (error.status) console.error("Status Code:", error.status);
+            if (error.message) console.error("Message:", error.message);
+            if (error.response) console.error("Response:", JSON.stringify(error.response, null, 2));
             throw error;
         }
     }

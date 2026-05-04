@@ -1,6 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../../../common/db/prisma';
 
 /**
  * Get all activities with optional filters
