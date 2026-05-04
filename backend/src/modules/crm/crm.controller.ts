@@ -1,30 +1,33 @@
 import { Request, Response } from 'express';
-import { Telegraf } from 'telegraf';
 import { crmService } from './crm.service';
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-if (!BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN is not defined');
-const bot = new Telegraf(BOT_TOKEN);
 
-// Configure Bot logic
-bot.on('text', async (ctx) => {
-    const text = ctx.message.text;
-    
-    // Check if it's a report message
-    if (text.includes('الاسم:') && text.includes('رقم الهاتف:')) {
-        try {
-            const parsedData = crmService.parseTelegramMessage(text);
-            const lead = await crmService.updateLeadFromMessage(parsedData);
-            
-            ctx.reply(`✅ تم تحديث بيانات العميل: ${lead.name}\nالحالة: ${parsedData.interestLevel || 'غير محدد'}`);
-        } catch (error: any) {
-            console.error('Telegram Parse Error:', error.message);
-            ctx.reply('⚠️ عذراً، حدث خطأ أثناء قراءة التقرير. تأكد من التنسيق الصحيح.');
-        }
-    } else if (text === '/start') {
-        ctx.reply('مرحباً بك في بوت CRM السلام. أرسل تقرير العميل هنا ليتم تسجيله تلقائياً.');
+// Lazy bot initialization — only created when needed
+let bot: any = null;
+function getBot() {
+    if (!BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN is not defined in environment variables');
+    if (!bot) {
+        const { Telegraf } = require('telegraf');
+        bot = new Telegraf(BOT_TOKEN);
+        bot.on('text', async (ctx: any) => {
+            const text = ctx.message.text;
+            if (text.includes('الاسم:') && text.includes('رقم الهاتف:')) {
+                try {
+                    const parsedData = crmService.parseTelegramMessage(text);
+                    const lead = await crmService.updateLeadFromMessage(parsedData);
+                    ctx.reply(`✅ تم تحديث بيانات العميل: ${lead.name}\nدرجة الاهتمام: ${parsedData.interestLevel || 'غير محدد'}`);
+                } catch (error: any) {
+                    console.error('Telegram Parse Error:', error.message);
+                    ctx.reply('⚠️ عذراً، حدث خطأ أثناء قراءة التقرير. تأكد من التنسيق الصحيح.');
+                }
+            } else if (text === '/start') {
+                ctx.reply('مرحباً بك في بوت CRM السلام. أرسل تقرير العميل هنا ليتم تسجيله تلقائياً.');
+            }
+        });
     }
-});
+    return bot;
+}
 
 export const crmController = {
     /**
@@ -32,11 +35,11 @@ export const crmController = {
      */
     async handleTelegramWebhook(req: Request, res: Response) {
         try {
-            await bot.handleUpdate(req.body);
+            await getBot().handleUpdate(req.body);
             res.status(200).send('OK');
         } catch (error: any) {
             console.error('Webhook Error:', error.message);
-            res.status(500).send('Internal Error');
+            res.status(500).json({ success: false, error: error.message });
         }
     },
 
@@ -48,7 +51,7 @@ export const crmController = {
         const protocol = host?.includes('localhost') ? 'http' : 'https';
         const url = `${protocol}://${host}/api/v1/crm/telegram/webhook`;
         try {
-            await bot.telegram.setWebhook(url);
+            await getBot().telegram.setWebhook(url);
             res.json({ success: true, url });
         } catch (error: any) {
             res.status(500).json({ success: false, error: error.message });
