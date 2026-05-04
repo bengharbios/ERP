@@ -2,7 +2,8 @@ import { Request, Response } from 'express';
 import { Telegraf } from 'telegraf';
 import { crmService } from './crm.service';
 
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8532764098:AAFRuQEAxtXQpmE7VcEc2lxNLBo925boxGg';
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+if (!BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN is not defined');
 const bot = new Telegraf(BOT_TOKEN);
 
 // Configure Bot logic
