@@ -61,9 +61,8 @@ export default function AcademicAssessorAI() {
     };
 
     // Settings States
-    const [engineMode, setEngineMode] = useState('Professional API');
-    const [apiKeyStore, setApiKeyStore] = useState('');
     const [evalMode, setEvalMode] = useState('Strict');
+    const [reportLanguage, setReportLanguage] = useState<'Arabic' | 'English'>('Arabic');
     const [options, setOptions] = useState({
         moodle: true,
         integrity: true,
@@ -73,6 +72,21 @@ export default function AcademicAssessorAI() {
     const [report, setReport] = useState<any>(null);
     const [showMobileSidebar, setShowMobileSidebar] = useState(false);
     const [isTestingKey, setIsTestingKey] = useState(false);
+
+    // Initialize API Key from LocalStorage
+    useEffect(() => {
+        const savedKey = localStorage.getItem('osarab_gemini_api_key');
+        if (savedKey) setApiKeyStore(savedKey);
+
+        const savedMode = localStorage.getItem('osarab_ai_engine_mode');
+        if (savedMode) setEngineMode(savedMode);
+    }, []);
+
+    // Save API Key and Engine Mode when changed
+    useEffect(() => {
+        if (apiKeyStore) localStorage.setItem('osarab_gemini_api_key', apiKeyStore);
+        if (engineMode) localStorage.setItem('osarab_ai_engine_mode', engineMode);
+    }, [apiKeyStore, engineMode]);
 
     const steps = [
         { id: 1, label: 'استخراج الأدلة', icon: <FileText size={18} /> },
@@ -124,6 +138,7 @@ export default function AcademicAssessorAI() {
                 rubric,
                 options: {
                     evalMode,
+                    language: reportLanguage,
                     moodle: options.moodle,
                     integrity: options.integrity,
                     critical: options.critical
@@ -201,6 +216,11 @@ export default function AcademicAssessorAI() {
             integrity: "94% Originality Score (AI review passed)",
             thinking: "Demonstrated high levels of Bloom's Taxonomy in analysis phases."
         });
+    };
+
+    const handleDownload = () => {
+        if (!report) return;
+        window.print();
     };
 
     const handleTestKey = async () => {
@@ -306,6 +326,14 @@ export default function AcademicAssessorAI() {
                                     >
                                         {isTestingKey ? '...' : 'فحص'}
                                     </button>
+                                </div>
+                            </div>
+
+                            <div className="ag-setting-group">
+                                <span className="ag-setting-label"><Layers size={14} /> لغة التقرير</span>
+                                <div className="ag-toggle-group">
+                                    <button className={`ag-toggle-btn ${reportLanguage === 'Arabic' ? 'active' : ''}`} onClick={() => setReportLanguage('Arabic')}>العربية</button>
+                                    <button className={`ag-toggle-btn ${reportLanguage === 'English' ? 'active' : ''}`} onClick={() => setReportLanguage('English')}>English</button>
                                 </div>
                             </div>
 
@@ -430,7 +458,7 @@ export default function AcademicAssessorAI() {
                                                 <div style={{ fontSize: '0.8rem' }}><span style={{ color: 'var(--hz-text-muted)' }}>الوحدة:</span> <strong style={{ color: 'var(--hz-text-bright)' }}>{report.unit}</strong></div>
                                             </div>
                                         </div>
-                                        <HzBtn variant="primary" icon={<Download size={16} />}>تحميل التقرير</HzBtn>
+                                        <HzBtn variant="primary" icon={<Download size={16} />} onClick={handleDownload}>تحميل التقرير</HzBtn>
                                     </div>
 
                                     <div className="ag-marking-section">
