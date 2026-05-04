@@ -12,9 +12,9 @@ export const crmService = {
             emirate: /الإمارة:\s*(.+)/,
             diploma: /الدبلوم المهتم به:\s*(.+)/,
             interestLevel: /درجة الاهتمام:\s*(\d+)/,
-            notes: /📝 الملاحظات:\s*([\s\S]+?)(?=📅|$)/,
+            notes: /📝 الملاحظات:\s*([\s\S]+?)(?=-{3,}|👤|📅|$)/,
             reschedule: /📅 إعادة جدولة:\s*(.+)/,
-            employee: /👤 الموظف المسؤول:\s*الاسم:\s*(.+)/
+            employee: /👤 الموظف المسؤول:\s*(?:الاسم:\s*)?(.+)/
         };
 
         const data: any = {};
