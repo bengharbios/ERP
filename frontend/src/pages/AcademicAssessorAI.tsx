@@ -513,3 +513,5 @@ export default function AcademicAssessorAI() {
         </div>
     );
 }
+
+export default AcademicAssessorAI;
