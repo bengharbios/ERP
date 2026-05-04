@@ -46,26 +46,26 @@ Analyze the assignment against the rubric and output a JSON object with exactly 
 
         try {
             const response = await ai.models.generateContent({
-                model: 'gemini-1.5-flash',
+                model: 'gemini-2.5-flash',
                 contents: prompt,
             });
 
             const text = response.text || '';
 
-            // Attempt to clean the text if the model ignored instructions and wrapped in markdown
+            // Improved JSON cleaning logic
             let cleanText = text.trim();
-            if (cleanText.startsWith('\`\`\`json')) {
-                cleanText = cleanText.substring(7);
-            } else if (cleanText.startsWith('\`\`\`')) {
-                cleanText = cleanText.substring(3);
-            }
-            if (cleanText.endsWith('\`\`\`')) {
-                cleanText = cleanText.substring(0, cleanText.length - 3);
-            }
+            // Remove markdown code blocks
+            cleanText = cleanText.replace(/^```(?:json)?\s+/, '').replace(/\s+```$/, '').replace(/^```(?:json)?/, '').replace(/```$/, '');
             cleanText = cleanText.trim();
 
-            const result = JSON.parse(cleanText);
-            return result;
+            try {
+                const result = JSON.parse(cleanText);
+                return result;
+            } catch (parseError: any) {
+                console.error("AI Response Parsing Failed. Raw text:", text);
+                console.error("Cleaned text:", cleanText);
+                throw new Error("Failed to parse AI response as JSON: " + parseError.message);
+            }
         } catch (error: any) {
             console.error("AI Analysis Error Details:");
             if (error.status) console.error("Status Code:", error.status);
