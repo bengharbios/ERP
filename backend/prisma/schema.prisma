@@ -1804,6 +1804,12 @@ model CrmLead {
   stageId             String?       @map("stage_id")
   active              Boolean       @default(true)
   priority            String        @default("1")
+  nationality         String?
+  emirate             String?
+  interestedDiploma   String?       @map("interested_diploma")
+  platform            String?
+  levelOfInterest     Int?          @map("level_of_interest")
+  firstMessageDate    DateTime?     @map("first_message_date")
 
   salespersonId       String?       @map("salesperson_id")
   teamId              String?       @map("team_id")
