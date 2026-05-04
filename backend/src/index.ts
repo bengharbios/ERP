@@ -93,10 +93,14 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
 });
 
 const HOST = '0.0.0.0';
-app.listen(Number(PORT), HOST, () => {
-    console.log(`🚀 Server is running on http://${HOST}:${PORT}`);
-    console.log(`📚 API: http://${HOST}:${PORT}/api/v1`);
-    console.log(`❤️  Health: http://${HOST}:${PORT}/health`);
-});
+
+// Only listen when running locally — Vercel serverless handles this automatically
+if (process.env.VERCEL !== '1') {
+    app.listen(Number(PORT), HOST, () => {
+        console.log(`🚀 Server is running on http://${HOST}:${PORT}`);
+        console.log(`📚 API: http://${HOST}:${PORT}/api/v1`);
+        console.log(`❤️  Health: http://${HOST}:${PORT}/health`);
+    });
+}
 
 export default app;

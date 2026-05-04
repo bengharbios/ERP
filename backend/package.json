@@ -27,7 +27,7 @@
   "license": "ISC",
   "dependencies": {
     "@google/genai": "^1.42.0",
-    "@libsql/client": "0.8.0",
+    "@libsql/client": "^0.14.0",
     "@mhoc/axios-digest-auth": "^0.8.0",
     "@prisma/adapter-libsql": "5.22.0",
     "@prisma/client": "5.22.0",
