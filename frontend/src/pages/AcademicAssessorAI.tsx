@@ -150,7 +150,8 @@ export default function AcademicAssessorAI() {
             }).catch(err => {
                 clearInterval(interval);
                 setLoading(false);
-                setToast({ type: 'error', message: '⚠️ حدث خطأ في تقييم الذكاء الاصطناعي - تأكد من صلاحية المفتاح أو الخادم' });
+                const msg = err.response?.data?.error?.message || 'حدث خطأ في الاتصال بالخادم';
+                setToast({ type: 'error', message: `⚠️ ${msg}` });
                 console.error(err);
             });
         } else {
