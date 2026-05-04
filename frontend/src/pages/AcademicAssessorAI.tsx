@@ -72,6 +72,7 @@ export default function AcademicAssessorAI() {
 
     const [report, setReport] = useState<any>(null);
     const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+    const [isTestingKey, setIsTestingKey] = useState(false);
 
     const steps = [
         { id: 1, label: 'استخراج الأدلة', icon: <FileText size={18} /> },
@@ -199,6 +200,30 @@ export default function AcademicAssessorAI() {
             integrity: "94% Originality Score (AI review passed)",
             thinking: "Demonstrated high levels of Bloom's Taxonomy in analysis phases."
         });
+    const handleTestKey = async () => {
+        if (!apiKeyStore) {
+            setToast({ type: 'warning', message: 'يرجى إدخال مفتاح API أولاً' });
+            return;
+        }
+        setIsTestingKey(true);
+        try {
+            // Using a very small request to test connectivity
+            const res = await academicService.analyzeAssignment({
+                assignment: "Ping",
+                rubric: "Respond with JSON status ok",
+                options: { evalMode: 'Moderate', moodle: false, integrity: false, critical: false },
+                apiKey: apiKeyStore
+            });
+            if (res.success) {
+                setToast({ type: 'success', message: '✅ المفتاح يعمل بشكل صحيح واستجاب المحرك!' });
+            } else {
+                setToast({ type: 'error', message: '❌ فشل الاختبار: ' + (res.error?.message || 'خطأ غير معروف') });
+            }
+        } catch (err: any) {
+            setToast({ type: 'error', message: '❌ خطأ في الاتصال: ' + (err.message || 'المفتاح غير صالح') });
+        } finally {
+            setIsTestingKey(false);
+        }
     };
 
     return (
@@ -261,16 +286,24 @@ export default function AcademicAssessorAI() {
                                     <button className={`ag-toggle-btn ${engineMode === 'Professional API' ? 'active' : ''}`} onClick={() => setEngineMode('Professional API')}>احترافي API</button>
                                     <button className={`ag-toggle-btn ${engineMode === 'Library' ? 'active' : ''}`} onClick={() => setEngineMode('Library')}>المكتبة</button>
                                 </div>
-                                {engineMode === 'Professional API' && (
+                                <div style={{ display: 'flex', gap: '5px', marginTop: '10px' }}>
                                     <input
                                         type="password"
                                         className="ag-input"
-                                        style={{ marginTop: '10px', fontSize: '11px', padding: '6px' }}
-                                        placeholder="مفتاح Gemini API (اختياري إن كان بالبيئة)"
+                                        style={{ flex: 1, fontSize: '11px', padding: '6px' }}
+                                        placeholder="مفتاح Gemini API"
                                         value={apiKeyStore}
                                         onChange={e => setApiKeyStore(e.target.value)}
                                     />
-                                )}
+                                    <button 
+                                        className="ag-toggle-btn" 
+                                        style={{ padding: '0 10px', fontSize: '10px', height: '30px' }}
+                                        onClick={handleTestKey}
+                                        disabled={isTestingKey}
+                                    >
+                                        {isTestingKey ? '...' : 'فحص'}
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="ag-setting-group">
