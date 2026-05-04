@@ -52,7 +52,8 @@ function mapFrontendToCrmLead(body: any, isUpdate = false) {
         'name', 'phone', 'mobile', 'contactName', 'emailFrom', 'website',
         'expectedRevenue', 'probability', 'stageId', 'active', 'priority',
         'salespersonId', 'teamId', 'campaignId', 'sourceId', 'mediumId',
-        'dateDeadline', 'type', 'customFields'
+        'dateDeadline', 'type', 'customFields',
+        'nationality', 'emirate', 'interestedDiploma', 'platform', 'levelOfInterest', 'firstMessageDate'
     ];
 
     // Map special fields

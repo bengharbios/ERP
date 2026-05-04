@@ -115,6 +115,10 @@ const ALL_COLUMNS = [
     { key: 'score', label: 'النقاط' },
     { key: 'program', label: 'البرنامج' },
     { key: 'createdAt', label: 'تاريخ الإضافة' },
+    { key: 'nationality', label: 'الجنسية' },
+    { key: 'emirate', label: 'الإمارة' },
+    { key: 'interestedDiploma', label: 'الدبلوم المهتم به' },
+    { key: 'levelOfInterest', label: 'درجة الاهتمام' },
     { key: 'isDuplicate', label: 'مكرر' },
 ];
 
@@ -128,6 +132,7 @@ const emptyForm = () => ({
     website: '', source: 'WhatsApp', priority: '1',
     salespersonId: '', teamId: '', programId: '', notes: '',
     expectedRevenue: '', dateDeadline: '',
+    nationality: '', emirate: '', interestedDiploma: '', levelOfInterest: 0,
     customFields: {} as Record<string, string>,
 });
 
@@ -280,6 +285,10 @@ export default function CRMLeads2026() {
                 programId: '',
                 expectedRevenue: lead.expectedRevenue?.toString() || '',
                 dateDeadline: lead.dateDeadline ? lead.dateDeadline.split('T')[0] : '',
+                nationality: lead.nationality || '',
+                emirate: lead.emirate || '',
+                interestedDiploma: lead.interestedDiploma || '',
+                levelOfInterest: lead.levelOfInterest || 0,
                 customFields: (lead.customFields as any) || {},
                 notes: '',
             });
@@ -310,6 +319,10 @@ export default function CRMLeads2026() {
                 source: formData.source,
                 programId: formData.programId,
                 notes: formData.notes,
+                nationality: formData.nationality,
+                emirate: formData.emirate,
+                interestedDiploma: formData.interestedDiploma,
+                levelOfInterest: formData.levelOfInterest,
                 customFields: formData.customFields,
                 type: 'lead',
             };
@@ -487,6 +500,10 @@ export default function CRMLeads2026() {
             case 'program': return <span style={{ fontSize: '0.78rem' }}>—</span>;
             case 'createdAt': return <span style={{ fontSize: '0.75rem', color: 'var(--hz-text-muted)' }}>{new Date(lead.createdAt).toLocaleDateString('ar-AE')}</span>;
             case 'isDuplicate': return lead.isDuplicate ? <span className="crm-dup-tag"><AlertTriangle size={10} /> مكرر</span> : <span style={{ color: 'var(--hz-text-muted)', fontSize: '0.7rem' }}>—</span>;
+            case 'nationality': return <span>{lead.nationality || '—'}</span>;
+            case 'emirate': return <span>{lead.emirate || '—'}</span>;
+            case 'interestedDiploma': return <span style={{ fontSize: '0.78rem' }}>{lead.interestedDiploma || '—'}</span>;
+            case 'levelOfInterest': return <span className="crm-tag" style={{ background: 'var(--hz-orange-soft)', color: 'var(--hz-orange)' }}>{lead.levelOfInterest}/10</span>;
             default: return '—';
         }
     };
@@ -979,10 +996,29 @@ export default function CRMLeads2026() {
                     </div>
                 </div>
 
-                <div className="hz-form-row">
+                <div className="hz-form-row cols-2">
                     <div className="hz-form-group">
                         <label className="hz-label">البريد الإلكتروني</label>
                         <input className="hz-input" type="email" placeholder="example@domain.com" value={formData.emailFrom} onChange={e => setField('emailFrom', e.target.value)} dir="ltr" />
+                    </div>
+                    <div className="hz-form-group">
+                        <label className="hz-label">الدبلوم المهتم به</label>
+                        <input className="hz-input" placeholder="مثال: إدارة أعمال" value={formData.interestedDiploma} onChange={e => setField('interestedDiploma', e.target.value)} />
+                    </div>
+                </div>
+
+                <div className="hz-form-row cols-3">
+                    <div className="hz-form-group">
+                        <label className="hz-label">الجنسية</label>
+                        <input className="hz-input" placeholder="مثال: الإمارات" value={formData.nationality} onChange={e => setField('nationality', e.target.value)} />
+                    </div>
+                    <div className="hz-form-group">
+                        <label className="hz-label">الإمارة</label>
+                        <input className="hz-input" placeholder="مثال: أبوظبي" value={formData.emirate} onChange={e => setField('emirate', e.target.value)} />
+                    </div>
+                    <div className="hz-form-group">
+                        <label className="hz-label">درجة الاهتمام (1-10)</label>
+                        <input className="hz-input" type="number" min="0" max="10" placeholder="7" value={formData.levelOfInterest} onChange={e => setField('levelOfInterest', parseInt(e.target.value) || 0)} />
                     </div>
                 </div>
 
