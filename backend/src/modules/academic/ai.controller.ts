@@ -25,15 +25,15 @@ export const analyzeAssignment = async (req: Request, res: Response): Promise<vo
     } catch (error: any) {
         console.error('AI Analysis Controller Error:', error);
         
-        // Extract as much detail as possible from the error
         const errorMessage = error.response?.data?.error?.message || error.message || 'Unknown AI Error';
-        const errorCode = error.response?.data?.error?.code || 'INTERNAL_ERROR';
+        const errorCode = error.response?.data?.error?.code || 'AI_PROVIDER_ERROR';
 
-        res.status(error.status || 500).json({
+        // Use 500 to distinguish from RBAC/Auth 403 errors
+        res.status(500).json({
             success: false,
             error: {
                 code: errorCode,
-                message: `AI Error: ${errorMessage}`
+                message: `AI Engine Error: ${errorMessage}`
             }
         });
     }
