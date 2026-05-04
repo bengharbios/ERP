@@ -76,14 +76,25 @@ export const crmService = {
 
         // 2. Add the Note/Interaction
         if (parsedData.notes) {
-            await prisma.crmNote.create({
-                data: {
-                    leadId: lead.id,
-                    userId: 'system', // We will map this to the real user later
-                    content: parsedData.notes,
-                    type: 'call_report'
-                }
+            // Find a valid user to associate with this note (default to first user if 'system' doesn't exist)
+            let user = await prisma.user.findFirst({
+                where: { OR: [{ id: 'system' }, { username: 'admin' }] }
             });
+
+            if (!user) {
+                user = await prisma.user.findFirst(); // Get any existing user
+            }
+
+            if (user) {
+                await prisma.crmNote.create({
+                    data: {
+                        leadId: lead.id,
+                        userId: user.id,
+                        content: parsedData.notes,
+                        type: 'call_report'
+                    }
+                });
+            }
         }
 
         return lead;
