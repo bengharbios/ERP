@@ -200,6 +200,8 @@ export default function AcademicAssessorAI() {
             integrity: "94% Originality Score (AI review passed)",
             thinking: "Demonstrated high levels of Bloom's Taxonomy in analysis phases."
         });
+    };
+
     const handleTestKey = async () => {
         if (!apiKeyStore) {
             setToast({ type: 'warning', message: 'يرجى إدخال مفتاح API أولاً' });
