@@ -192,32 +192,52 @@ export default function AcademicAssessorAI() {
         const stName = sStud ? `${sStud.firstNameAr || ''} ${sStud.lastNameAr || ''}` : "اسم الطالب";
 
         // Mock data based on the requested prompt structure
-        setReport({
-            student: stName,
-            level: sProg,
-            unit: sUnit,
-            outcome: "تم تقييم المهام بنجاح عبر النظام المجاني",
-            score: 78,
-            grade: "Merit",
-            criteria: [
-                { id: "P1", max: 20, awarded: 18, status: "Achieved", depth: "Analytical", desc: "Showed clear understanding of variables and types." },
-                { id: "P2", max: 20, awarded: 15, status: "Achieved", depth: "Analytical", desc: "Coherent implementation of logical structures." },
-                { id: "M1", max: 30, awarded: 25, status: "Achieved", depth: "Critical", desc: "Critically analyzed the application of loops in complex scenarios." },
-                { id: "D1", max: 30, awarded: 20, status: "Achieved", depth: "Analytical", desc: "Detailed evaluation of optimization techniques but missing comparative data." }
-            ],
-            strengths: [
-                "Strong analytical depth in logic implementation",
-                "Excellent referencing using Harvard style",
-                "Detailed justification for architectural decisions"
-            ],
-            improvements: [
-                "Needs more critical evaluation in D1 criterion",
-                "Command verb 'Evaluate' not fully realized in section 3",
-                "Minor formatting inconsistencies in code blocks"
-            ],
-            integrity: "94% Originality Score (AI review passed)",
-            thinking: "Demonstrated high levels of Bloom's Taxonomy in analysis phases."
-        });
+        if (reportLanguage === 'Arabic') {
+            setReport({
+                student: stName,
+                level: sProg,
+                unit: sUnit,
+                outcome: "تم تقييم المهام بنجاح عبر النظام التجريبي",
+                score: 85,
+                grade: "امتياز",
+                criteria: [
+                    { id: "P1", max: 20, awarded: 18, status: "محقق", depth: "تحليلي", desc: "أظهر الطالب فهماً ممتازاً للمتغيرات والأنواع البرمجية." },
+                    { id: "P2", max: 20, awarded: 16, status: "محقق", depth: "تحليلي", desc: "بنية منطقية متماسكة في كتابة الكود." },
+                    { id: "M1", max: 30, awarded: 28, status: "محقق", depth: "تحليلي", desc: "تحليل نقدي ممتاز لاستخدام الحلقات التكرارية." },
+                    { id: "D1", max: 30, awarded: 23, status: "محقق", depth: "تحليلي", desc: "تقييم مفصل لتقنيات التحسين." }
+                ],
+                strengths: [
+                    "عمق تحليلي قوي في التنفيذ المنطقي",
+                    "توثيق ممتاز للمراجع باستخدام نظام هارفارد",
+                    "تبرير مفصل للقرارات البرمجية"
+                ],
+                improvements: [
+                    "يحتاج إلى مزيد من التقييم النقدي في المعيار D1",
+                    "تنسيق طفيف لكتل الكود البرمجي"
+                ],
+                integrity: "نتيجة فحص الأصالة 98% (تم اجتياز مراجعة الذكاء الاصطناعي)",
+                thinking: "أظهر مستويات عالية من تصنيف بلوم في مراحل التحليل."
+            });
+        } else {
+            setReport({
+                student: stName,
+                level: sProg,
+                unit: sUnit,
+                outcome: "Tasks assessed successfully via Mock System",
+                score: 85,
+                grade: "Distinction",
+                criteria: [
+                    { id: "P1", max: 20, awarded: 18, status: "Achieved", depth: "Analytical", desc: "Showed clear understanding of variables and types." },
+                    { id: "P2", max: 20, awarded: 16, status: "Achieved", depth: "Analytical", desc: "Coherent logical structure in code." },
+                    { id: "M1", max: 30, awarded: 28, status: "Achieved", depth: "Analytical", desc: "Excellent critical analysis of loops." },
+                    { id: "D1", max: 30, awarded: 23, status: "Achieved", depth: "Analytical", desc: "Detailed evaluation of optimization techniques." }
+                ],
+                strengths: ["Strong analytical depth", "Excellent referencing", "Detailed justification"],
+                improvements: ["More critical evaluation needed in D1", "Minor formatting tweaks"],
+                integrity: "98% Originality Score (AI passed)",
+                thinking: "Demonstrated high levels of Bloom's Taxonomy."
+            });
+        }
     };
 
     const handleDownload = () => {
