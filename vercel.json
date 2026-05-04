@@ -1,7 +1,7 @@
 {
   "version": 2,
   "installCommand": "cd backend && npm install --legacy-peer-deps",
-  "buildCommand": "cd backend && npx prisma generate && cd ../frontend && npm install --include=dev && npx vite build",
+  "buildCommand": "cd backend && npx prisma@5.22.0 generate && cd ../frontend && npm install --include=dev && npx vite build",
   "outputDirectory": "frontend/dist",
   "functions": {
     "api/index.ts": {
