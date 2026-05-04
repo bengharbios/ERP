@@ -61,6 +61,8 @@ export default function AcademicAssessorAI() {
     };
 
     // Settings States
+    const [engineMode, setEngineMode] = useState('Professional API');
+    const [apiKeyStore, setApiKeyStore] = useState('');
     const [evalMode, setEvalMode] = useState('Strict');
     const [reportLanguage, setReportLanguage] = useState<'Arabic' | 'English'>('Arabic');
     const [options, setOptions] = useState({
