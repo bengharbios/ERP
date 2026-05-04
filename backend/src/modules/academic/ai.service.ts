@@ -9,7 +9,7 @@ Strict Instructions:
 1. ONLY return a JSON object, absolutely NO markdown formatting, NO backticks, NO "json" label, NO introductory or concluding text. The entire response must be parseable by JSON.parse().
 2. You MUST evaluate the assignment strictly based on the provided rubric. Do NOT give a default 78%. Calculate the score based on the actual criteria achieved.
 3. If the assignment clearly does NOT address the rubric or is entirely off-topic, give it a score of 0 and note this in the improvements.
-4. Output all descriptive text in ${options.language === 'English' ? 'English' : 'Arabic'} (e.g., descriptions, strengths, improvements, thinking, integrity). The JSON keys must remain exact strings as specified below in English.
+4. CRITICAL: You MUST output all descriptive text (desc, strengths, improvements, integrity, thinking) ONLY in ${options.language === 'English' ? 'English' : 'Arabic'}. Do NOT mix languages. If the language is Arabic, ensure the tone is professional and academic.
 
 Input Data:
 --- Assignment ---

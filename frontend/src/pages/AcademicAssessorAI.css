@@ -767,3 +767,51 @@
         padding: 15px;
     }
 }
+
+/* ── PRINT STYLES ── */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    .ag-report-wrap, .ag-report-wrap * {
+        visibility: visible;
+    }
+    .ag-report-wrap {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        padding: 0;
+        margin: 0;
+        border: none;
+        box-shadow: none;
+        background: white !important;
+        color: black !important;
+    }
+    .ag-marking-table tr td {
+        background: #f9f9f9 !important;
+        color: black !important;
+        border: 1px solid #eee;
+    }
+    .ag-grade-box {
+        background: #f0f0f0 !important;
+        color: black !important;
+        border: 1px solid #ddd;
+    }
+    .ag-report-subtitle {
+        color: #000 !important;
+        border-right-color: #000 !important;
+    }
+    .ag-marking-table th {
+        color: #333 !important;
+    }
+    .ag-grade-pill {
+        border: 1px solid #000 !important;
+        color: #000 !important;
+        background: transparent !important;
+    }
+    /* Hide the download button itself in the print */
+    .ag-report-wrap button, .ag-report-wrap .ag-report-head-actions {
+        display: none !important;
+    }
+}

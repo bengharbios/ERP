@@ -363,9 +363,16 @@ export default function AcademicAssessorAI() {
                                 </div>
                             </div>
 
-                            <HzBtn variant="primary" style={{ marginTop: 'auto', width: '100%', padding: '12px' }} disabled={loading} onClick={handleRunAssessment}>
-                                <Sparkles size={16} style={{ marginLeft: '10px' }} /> {loading ? 'جاري المعالجة...' : 'ابدأ التقييم الآلي'}
-                            </HzBtn>
+                            <div style={{ marginTop: '20px', width: '100%' }}>
+                                <HzBtn 
+                                    variant="primary" 
+                                    style={{ width: '100%', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
+                                    disabled={loading} 
+                                    onClick={handleRunAssessment}
+                                >
+                                    <Sparkles size={16} style={{ marginLeft: '10px' }} /> {loading ? 'جاري المعالجة...' : 'ابدأ التقييم الآلي'}
+                                </HzBtn>
+                            </div>
                         </div>
                     </aside>
 
