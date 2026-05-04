@@ -267,7 +267,6 @@ router.post(
 
 router.post(
     '/ai/analyze',
-    checkPermission({ resource: 'classes', action: 'update' }),
     aiController.analyzeAssignment
 );
 
