@@ -43,7 +43,9 @@ export const crmController = {
      * Set Webhook for Telegram (Utility)
      */
     async setupWebhook(req: Request, res: Response) {
-        const url = `${req.protocol}://${req.get('host')}/api/v1/crm/telegram/webhook`;
+        const host = req.get('host');
+        const protocol = host?.includes('localhost') ? 'http' : 'https';
+        const url = `${protocol}://${host}/api/v1/crm/telegram/webhook`;
         try {
             await bot.telegram.setWebhook(url);
             res.json({ success: true, url });
