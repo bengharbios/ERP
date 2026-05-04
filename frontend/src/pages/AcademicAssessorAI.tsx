@@ -285,16 +285,16 @@ export default function AcademicAssessorAI() {
                             <div className="ag-setting-group">
                                 <span className="ag-setting-label"><Cpu size={14} /> وضع المعالجة</span>
                                 <div className="ag-toggle-group">
-                                    <button className={`ag-toggle-btn ${engineMode === 'Free' ? 'active' : ''}`} onClick={() => setEngineMode('Free')}>مجاني</button>
-                                    <button className={`ag-toggle-btn ${engineMode === 'Professional API' ? 'active' : ''}`} onClick={() => setEngineMode('Professional API')}>احترافي API</button>
-                                    <button className={`ag-toggle-btn ${engineMode === 'Library' ? 'active' : ''}`} onClick={() => setEngineMode('Library')}>المكتبة</button>
+                                    <button className={`ag-toggle-btn ${engineMode === 'Professional API' ? 'active' : ''}`} onClick={() => setEngineMode('Professional API')}>Gemini Pro</button>
+                                    <button className={`ag-toggle-btn ${engineMode === 'OpenRouter' ? 'active' : ''}`} onClick={() => setEngineMode('OpenRouter')}>OpenRouter Free</button>
+                                    <button className={`ag-toggle-btn ${engineMode === 'Free' ? 'active' : ''}`} onClick={() => setEngineMode('Free')}>تجريبي (Mock)</button>
                                 </div>
                                 <div style={{ display: 'flex', gap: '5px', marginTop: '10px' }}>
                                     <input
                                         type="password"
                                         className="ag-input"
                                         style={{ flex: 1, fontSize: '11px', padding: '6px' }}
-                                        placeholder="مفتاح Gemini API"
+                                        placeholder={engineMode === 'OpenRouter' ? "مفتاح OpenRouter (sk-or-...)" : "مفتاح Gemini API"}
                                         value={apiKeyStore}
                                         onChange={e => setApiKeyStore(e.target.value)}
                                     />

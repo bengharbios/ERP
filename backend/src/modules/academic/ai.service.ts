@@ -1,16 +1,9 @@
 import { GoogleGenAI } from '@google/genai';
+import axios from 'axios';
 
 export const aiService = {
-    async analyzeAssignment(assignment: string, rubric: string, options: any, explicitApiKey?: string) {
-        const apiKey = explicitApiKey || process.env.GEMINI_API_KEY;
-
-        if (!apiKey) {
-            throw new Error('Gemini API key not configured');
-        }
-
-        const ai = new GoogleGenAI({ apiKey: apiKey });
-
-        const prompt = `You are an automated Assessor Decision AI analyzing an academic assignment against a grading rubric.
+    generatePrompt(assignment: string, rubric: string, options: any) {
+        return `You are an automated Assessor Decision AI analyzing an academic assignment against a grading rubric.
 
 Strict Instructions:
 1. ONLY return a JSON object, absolutely NO markdown formatting, NO backticks, NO "json" label, NO introductory or concluding text. The entire response must be parseable by JSON.parse().
@@ -43,35 +36,68 @@ Analyze the assignment against the rubric and output a JSON object with exactly 
   "integrity": "Originality assessment text in Arabic",
   "thinking": "Critical thinking evaluation in Arabic"
 }`;
+    },
+
+    async analyzeAssignment(assignment: string, rubric: string, options: any, explicitApiKey?: string) {
+        const apiKey = explicitApiKey || process.env.GEMINI_API_KEY;
+        const prompt = this.generatePrompt(assignment, rubric, options);
+
+        // Detect OpenRouter (Key usually starts with sk-or-)
+        if (apiKey && apiKey.startsWith('sk-or-')) {
+            return this.analyzeWithOpenRouter(prompt, apiKey);
+        }
+
+        if (!apiKey) {
+            throw new Error('API key not provided. Please provide a Gemini key or an OpenRouter key (sk-or-...)');
+        }
 
         try {
+            const ai = new GoogleGenAI({ apiKey: apiKey });
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
                 contents: prompt,
             });
 
             const text = response.text || '';
-
-            // Improved JSON cleaning logic
-            let cleanText = text.trim();
-            // Remove markdown code blocks
-            cleanText = cleanText.replace(/^```(?:json)?\s+/, '').replace(/\s+```$/, '').replace(/^```(?:json)?/, '').replace(/```$/, '');
-            cleanText = cleanText.trim();
-
-            try {
-                const result = JSON.parse(cleanText);
-                return result;
-            } catch (parseError: any) {
-                console.error("AI Response Parsing Failed. Raw text:", text);
-                console.error("Cleaned text:", cleanText);
-                throw new Error("Failed to parse AI response as JSON: " + parseError.message);
-            }
+            return this.parseAIResponse(text);
         } catch (error: any) {
-            console.error("AI Analysis Error Details:");
-            if (error.status) console.error("Status Code:", error.status);
-            if (error.message) console.error("Message:", error.message);
-            if (error.response) console.error("Response:", JSON.stringify(error.response, null, 2));
+            console.error("Gemini AI Error Details:", error.message || error);
             throw error;
+        }
+    },
+
+    async analyzeWithOpenRouter(prompt: string, apiKey: string) {
+        try {
+            const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
+                model: 'z-ai/glm-4.5-air:free',
+                messages: [{ role: 'user', content: prompt }],
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'HTTP-Referer': 'https://erp-xi-lac.vercel.app',
+                    'X-Title': 'OSARAB ERP'
+                }
+            });
+
+            const text = response.data.choices[0].message.content;
+            return this.parseAIResponse(text);
+        } catch (error: any) {
+            console.error("OpenRouter AI Error Details:", error.response?.data || error.message);
+            throw error;
+        }
+    },
+
+    parseAIResponse(text: string) {
+        let cleanText = text.trim();
+        // Remove markdown code blocks if any
+        cleanText = cleanText.replace(/^```(?:json)?\s+/, '').replace(/\s+```$/, '').replace(/^```(?:json)?/, '').replace(/```$/, '');
+        cleanText = cleanText.trim();
+
+        try {
+            return JSON.parse(cleanText);
+        } catch (parseError: any) {
+            console.error("AI Response Parsing Failed. Raw text:", text);
+            throw new Error("Failed to parse AI response as JSON: " + parseError.message);
         }
     }
 };
