@@ -24,11 +24,16 @@ export const analyzeAssignment = async (req: Request, res: Response): Promise<vo
         });
     } catch (error: any) {
         console.error('AI Analysis Controller Error:', error);
-        res.status(500).json({
+        
+        // Extract as much detail as possible from the error
+        const errorMessage = error.response?.data?.error?.message || error.message || 'Unknown AI Error';
+        const errorCode = error.response?.data?.error?.code || 'INTERNAL_ERROR';
+
+        res.status(error.status || 500).json({
             success: false,
             error: {
-                code: 'INTERNAL_ERROR',
-                message: 'Error processing AI assessment. ' + error.message
+                code: errorCode,
+                message: `AI Error: ${errorMessage}`
             }
         });
     }
