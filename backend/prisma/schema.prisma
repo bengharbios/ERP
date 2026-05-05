@@ -533,6 +533,15 @@ model SystemSetting {
   isPublic    Boolean  @default(false) @map("is_public")
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
 
+  // --- REPORT SETTINGS ---
+  reportInstitutionNameAr       String?  @map("report_institution_name_ar")
+  reportInstitutionNameEn       String?  @map("report_institution_name_en")
+  reportLogo                    String?  @map("report_logo")
+  reportWatermarkType           String   @default("none") @map("report_watermark_type")
+  reportWatermarkText           String?  @map("report_watermark_text")
+  reportWatermarkImage          String?  @map("report_watermark_image")
+  reportFont                    String   @default("Tajawal") @map("report_font")
+
   @@map("system_settings")
 }
 
