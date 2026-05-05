@@ -904,7 +904,6 @@
     .hide-on-print {
         display: none !important;
     }
-}
 
     /* Force background colors in Chrome/Safari */
     * {
