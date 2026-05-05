@@ -477,17 +477,31 @@ export default function AcademicAssessorAI() {
 
                             {report && (
                                 <div className="ag-report-wrap">
+                                    {/* Professional Header for Print Only */}
+                                    <div className="ag-print-header hide-on-desktop hide-on-mobile" style={{ display: 'none' }}>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <h2 style={{ margin: 0, color: '#0088cc' }}>مؤسسة الإبداع الأكاديمي</h2>
+                                            <p style={{ margin: 0, fontSize: '0.8rem', color: '#666' }}>نظام إدارة الموارد (ERP) - وحدة التقييم الذكي</p>
+                                        </div>
+                                        <div style={{ textAlign: 'left' }}>
+                                            <p style={{ margin: 0, fontSize: '0.8rem', color: '#666' }}>تاريخ التقرير: {new Date().toLocaleDateString('ar-EG')}</p>
+                                            <p style={{ margin: 0, fontSize: '0.8rem', color: '#666' }}>رقم المرجع: AI-{Math.random().toString(36).substr(2, 9).toUpperCase()}</p>
+                                        </div>
+                                    </div>
+
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                         <div>
                                             <HzBadge color="neon" style={{ marginBottom: '10px' }}>مسودة معتمدة آلياً</HzBadge>
-                                            <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--hz-text-bright)' }}>تقرير التقييم الأكاديمي</h2>
+                                            <h2 className="ag-report-title-main" style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--hz-text-bright)' }}>تقرير التقييم الأكاديمي</h2>
                                             <div style={{ display: 'flex', gap: '24px', marginTop: '16px' }}>
                                                 <div style={{ fontSize: '0.8rem' }}><span style={{ color: 'var(--hz-text-muted)' }}>الطالب:</span> <strong style={{ color: 'var(--hz-neon)' }}>{report.student}</strong></div>
                                                 <div style={{ fontSize: '0.8rem' }}><span style={{ color: 'var(--hz-text-muted)' }}>البرنامج:</span> <strong style={{ color: 'var(--hz-text-bright)' }}>{report.level}</strong></div>
                                                 <div style={{ fontSize: '0.8rem' }}><span style={{ color: 'var(--hz-text-muted)' }}>الوحدة:</span> <strong style={{ color: 'var(--hz-text-bright)' }}>{report.unit}</strong></div>
                                             </div>
                                         </div>
-                                        <HzBtn variant="primary" icon={<Download size={16} />} onClick={handleDownload}>تحميل التقرير</HzBtn>
+                                        <div className="hide-on-print">
+                                            <HzBtn variant="primary" icon={<Download size={16} />} onClick={handleDownload}>تحميل التقرير</HzBtn>
+                                        </div>
                                     </div>
 
                                     <div className="ag-marking-section">
