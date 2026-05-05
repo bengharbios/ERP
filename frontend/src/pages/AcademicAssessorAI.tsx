@@ -47,20 +47,30 @@ export default function AcademicAssessorAI() {
     const loadData = async () => {
         setLoadingData(true);
         try {
-            const [progRes, uRes, stRes, settingsRes] = await Promise.all([
+            // Fetch core academic data
+            const [progRes, uRes, stRes] = await Promise.all([
                 academicService.getPrograms(),
                 academicService.getUnits(),
-                studentService.getStudents(),
-                settingsService.getSettings()
+                studentService.getStudents()
             ]);
+
             setPrograms(progRes.data?.programs || []);
             setUnits(uRes.data?.units || []);
             setStudents(stRes.data?.students || []);
-            if (settingsRes.success && settingsRes.data.settings) {
-                setGlobalSettings(settingsRes.data.settings);
+
+            // Fetch settings separately to not block academic data if it fails
+            try {
+                const settingsRes = await settingsService.getSettings();
+                if (settingsRes.success && settingsRes.data?.settings) {
+                    setGlobalSettings(settingsRes.data.settings);
+                }
+            } catch (settingsErr) {
+                console.error('Failed to load global settings:', settingsErr);
             }
+
         } catch (err) {
-            console.error(err);
+            console.error('Error loading academic data:', err);
+            setToast({ type: 'error', message: 'فشل في تحميل البيانات الأساسية' });
         } finally {
             setLoadingData(false);
         }
