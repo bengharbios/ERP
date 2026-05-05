@@ -1,0 +1,214 @@
+/* ReportBuilder.css - Architecting Professional Reports with Drag & Drop */
+:root {
+    --rb-sidebar-width: 320px;
+    --rb-canvas-bg: #f8fafc;
+    --rb-accent: #0088cc;
+    --rb-border: rgba(0, 0, 0, 0.1);
+}
+
+.rb-container {
+    display: flex;
+    height: calc(100vh - 100px);
+    background: #fff;
+    overflow: hidden;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+}
+
+/* Sidebar - Components Library */
+.rb-sidebar-left {
+    width: 280px;
+    border-left: 1px solid var(--rb-border);
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.rb-section-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.rb-component-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    cursor: grab;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.rb-component-item:hover {
+    background: #e2e8f0;
+    transform: translateY(-2px);
+    border-color: var(--rb-accent);
+}
+
+.rb-component-item svg {
+    color: var(--rb-accent);
+}
+
+.rb-component-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #1e293b;
+}
+
+/* Canvas - The Live Report Body */
+.rb-canvas-area {
+    flex: 1;
+    background: var(--rb-canvas-bg);
+    padding: 40px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.rb-paper {
+    width: 210mm; /* A4 Width */
+    min-height: 297mm; /* A4 Height */
+    background: white;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 20mm;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.rb-sortable-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    min-height: 100px;
+}
+
+/* Component Placeholders in Paper */
+.rb-canvas-component {
+    position: relative;
+    padding: 15px;
+    border: 2px dashed transparent;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.rb-canvas-component:hover {
+    border-color: rgba(0, 136, 204, 0.3);
+    background: rgba(0, 136, 204, 0.02);
+}
+
+.rb-canvas-component.active {
+    border-color: var(--rb-accent);
+    background: rgba(0, 136, 204, 0.05);
+}
+
+.rb-comp-actions {
+    position: absolute;
+    top: -12px;
+    left: 10px;
+    display: none;
+    gap: 5px;
+}
+
+.rb-canvas-component:hover .rb-comp-actions,
+.rb-canvas-component.active .rb-comp-actions {
+    display: flex;
+}
+
+.rb-action-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--rb-accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    font-size: 0.7rem;
+}
+
+.rb-action-btn.danger {
+    background: #ef4444;
+}
+
+/* Right Sidebar - Properties */
+.rb-sidebar-right {
+    width: var(--rb-sidebar-width);
+    border-right: 1px solid var(--rb-border);
+    background: #fff;
+    padding: 20px;
+}
+
+.rb-prop-group {
+    margin-bottom: 20px;
+}
+
+.rb-prop-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 8px;
+}
+
+.rb-prop-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+/* Visual Components Styles inside Paper */
+.rb-header-preview {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #333;
+    padding-bottom: 10px;
+}
+
+.rb-table-preview {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.rb-table-preview th {
+    background: #f8fafc;
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: right;
+}
+
+.rb-table-preview td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.rb-signature-preview {
+    margin-top: 40px;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* Print Overrides */
+@media print {
+    .rb-sidebar-left, .rb-sidebar-right, .rb-canvas-area {
+        display: none !important;
+    }
+    .rb-paper {
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+}

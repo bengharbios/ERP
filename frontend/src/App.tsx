@@ -62,6 +62,7 @@ import CRMCustomers2026 from './pages/CRMCustomers2026';
 import CRM from './pages/CRM';
 import Achievement from './pages/Achievement';
 import AcademicAssessorAI from './pages/AcademicAssessorAI';
+import ReportBuilder from './pages/ReportBuilder';
 import ReceiptVouchers from './pages/finance/ReceiptVouchers';
 import FinancialReports from './pages/finance/FinancialReports';
 import ChartOfAccounts from './pages/ChartOfAccounts';
@@ -268,6 +269,17 @@ function App() {
                         <ProtectedRoute>
                             <LayoutProvider>
                                 <AcademicAssessorAI />
+                            </LayoutProvider>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/report-builder"
+                    element={
+                        <ProtectedRoute>
+                            <LayoutProvider>
+                                <ReportBuilder />
                             </LayoutProvider>
                         </ProtectedRoute>
                     }
