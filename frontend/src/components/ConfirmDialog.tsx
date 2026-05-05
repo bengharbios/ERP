@@ -55,7 +55,7 @@ export function ConfirmDialog({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                zIndex: 9000,
+                zIndex: 10050,
                 padding: '1rem',
                 animation: 'fadeIn 0.2s ease-out',
             }}
