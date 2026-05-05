@@ -349,10 +349,10 @@ export const createStudent = async (req: AuthRequest, res: Response): Promise<vo
                     action: 'STUDENT_CREATED',
                     resourceType: 'Student',
                     resourceId: student.id,
-                    afterData: {
+                    afterData: JSON.stringify({
                         studentNumber: student.studentNumber,
                         name: `${student.firstNameEn} ${student.lastNameEn}`,
-                    },
+                    }),
                     ipAddress: req.ip,
                     userAgent: req.get('user-agent'),
                 },
