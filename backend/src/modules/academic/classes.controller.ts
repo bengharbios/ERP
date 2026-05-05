@@ -1221,15 +1221,18 @@ export const removeStudent = async (req: AuthRequest, res: Response): Promise<vo
             return;
         }
 
-        // Delete enrollment
-        await prisma.studentEnrollment.delete({
-            where: {
-                studentId_classId: {
-                    studentId,
-                    classId,
-                },
-            },
-        });
+        // Delete enrollment and related records in a transaction to handle foreign key constraints
+        await prisma.$transaction([
+            prisma.attendanceRecord.deleteMany({
+                where: { studentEnrollmentId: enrollment.id }
+            }),
+            prisma.studentAssignment.deleteMany({
+                where: { studentEnrollmentId: enrollment.id }
+            }),
+            prisma.studentEnrollment.delete({
+                where: { id: enrollment.id }
+            })
+        ]);
 
         // Audit log
         if (req.user) {
