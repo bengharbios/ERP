@@ -827,18 +827,21 @@
         margin: 30px 0 !important;
     }
 
-    /* Position the report at the very top of the page */
+    /* Position the report naturally for multi-page support */
     .ag-report-wrap {
-        position: absolute !important;
-        top: 0 !important;
-        right: 0 !important;
-        left: 0 !important;
+        position: relative !important;
+        display: block !important;
         width: 100% !important;
+        height: auto !important;
+        min-height: 100% !important;
+        overflow: visible !important;
         margin: 0 !important;
         padding: 0 !important;
         background: white !important;
         color: #000 !important;
         box-shadow: none !important;
+        border-radius: 0 !important; /* Remove rounded corners for clean print */
+        border: none !important;
     }
 
     /* Ensure backgrounds are white for all report children */
@@ -852,9 +855,17 @@
     }
 
     /* Hide UI elements that shouldn't be in the report */
-    .hide-on-print, .hz-btn, .ag-header, .ag-sidebar, .ag-stepper, .ag-ai-status {
+    .hide-on-print, .hz-btn, .ag-header, .ag-sidebar, .ag-stepper, .ag-ai-status,
+    .hz-topbar, .hz-footer, .hz-mobile-bar, .hz-subnav, .hz-breadcrumb, .hz-announcement-ticker-container {
         display: none !important;
         visibility: hidden !important;
+    }
+
+    /* Force parent containers to show all content */
+    .ag-main, .ag-container, .ag-body, .hz-main {
+        overflow: visible !important;
+        height: auto !important;
+        display: block !important;
     }
 
     /* Professional Polish */
