@@ -776,25 +776,25 @@
     }
 
     /* Hide everything except the report */
-    body {
-        background: white !important;
-        visibility: hidden !important;
+    .ag-header, .ag-sidebar, .ag-tabs, .ag-reset-btn, .ag-mobile-filter-btn, .ag-header-actions, .ag-input-grid, .ag-glass-card, .ag-ai-status, .ag-stepper, .ag-header-right, .ag-btn, .ag-badge-neon, .ag-mobile-overlay, .ag-sidebar-head, .ag-report-print-btn {
+        display: none !important;
     }
 
-    .ag-root, .ag-header, .ag-sidebar, .ag-tabs, .ag-reset-btn, .ag-mobile-filter-btn, .ag-header-actions, .ag-input-grid, .ag-glass-card, .ag-ai-status, .ag-stepper, .ag-header-right, .ag-btn, .ag-badge-neon {
-        display: none !important;
+    /* Reset body and root for printing */
+    body, .ag-root, .ag-body, .ag-main, .ag-container {
+        visibility: visible !important;
+        display: block !important;
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
     }
 
     .ag-report-wrap {
         visibility: visible !important;
         display: block !important;
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        min-height: 100%;
-        background: white !important;
-        color: #1a1a1a !important;
+        position: relative !important;
+        width: 100% !important;
         padding: 0 !important;
         margin: 0 !important;
         border: none !important;
