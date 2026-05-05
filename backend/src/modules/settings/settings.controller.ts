@@ -81,6 +81,14 @@ export const updateSettings = async (req: Request, res: Response): Promise<void>
         if (filteredData.lateFeeGraceDays !== undefined) filteredData.lateFeeGraceDays = parseInt(filteredData.lateFeeGraceDays);
         if (filteredData.studentNumberLength !== undefined) filteredData.studentNumberLength = parseInt(filteredData.studentNumberLength);
 
+        // Stringify JSON fields if they are arrays
+        if (filteredData.awardingBodies && Array.isArray(filteredData.awardingBodies)) {
+            filteredData.awardingBodies = JSON.stringify(filteredData.awardingBodies);
+        }
+        if (filteredData.hrWorkingDays && Array.isArray(filteredData.hrWorkingDays)) {
+            filteredData.hrWorkingDays = JSON.stringify(filteredData.hrWorkingDays);
+        }
+
         console.log('[SettingsController] Filtered & Parsed data:', JSON.stringify(filteredData, null, 2));
 
         const settings = await prisma.settings.upsert({
