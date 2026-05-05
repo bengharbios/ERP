@@ -794,9 +794,11 @@
         visibility: visible !important;
         display: block !important;
         background: white !important;
+        color: #111 !important;
         margin: 0 !important;
         padding: 0 !important;
         width: 100% !important;
+        box-shadow: none !important;
     }
 
     .ag-report-wrap {
@@ -810,107 +812,99 @@
         box-shadow: none !important;
         background: white !important;
         color: #111 !important;
-        font-family: 'Tajawal', 'Cairo', sans-serif !important;
+        font-family: 'Cairo', 'Tajawal', sans-serif !important;
         direction: rtl !important;
     }
 
-    .ag-report-wrap, .ag-report-wrap * {
+    /* Force all nested elements to lose their colored backgrounds and have dark text */
+    .ag-report-wrap * {
+        background: transparent !important;
         color: #111 !important;
-    }
-
-    /* Watermark Effect */
-    .ag-report-wrap::after {
-        content: var(--report-watermark-text, "CREATIVITY ERP - SMART ASSESSOR");
-        display: var(--report-watermark-display, block);
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) rotate(-45deg);
-        font-size: 80px;
-        color: rgba(0, 0, 0, 0.03);
-        z-index: -1;
-        pointer-events: none;
-        white-space: nowrap;
-        font-weight: 900;
+        box-shadow: none !important;
+        border-color: #ddd !important;
     }
 
     /* Professional Header for Print */
     .ag-report-wrap::before {
         content: "";
         display: block;
-        height: 5px;
-        background: linear-gradient(to left, #00f5a0, #00d9ff);
+        height: 4px;
+        background: #111 !important; /* Solid black line for professional look */
         margin-bottom: 20px;
     }
 
     .ag-report-subtitle {
-        color: #0088cc !important;
-        border-right: 4px solid #0088cc !important;
-        font-size: 1rem !important;
-        margin-bottom: 15px !important;
-        page-break-after: avoid;
+        color: #000 !important;
+        border-right: 4px solid #333 !important;
+        background: #f9f9f9 !important;
+        padding: 8px 15px !important;
+        font-weight: 900 !important;
     }
 
     .ag-marking-table {
-        border: 1px solid #ddd !important;
-        border-radius: 0 !important;
-        border-spacing: 0 !important;
+        border: 1px solid #111 !important;
         width: 100% !important;
-        page-break-inside: auto;
+        border-collapse: collapse !important;
     }
 
     .ag-marking-table thead tr th {
-        background: #f0f4f8 !important;
-        color: #333 !important;
-        border-bottom: 2px solid #0088cc !important;
-        padding: 10px !important;
+        background: #f0f0f0 !important;
+        color: #000 !important;
+        border: 1px solid #111 !important;
+        padding: 12px !important;
+        font-weight: 900 !important;
     }
 
     .ag-marking-table tbody tr td {
-        background: white !important;
-        color: #333 !important;
-        border-bottom: 1px solid #eee !important;
+        background: #fff !important;
+        color: #111 !important;
+        border: 1px solid #111 !important;
         padding: 10px !important;
-        font-size: 0.9rem !important;
-        page-break-inside: avoid;
     }
 
     .ag-grade-box {
-        background: #f8fafc !important;
-        border: 2px solid #0088cc !important;
-        color: black !important;
-        page-break-inside: avoid;
-        margin: 20px 0 !important;
+        border: 2px solid #111 !important;
+        padding: 20px !important;
+        margin: 30px 0 !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        background: #fff !important;
     }
 
     .ag-grade-val {
-        color: #0088cc !important;
+        font-size: 3rem !important;
+        font-weight: 900 !important;
+        color: #000 !important;
     }
 
     .ag-grade-pill {
-        border: 1px solid #000 !important;
-        color: #000 !important;
-        background: transparent !important;
+        border: 2px solid #111 !important;
+        padding: 10px 30px !important;
+        font-size: 1.5rem !important;
+        font-weight: 900 !important;
     }
-    /* Branding Header */
+
+    /* Branding Header - Force Visibility */
     .ag-print-header {
         display: flex !important;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 40px;
-        padding-bottom: 20px;
-        border-bottom: 1px solid #eee;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-bottom: 30px !important;
+        border-bottom: 2px solid #111 !important;
+        padding-bottom: 20px !important;
     }
 
     .ag-report-title-main {
         font-size: 2.2rem !important;
-        color: #111 !important;
-        margin: 0 !important;
+        font-weight: 900 !important;
+        color: #000 !important;
     }
 
     .hide-on-print {
         display: none !important;
     }
+}
 
     /* Force background colors in Chrome/Safari */
     * {
