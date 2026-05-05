@@ -799,8 +799,14 @@
         margin: 0 !important;
         border: none !important;
         box-shadow: none !important;
+        background: white !important;
+        color: #111 !important;
         font-family: 'Tajawal', 'Cairo', sans-serif !important;
         direction: rtl !important;
+    }
+
+    .ag-report-wrap, .ag-report-wrap * {
+        color: #111 !important;
     }
 
     /* Watermark Effect */
