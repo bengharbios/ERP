@@ -6,6 +6,7 @@ import {
     updateStudentSchema,
 } from './students.validation';
 import { ProgressService } from '../academic/progress.service';
+import { hashPassword } from '../../common/utils/password';
 
 // Create Student
 export const createStudent = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -43,7 +44,7 @@ export const createStudent = async (req: AuthRequest, res: Response): Promise<vo
 
         // Create student with User account
         // Create student with User account
-        const { hashPassword } = await import('../../common/utils/password'); // Dynamic import to avoid top-level circle or just convenient
+
         const defaultPassword = await hashPassword('Student@123'); // Default password
         const userEmail = validatedData.email || `${validatedData.studentNumber!.toLowerCase()}@institute.local`;
 
