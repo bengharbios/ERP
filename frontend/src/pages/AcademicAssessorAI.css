@@ -1,4 +1,4 @@
-﻿/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    ACADEMIC ASSESSOR AI â€” PREMIUM SECTOR DESIGN (Rapidos 2026)
    Ø§Ù„Ù…Ù‚ÙŠÙ… Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠ Ø§Ù„Ø°ÙƒÙŠ | Assessor Decision AI
    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
@@ -784,15 +784,15 @@
         margin: 15mm;
     }
 
-     /* --- Robust Print Visibility Strategy --- */
-    /* Hide everything by default */
-    body * {
+    /* --- Robust Print Visibility Strategy (Scoped to Assessor Page) --- */
+    /* Hide assessor UI components by default when printing this page */
+    .ag-root * {
         visibility: hidden !important;
         display: none !important;
     }
 
-    /* Force the report container and ALL its parents to be visible and occupy space */
-    html, body, .ag-root, .ag-body, .ag-main, .ag-container, .ag-report-wrap, .ag-report-wrap * {
+    /* Force the report container and its specific parents to be visible */
+    .ag-root, .ag-body, .ag-main, .ag-container, .ag-report-wrap, .ag-report-wrap * {
         visibility: visible !important;
         display: block !important;
     }
