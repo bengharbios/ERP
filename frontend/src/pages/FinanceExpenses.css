@@ -829,9 +829,7 @@
         margin: 0 !important;
     }
 
-    body * {
-        visibility: hidden;
-    }
+    .ag-surgical-print-fix-nothing { visibility: hidden; } /* Fixed global print leak */
 
     #voucher-to-print,
     #voucher-to-print * {

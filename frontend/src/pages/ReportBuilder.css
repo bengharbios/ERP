@@ -203,12 +203,20 @@
 
 /* Print Overrides */
 @media print {
-    .rb-sidebar-left, .rb-sidebar-right, .rb-canvas-area {
+    .rb-sidebar-left, .rb-sidebar-right {
         display: none !important;
+    }
+    .rb-canvas-area {
+        display: block !important;
+        background: white !important;
+        padding: 0 !important;
+        overflow: visible !important;
     }
     .rb-paper {
         box-shadow: none !important;
         padding: 0 !important;
         margin: 0 !important;
+        border: none !important;
+        width: 100% !important;
     }
 }

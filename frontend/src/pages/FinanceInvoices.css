@@ -651,9 +651,7 @@
 
 /* Print Overrides */
 @media print {
-    body * {
-        visibility: hidden;
-    }
+    .ag-surgical-print-fix-nothing { visibility: hidden; } /* Fixed global print leak */
 
     #printable-invoice,
     #printable-invoice * {

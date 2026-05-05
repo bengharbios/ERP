@@ -659,9 +659,7 @@
 @media print {
 
     /* Hide everything by default */
-    body * {
-        visibility: hidden;
-    }
+    .ag-surgical-print-fix-nothing { visibility: hidden; } /* Fixed global print leak */
 
     /* Show only the printable area */
     #printable-area,

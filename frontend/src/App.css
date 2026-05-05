@@ -711,3 +711,45 @@ tr:hover {
         display: none !important;
     }
 }
+
+/* --- ULTIMATE 2026 GLOBAL PRINT ENGINE --- */
+@media print {
+    html, body, #root, .hz-root, .hz-app, .hz-main, .page-container, .login-page, .rb-container, .ag-root {
+        display: block !important;
+        position: static !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: auto !important;
+        overflow: visible !important;
+        background: white !important;
+        color: black !important;
+        visibility: visible !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transform: none !important;
+        opacity: 1 !important;
+    }
+
+    .login-container, .glass-panel, .rb-paper, .ag-report-wrap, .modern-card, .stat-card {
+        display: block !important;
+        visibility: visible !important;
+        background: white !important;
+        color: black !important;
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+        margin-bottom: 20px !important;
+        position: relative !important;
+    }
+
+    * {
+        color: black !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        text-shadow: none !important;
+    }
+
+    .no-print, .hz-topbar, .hz-footer, .hz-mobile-bar, .hz-sidebar, .hz-hamburger, .btn-primary, .btn-secondary {
+        display: none !important;
+        visibility: hidden !important;
+    }
+}

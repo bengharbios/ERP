@@ -784,17 +784,15 @@
         margin: 15mm;
     }
 
-    /* --- Robust Print Visibility Strategy (Scoped to Assessor Page) --- */
-    /* Hide assessor UI components by default when printing this page */
-    .ag-root * {
-        visibility: hidden !important;
+    /* --- Surgical Print Strategy (Scoped to Assessor Page) --- */
+    /* Only hide UI elements specifically when on this page */
+    .ag-root .hide-on-print, 
+    .ag-root .hz-btn, 
+    .ag-root .ag-header, 
+    .ag-root .ag-sidebar, 
+    .ag-root .ag-stepper, 
+    .ag-root .ag-ai-status {
         display: none !important;
-    }
-
-    /* Force the report container and its specific parents to be visible */
-    .ag-root, .ag-body, .ag-main, .ag-container, .ag-report-wrap, .ag-report-wrap * {
-        visibility: visible !important;
-        display: block !important;
     }
 
     /* Force layouts for specific elements inside the report */
