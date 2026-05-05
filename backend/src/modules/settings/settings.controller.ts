@@ -61,7 +61,9 @@ export const updateSettings = async (req: Request, res: Response): Promise<void>
             'externalAiEnabled', 'externalAiProvider', 'externalAiApiKey',
             'hrWorkingDays', 'hrWorkStartTime', 'hrWorkEndTime', 'hrLateGracePeriod',
             'hrAbsenceThreshold', 'hrLateHourDeduction', 'hrShiftEnabled', 'activeTemplate',
-            'announcementTicker'
+            'announcementTicker',
+            'reportInstitutionNameAr', 'reportInstitutionNameEn', 'reportLogo',
+            'reportWatermarkType', 'reportWatermarkText', 'reportWatermarkImage', 'reportFont'
         ];
 
         const filteredData: any = {};

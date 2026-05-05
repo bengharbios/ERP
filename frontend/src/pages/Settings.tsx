@@ -392,6 +392,17 @@ export default function Settings() {
                 { value: formData.activeTemplate === 'modern' ? 'Modern' : 'Legacy', label: 'القالب الحالي' },
                 { value: '2026', label: 'المعيار', highlight: true }
             ]
+        },
+        {
+            id: 'reports',
+            code: 'تقارير',
+            icon: '📄',
+            title: 'إعدادات التقارير',
+            subtitle: 'تخصيص الهوية والخطوط والطباعة',
+            stats: [
+                { value: formData.reportFont || 'Tajawal', label: 'الخط' },
+                { value: formData.reportWatermarkType === 'none' ? 'لا يوجد' : 'نشط', label: 'العلامة', highlight: true }
+            ]
         }
     ];
 
@@ -1788,6 +1799,107 @@ export default function Settings() {
                     </div>
                 </div>
             )}
+
+            {selectedSection === 'reports' && (
+                <div className="modal-overlay-2026" onClick={() => setSelectedSection(null)}>
+                    <div className="modal-content-2026 large" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2>📄 إعدادات التقارير والهوية</h2>
+                            <button className="close-modal" onClick={() => setSelectedSection(null)}>×</button>
+                        </div>
+                        <div className="modal-form">
+                            <div className="form-grid">
+                                <div className="form-group">
+                                    <label>اسم المؤسسة في التقارير (عربي)</label>
+                                    <input
+                                        type="text"
+                                        value={formData.reportInstitutionNameAr || ''}
+                                        onChange={e => updateField('reportInstitutionNameAr', e.target.value)}
+                                        placeholder="مثلاً: معهد الإبداع للتدريب"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>اسم المؤسسة في التقارير (إنجليزي)</label>
+                                    <input
+                                        type="text"
+                                        value={formData.reportInstitutionNameEn || ''}
+                                        onChange={e => updateField('reportInstitutionNameEn', e.target.value)}
+                                        placeholder="Example: Creativity Training Institute"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="form-group">
+                                <label>رابط الشعار (URL)</label>
+                                <input
+                                    type="text"
+                                    value={formData.reportLogo || ''}
+                                    onChange={e => updateField('reportLogo', e.target.value)}
+                                    placeholder="https://example.com/logo.png"
+                                />
+                                <p className="help-text" style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>يُفضل استخدام رابط لصورة PNG بخلفية شفافة.</p>
+                            </div>
+
+                            <div className="form-grid">
+                                <div className="form-group">
+                                    <label>نوع العلامة المائية</label>
+                                    <select
+                                        value={formData.reportWatermarkType || 'none'}
+                                        onChange={e => updateField('reportWatermarkType', e.target.value)}
+                                        style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid #ddd' }}
+                                    >
+                                        <option value="none">لا يوجد</option>
+                                        <option value="text">نصية</option>
+                                        <option value="image">صورة</option>
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label>خط التقارير</label>
+                                    <select
+                                        value={formData.reportFont || 'Tajawal'}
+                                        onChange={e => updateField('reportFont', e.target.value)}
+                                        style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid #ddd' }}
+                                    >
+                                        <option value="Tajawal">Tajawal (عصري)</option>
+                                        <option value="Cairo">Cairo (كلاسيكي)</option>
+                                        <option value="Almarai">Almarai (رسمي)</option>
+                                        <option value="Inter">Inter (إنجليزي فقط)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {formData.reportWatermarkType === 'text' && (
+                                <div className="form-group">
+                                    <label>نص العلامة المائية</label>
+                                    <input
+                                        type="text"
+                                        value={formData.reportWatermarkText || ''}
+                                        onChange={e => updateField('reportWatermarkText', e.target.value)}
+                                        placeholder="مثلاً: نسخة أصلية - معتمد"
+                                    />
+                                </div>
+                            )}
+
+                            {formData.reportWatermarkType === 'image' && (
+                                <div className="form-group">
+                                    <label>رابط صورة العلامة المائية</label>
+                                    <input
+                                        type="text"
+                                        value={formData.reportWatermarkImage || ''}
+                                        onChange={e => updateField('reportWatermarkImage', e.target.value)}
+                                        placeholder="https://example.com/watermark.png"
+                                    />
+                                </div>
+                            )}
+                        </div>
+                        <div className="form-actions-footer">
+                            <button type="button" className="btn-cancel" onClick={() => setSelectedSection(null)}>إلغاء</button>
+                            <button type="button" className="btn-save orange" onClick={handleSave}>حفظ إعدادات التقارير</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
 
             {/* --- Copy CSS from Units.tsx with minor additions --- */}
             <style dangerouslySetInnerHTML={{

@@ -805,7 +805,8 @@
 
     /* Watermark Effect */
     .ag-report-wrap::after {
-        content: "CREATIVITY ERP - SMART ASSESSOR";
+        content: var(--report-watermark-text, "CREATIVITY ERP - SMART ASSESSOR");
+        display: var(--report-watermark-display, block);
         position: fixed;
         top: 50%;
         left: 50%;

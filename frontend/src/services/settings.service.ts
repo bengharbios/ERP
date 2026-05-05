@@ -206,6 +206,15 @@ export interface SystemSettings {
     activeTemplate: string;
     announcementTicker?: string;
 
+    // Report Settings
+    reportInstitutionNameAr?: string;
+    reportInstitutionNameEn?: string;
+    reportLogo?: string;
+    reportWatermarkType: string;
+    reportWatermarkText?: string;
+    reportWatermarkImage?: string;
+    reportFont: string;
+
     createdAt: string;
     updatedAt: string;
 }
@@ -296,4 +305,13 @@ export interface UpdateSystemSettingsRequest {
     hrShiftEnabled?: boolean;
     activeTemplate?: string;
     announcementTicker?: string;
+
+    // Report Settings
+    reportInstitutionNameAr?: string;
+    reportInstitutionNameEn?: string;
+    reportLogo?: string;
+    reportWatermarkType?: string;
+    reportWatermarkText?: string;
+    reportWatermarkImage?: string;
+    reportFont?: string;
 }

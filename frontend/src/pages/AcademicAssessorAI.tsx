@@ -14,6 +14,7 @@ import {
 } from '../layouts/Rapidos2026/components/RapidosUI';
 import { academicService } from '../services/academic.service';
 import { studentService } from '../services/student.service';
+import { settingsService, SystemSettings } from '../services/settings.service';
 
 import './AcademicAssessorAI.css';
 
@@ -37,6 +38,7 @@ export default function AcademicAssessorAI() {
     const [selectedProgram, setSelectedProgram] = useState('');
     const [selectedUnit, setSelectedUnit] = useState('');
     const [selectedStudent, setSelectedStudent] = useState('');
+    const [globalSettings, setGlobalSettings] = useState<SystemSettings | null>(null);
 
     useEffect(() => {
         loadData();
@@ -45,14 +47,18 @@ export default function AcademicAssessorAI() {
     const loadData = async () => {
         setLoadingData(true);
         try {
-            const [progRes, uRes, stRes] = await Promise.all([
+            const [progRes, uRes, stRes, settingsRes] = await Promise.all([
                 academicService.getPrograms(),
                 academicService.getUnits(),
-                studentService.getStudents()
+                studentService.getStudents(),
+                settingsService.getSettings()
             ]);
             setPrograms(progRes.data?.programs || []);
             setUnits(uRes.data?.units || []);
             setStudents(stRes.data?.students || []);
+            if (settingsRes.success && settingsRes.data.settings) {
+                setGlobalSettings(settingsRes.data.settings);
+            }
         } catch (err) {
             console.error(err);
         } finally {
@@ -476,12 +482,30 @@ export default function AcademicAssessorAI() {
                             )}
 
                             {report && (
-                                <div className="ag-report-wrap">
+                                <div 
+                                    className="ag-report-wrap" 
+                                    style={{ 
+                                        fontFamily: globalSettings?.reportFont || 'Tajawal',
+                                        '--report-watermark-text': `"${globalSettings?.reportWatermarkText || 'CREATIVITY ERP - SMART ASSESSOR'}"`,
+                                        '--report-watermark-display': globalSettings?.reportWatermarkType === 'none' ? 'none' : 'block'
+                                    }}
+                                >
                                     {/* Professional Header for Print Only */}
                                     <div className="ag-print-header hide-on-desktop hide-on-mobile" style={{ display: 'none' }}>
                                         <div style={{ textAlign: 'right' }}>
-                                            <h2 style={{ margin: 0, color: '#0088cc' }}>مؤسسة الإبداع الأكاديمي</h2>
-                                            <p style={{ margin: 0, fontSize: '0.8rem', color: '#666' }}>نظام إدارة الموارد (ERP) - وحدة التقييم الذكي</p>
+                                            {globalSettings?.reportLogo && (
+                                                <img 
+                                                    src={globalSettings.reportLogo} 
+                                                    alt="Logo" 
+                                                    style={{ height: '60px', marginBottom: '10px', display: 'block' }} 
+                                                />
+                                            )}
+                                            <h2 style={{ margin: 0, color: '#0088cc' }}>
+                                                {globalSettings?.reportInstitutionNameAr || globalSettings?.instituteNameAr || 'مؤسسة الإبداع الأكاديمي'}
+                                            </h2>
+                                            <p style={{ margin: 0, fontSize: '0.8rem', color: '#666' }}>
+                                                {globalSettings?.reportInstitutionNameEn || globalSettings?.instituteNameEn || 'نظام إدارة الموارد (ERP) - وحدة التقييم الذكي'}
+                                            </p>
                                         </div>
                                         <div style={{ textAlign: 'left' }}>
                                             <p style={{ margin: 0, fontSize: '0.8rem', color: '#666' }}>تاريخ التقرير: {new Date().toLocaleDateString('ar-EG')}</p>

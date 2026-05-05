@@ -583,6 +583,15 @@ model Settings {
   bankName                      String?  @map("bank_name")
   bankSwift                     String?  @map("bank_swift")
   trn                           String?  @map("trn")
+  
+  // --- REPORT SETTINGS ---
+  reportInstitutionNameAr       String?  @map("report_institution_name_ar")
+  reportInstitutionNameEn       String?  @map("report_institution_name_en")
+  reportLogo                    String?  @map("report_logo")
+  reportWatermarkType           String   @default("none") @map("report_watermark_type")
+  reportWatermarkText           String?  @map("report_watermark_text")
+  reportWatermarkImage          String?  @map("report_watermark_image")
+  reportFont                    String   @default("Tajawal") @map("report_font")
 
   // --- HR SETTINGS ---
   hrWorkingDays             String     @default("[\"Sunday\", \"Monday\", \"Tuesday\", \"Wednesday\", \"Thursday\"]") @map("hr_working_days")
