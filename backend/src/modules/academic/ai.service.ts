@@ -83,7 +83,7 @@ Analyze and output JSON:
         try {
             const ai = new GoogleGenAI({ apiKey: apiKey });
             const response = await ai.models.generateContent({
-                model: 'gemini-1.5-pro-latest',
+                model: 'gemini-2.5-flash',
                 contents: prompt,
             });
 
@@ -98,7 +98,7 @@ Analyze and output JSON:
     async analyzeWithOpenRouter(prompt: string, apiKey: string) {
         try {
             const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-                model: 'meta-llama/llama-3.1-70b-instruct:free',
+                model: 'z-ai/glm-4.5-air:free',
                 messages: [{ role: 'system', content: 'You are a professional academic assessor that only outputs JSON.' }, { role: 'user', content: prompt }],
             }, {
                 headers: {
