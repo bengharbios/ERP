@@ -121,15 +121,17 @@ Analyze and output JSON:
     },
 
     parseAIResponse(text: string) {
-        let cleanText = text.trim();
-        cleanText = cleanText.replace(/^```(?:json)?\s+/, '').replace(/\s+```$/, '').replace(/^```(?:json)?/, '').replace(/```$/, '');
-        cleanText = cleanText.trim();
-
         try {
-            return JSON.parse(cleanText);
-        } catch (parseError: any) {
-            console.error("AI Response Parsing Failed. Raw text:", text);
-            throw new Error("Failed to parse AI response as JSON");
+            // Aggressively extract JSON from potential conversational text or markdown
+            const jsonMatch = text.match(/\{[\s\S]*\}/);
+            const cleanText = jsonMatch ? jsonMatch[0] : text;
+            
+            // Remove markdown code blocks if still present
+            const finalJson = cleanText.replace(/```json/g, '').replace(/```/g, '').trim();
+            return JSON.parse(finalJson);
+        } catch (error) {
+            console.error('Failed to parse AI response:', text);
+            throw new Error('AI Engine returned invalid format. Please try again.');
         }
     }
 };
