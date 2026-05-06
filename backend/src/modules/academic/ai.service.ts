@@ -95,6 +95,13 @@ Analyze and output JSON:
             const text = response.text || '';
             return this.parseAIResponse(text);
         } catch (error: any) {
+            const msg = error.message || "";
+            if (msg.includes("429") || msg.toLowerCase().includes("quota")) {
+                throw new Error("تجاوزت حد الاستخدام المسموح لـ Gemini حالياً. يرجى الانتظار دقيقة أو استخدام محرك OpenRouter.");
+            }
+            if (msg.includes("503") || msg.toLowerCase().includes("overloaded")) {
+                throw new Error("محرك Gemini يعاني من ضغط حالياً. يرجى المحاولة بعد قليل أو التبديل لمحرك آخر.");
+            }
             console.error("Gemini AI Error:", error.message);
             throw error;
         }
@@ -116,7 +123,11 @@ Analyze and output JSON:
             const text = response.data.choices[0].message.content;
             return this.parseAIResponse(text);
         } catch (error: any) {
-            console.error("OpenRouter AI Error:", error.response?.data || error.message);
+            const errorData = error.response?.data;
+            if (errorData?.error?.code === 429) {
+                throw new Error("تجاوزت حد الاستخدام لـ OpenRouter. يرجى التحقق من حصة مفتاحك.");
+            }
+            console.error("OpenRouter AI Error:", errorData || error.message);
             throw error;
         }
     },
