@@ -559,13 +559,17 @@ export default function AcademicAssessorAI() {
                                             </thead>
                                             <tbody>
                                                 {report.criteria.map((c: any) => (
-                                                    <tr key={c.id}>
-                                                        <td style={{ fontWeight: 800, color: 'var(--hz-neon)' }}>{c.id}</td>
-                                                        <td>{c.depth}</td>
-                                                        <td>{c.max}</td>
-                                                        <td style={{ fontWeight: 800, color: 'var(--hz-text-bright)' }}>{c.awarded}</td>
+                                                    <tr key={c.id} style={{ background: 'white' }}>
+                                                        <td style={{ fontWeight: 800, color: '#111' }}>{c.id}</td>
+                                                        <td style={{ color: '#444' }}>{c.depth}</td>
+                                                        <td style={{ color: '#444' }}>{c.max}</td>
+                                                        <td style={{ fontWeight: 800, color: '#000' }}>{c.awarded}</td>
                                                         <td>
-                                                            <HzBadge color={c.status === 'Achieved' ? 'neon' : 'dim'}>{c.status}</HzBadge>
+                                                            <span className={`ag-grade-pill ${c.status === 'Achieved' ? 'achieved' : 'not-achieved'}`}>
+                                                                {reportLanguage === 'Arabic' 
+                                                                    ? (c.status === 'Achieved' ? 'محقق' : 'غير محقق')
+                                                                    : c.status}
+                                                            </span>
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -573,14 +577,14 @@ export default function AcademicAssessorAI() {
                                         </table>
                                     </div>
 
-                                    <div className="ag-grade-box">
+                                    <div className="ag-grade-box" style={{ background: 'white', border: '2px solid #000', borderRadius: '0' }}>
                                         <div className="ag-grade-primary">
-                                            <span style={{ fontSize: '0.8rem', color: 'var(--hz-text-muted)', textTransform: 'uppercase', fontWeight: 800 }}>
+                                            <span style={{ fontSize: '0.8rem', color: '#666', textTransform: 'uppercase', fontWeight: 800 }}>
                                                 {reportLanguage === 'Arabic' ? 'النسبة المقترحة آلياً' : 'Automated Suggested Score'}
                                             </span>
-                                            <div className="ag-grade-val">{report.score}%</div>
+                                            <div className="ag-grade-val" style={{ color: '#000' }}>{report.score}%</div>
                                         </div>
-                                        <div className={`ag-grade-pill ${report.grade.toLowerCase()}`}>
+                                        <div className={`ag-grade-pill ${report.grade.toLowerCase()}`} style={{ border: '1px solid #000', color: '#000', background: 'white' }}>
                                             {report.grade}
                                         </div>
                                     </div>
