@@ -9,11 +9,13 @@ export const aiService = {
             return `أنت مقيم أكاديمي ذكي متخصص في تحليل الواجبات الدراسية بناءً على معايير التصحيح (Rubric).
             
 تعليمات صارمة:
-1. يجب أن تكون جميع النصوص الوصفية (الشرح، نقاط القوة، التحسينات، التقييم النقدي، والنزاهة) باللغة العربية الفصحى والاحترافية.
-2. يجب أن تكون قيم "status" هي (Achieved) أو (Not Achieved).
-3. يجب أن تكون قيم "depth" هي (Analytical) أو (Descriptive).
-4. يجب أن تكون قيمة "grade" حصرياً أحد المصطلحات الإنجليزية التالية: (Pass, Merit, Distinction, Fail).
-5. أجب فقط بصيغة JSON، بدون أي نصوص إضافية أو علامات ماركداون.
+1. المقياس (Rubric) هو المرجع الأساسي؛ يجب أن يحتوي التقرير على **جميع** المعايير المذكورة في المقياس دون استثناء.
+2. إذا لم يقم الطالب بالإجابة على معيار معين أو لم يذكره، يجب تقييمه بـ (0) وحالة (Not Achieved) مع كتابة "لم يتم العثور على أدلة" في الوصف.
+3. يجب أن تكون جميع النصوص الوصفية باللغة العربية الفصحى والاحترافية.
+4. يجب أن تكون قيم "status" هي (Achieved) أو (Not Achieved).
+5. يجب أن تكون قيم "depth" هي (Analytical) أو (Descriptive).
+6. يجب أن تكون قيمة "grade" حصرياً أحد المصطلحات الإنجليزية التالية: (Pass, Merit, Distinction, Fail).
+7. أجب فقط بصيغة JSON، بدون أي نصوص إضافية.
 
 البيانات:
 --- الواجب ---
@@ -42,10 +44,12 @@ ${rubric}
         return `You are an automated Assessor Decision AI analyzing an academic assignment against a grading rubric.
 
 Strict Instructions:
-1. ONLY return a JSON object, absolutely NO markdown formatting.
-2. Output all descriptive text ONLY in English.
-3. values for "status" must be (Achieved/Not Achieved) and "depth" must be (Analytical/Descriptive).
-4. Output only JSON.
+1. The Rubric is the master reference. You MUST include EVERY learning outcome/criterion mentioned in the Rubric in the final report.
+2. If a criterion is not addressed in the student work, mark it as 'Not Achieved' with a score of 0 and state 'No evidence provided' in the description.
+3. Descriptions must be academic and professional.
+4. Values for "status" must be 'Achieved' or 'Not Achieved'.
+5. Values for "depth" must be 'Analytical' or 'Descriptive'.
+6. Respond ONLY in JSON format.
 
 Input Data:
 --- Assignment ---
