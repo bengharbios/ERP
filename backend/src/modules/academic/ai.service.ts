@@ -99,10 +99,7 @@ Analyze and output JSON:
         try {
             const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
                 model: 'z-ai/glm-4.5-air:free',
-                messages: [{ role: 'system', content: 'You are a professional academic assessor that performs deep reasoning before outputting structured JSON.' }, { role: 'user', content: prompt }],
-                provider: {
-                    reasoning_enabled: true
-                }
+                messages: [{ role: 'system', content: 'You are a professional academic assessor that only outputs JSON.' }, { role: 'user', content: prompt }],
             }, {
                 headers: {
                     'Authorization': `Bearer ${apiKey}`,

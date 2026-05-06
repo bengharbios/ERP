@@ -150,7 +150,7 @@ export default function AcademicAssessorAI() {
             }
         }, 1200);
 
-        if (engineMode === 'Professional API') {
+        if (engineMode === 'Professional API' || engineMode === 'OpenRouter') {
             academicService.analyzeAssignment({
                 assignment,
                 rubric,
