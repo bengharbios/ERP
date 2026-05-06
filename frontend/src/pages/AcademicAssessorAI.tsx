@@ -493,6 +493,7 @@ export default function AcademicAssessorAI() {
 
                             {report && (
                                 <div 
+                                    id="printable-academic-report"
                                     className="ag-report-wrap" 
                                     style={{ 
                                         fontFamily: globalSettings?.reportFont || 'Tajawal',
