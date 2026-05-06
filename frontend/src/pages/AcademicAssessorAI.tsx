@@ -537,11 +537,15 @@ export default function AcademicAssessorAI() {
                                             fontFamily: globalSettings?.reportFont || 'Tajawal',
                                             '--report-watermark-text': `"${globalSettings?.reportWatermarkText || 'CREATIVITY ERP - SMART ASSESSOR'}"`,
                                             '--report-watermark-display': globalSettings?.reportWatermarkType === 'none' ? 'none' : 'block',
-                                            background: 'white',
-                                            color: 'black',
-                                            padding: '40px',
-                                            borderRadius: '8px',
-                                            boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+                                            background: '#ffffff',
+                                            backgroundColor: '#ffffff',
+                                            color: '#000000',
+                                            padding: '50px',
+                                            borderRadius: '0px',
+                                            boxShadow: '0 0 50px rgba(0,0,0,0.5)',
+                                            margin: '0 auto',
+                                            maxWidth: '1000px',
+                                            minHeight: '297mm'
                                         }}
                                     >
                                         {/* Professional Header for Print Only */}
