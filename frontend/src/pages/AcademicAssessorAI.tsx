@@ -150,7 +150,7 @@ export default function AcademicAssessorAI() {
             }
         }, 1200);
 
-        if (engineMode === 'Professional API' || engineMode === 'OpenRouter') {
+        if (engineMode === 'Professional API') {
             academicService.analyzeAssignment({
                 assignment,
                 rubric,
@@ -498,31 +498,31 @@ export default function AcademicAssessorAI() {
                                     style={{ 
                                         fontFamily: globalSettings?.reportFont || 'Tajawal',
                                         '--report-watermark-text': `"${globalSettings?.reportWatermarkText || 'CREATIVITY ERP - SMART ASSESSOR'}"`,
-                                        '--report-watermark-url': globalSettings?.reportWatermarkUrl ? `url(${globalSettings.reportWatermarkUrl})` : 'none',
                                         '--report-watermark-display': globalSettings?.reportWatermarkType === 'none' ? 'none' : 'block'
                                     }}
                                 >
-                                    {/* ——— PROFESSIONAL LETTERHEAD (PRINT ONLY) ——— */}
-                                    <div className="ag-print-header hide-on-desktop hide-on-mobile">
-                                        <div className="letterhead-top">
-                                            <div className="letterhead-brand">
-                                                {globalSettings?.reportLogo ? (
-                                                    <img src={globalSettings.reportLogo} alt="Institution Logo" className="letterhead-logo" />
-                                                ) : (
-                                                    <div className="letterhead-logo-placeholder">ERP</div>
-                                                )}
-                                                <div className="letterhead-titles">
-                                                    <h1 className="inst-name-ar">{globalSettings?.reportInstitutionNameAr || globalSettings?.instituteNameAr || 'معهد السلام الثقافي'}</h1>
-                                                    <h2 className="inst-name-en">{globalSettings?.reportInstitutionNameEn || globalSettings?.instituteNameEn || 'Al Salam Cultural Institute'}</h2>
-                                                </div>
-                                            </div>
-                                            <div className="letterhead-meta">
-                                                <div className="meta-row"><span>التاريخ:</span> <strong>{new Date().toLocaleDateString('ar-EG')}</strong></div>
-                                                <div className="meta-row"><span>الرقم:</span> <strong>AI-{Math.random().toString(36).substr(2, 6).toUpperCase()}</strong></div>
-                                                <div className="meta-row"><span>الصفحة:</span> <strong>1 من 1</strong></div>
-                                            </div>
+                                    {/* Professional Header for Print Only */}
+                                    <div className="ag-print-header">
+                                        <div style={{ textAlign: 'right' }}>
+                                            {globalSettings?.reportLogo && (
+                                                <img 
+                                                    src={globalSettings.reportLogo} 
+                                                    alt="Logo" 
+                                                    style={{ height: '70px', marginBottom: '10px', display: 'block', objectFit: 'contain' }} 
+                                                />
+                                            )}
+                                            <h2 style={{ margin: 0, color: '#0088cc', fontSize: '1.4rem' }}>
+                                                {globalSettings?.reportInstitutionNameAr || globalSettings?.instituteNameAr || 'مؤسسة الإبداع الأكاديمي'}
+                                            </h2>
+                                            <p style={{ margin: 0, fontSize: '0.9rem', color: '#666', fontWeight: 600 }}>
+                                                {globalSettings?.reportInstitutionNameEn || globalSettings?.instituteNameEn || 'Academic Assessor AI - Professional Report'}
+                                            </p>
                                         </div>
-                                        <div className="letterhead-divider"></div>
+                                        <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+                                            <p style={{ margin: '2px 0', fontSize: '0.85rem', color: '#444' }}><strong>تاريخ التقرير:</strong> {new Date().toLocaleDateString('ar-EG')}</p>
+                                            <p style={{ margin: '2px 0', fontSize: '0.85rem', color: '#444' }}><strong>رقم المرجع:</strong> AI-{Math.random().toString(36).substr(2, 7).toUpperCase()}</p>
+                                            <p style={{ margin: '2px 0', fontSize: '0.85rem', color: '#444' }}><strong>الصفحة:</strong> 1 من 1</p>
+                                        </div>
                                     </div>
 
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
