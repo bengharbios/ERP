@@ -695,8 +695,11 @@ export default function AcademicAssessorAI() {
                                                 <br /><br />
                                                 <strong>{reportLanguage === 'Arabic' ? 'التقييم النقدي:' : 'Critical Assessment:'}</strong> {report.thinking}
                                             </p>
-                                        {/* 9. Signatures */}
-                                        <div style={{ marginTop: '50px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                                        </div>
+                                    </div>
+
+                                    {/* 9. Signatures */}
+                                    <div style={{ marginTop: '50px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                                             <div style={{ textAlign: 'center' }}>
                                                 <div style={{ borderBottom: '2px solid #000', width: '280px', paddingBottom: '10px', marginBottom: '10px', fontWeight: 900, color: '#000' }}>
                                                     {reportLanguage === 'Arabic' ? 'توقيع المقيم المعتمد (الاعتماد النهائي)' : 'Authorized Assessor Signature'}
