@@ -527,7 +527,6 @@ export default function AcademicAssessorAI() {
                                             <div>{reportLanguage === 'Arabic' ? 'تاريخ التقرير:' : 'Report Date:'} {new Date().toLocaleDateString('en-GB')}</div>
                                             <div>{reportLanguage === 'Arabic' ? 'رقم المرجع:' : 'Ref No:'} AI-{Math.random().toString(36).substring(2, 10).toUpperCase()}</div>
                                         </div>
-                                    </div>
 
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                         <div>
