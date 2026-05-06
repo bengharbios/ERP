@@ -83,7 +83,7 @@ Analyze and output JSON:
         try {
             const ai = new GoogleGenAI({ apiKey: apiKey });
             const response = await ai.models.generateContent({
-                model: 'gemini-pro',
+                model: 'gemini-1.5-pro-latest',
                 contents: prompt,
             });
 
