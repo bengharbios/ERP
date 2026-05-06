@@ -166,20 +166,21 @@ export default function AcademicAssessorAI() {
                 clearInterval(interval);
                 setProcessingStep(5);
                 setTimeout(() => {
-                    const aiReport = res.data.report;
-                    // Inject details into AI report
-                    const sProg = programs.find(p => p.id === selectedProgram)?.nameAr || "البرنامج المحدد";
-                    const unitObj = units.find(u => u.id === selectedUnit);
-                    const sUnit = unitObj ? `[${unitObj.code}] ${unitObj.nameAr || unitObj.nameEn}` : selectedUnit;
-                    const sStud = students.find(s => s.id === selectedStudent);
-                    const stName = sStud ? `${sStud.firstNameAr || ''} ${sStud.lastNameAr || ''}` : "اسم الطالب";
+                const aiReport = res.data.report || res.data;
+                
+                // Inject details into AI report
+                const sProg = programs.find(p => p.id === selectedProgram)?.nameAr || "البرنامج المحدد";
+                const unitObj = units.find(u => u.id === selectedUnit);
+                const sUnit = unitObj ? `[${unitObj.code}] ${unitObj.nameAr || unitObj.nameEn}` : selectedUnit;
+                const sStud = students.find(s => s.id === selectedStudent);
+                const stName = sStud ? `${sStud.firstNameAr || ''} ${sStud.lastNameAr || ''}` : "اسم الطالب";
 
-                    aiReport.student = stName;
-                    aiReport.level = sProg;
-                    aiReport.unit = sUnit;
+                aiReport.student = stName;
+                aiReport.level = sProg;
+                aiReport.unit = sUnit;
 
-                    setReport(aiReport);
-                    setLoading(false);
+                setReport(aiReport);
+                setLoading(false);
                 }, 1000);
             }).catch(err => {
                 clearInterval(interval);
