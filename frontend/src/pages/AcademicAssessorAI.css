@@ -66,6 +66,17 @@
     border: 1px solid var(--hz-border-soft);
 }
 
+.ag-report-wrap {
+    background: white !important;
+    color: black !important;
+    padding: 50px;
+    border-radius: 4px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    position: relative;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
 .ag-pulse {
     width: 10px;
     height: 10px;
