@@ -98,7 +98,7 @@ Analyze and output JSON:
     async analyzeWithOpenRouter(prompt: string, apiKey: string) {
         try {
             const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-                model: 'z-ai/glm-4.5-air:free',
+                model: 'meta-llama/llama-3.1-70b-instruct:free',
                 messages: [{ role: 'system', content: 'You are a professional academic assessor that only outputs JSON.' }, { role: 'user', content: prompt }],
             }, {
                 headers: {
