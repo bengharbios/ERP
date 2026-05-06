@@ -504,8 +504,12 @@ export default function AcademicAssessorAI() {
                                     <div className="ag-print-header">
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #333', paddingBottom: '15px', marginBottom: '25px' }}>
                                             <div style={{ textAlign: 'right' }}>
-                                                <div style={{ fontWeight: 900, fontSize: '1.6rem', color: '#111' }}>{globalSettings?.institutionNameAr}</div>
-                                                <div style={{ fontSize: '1rem', color: '#444', fontWeight: 600 }}>{globalSettings?.institutionNameEn}</div>
+                                                <div style={{ fontWeight: 900, fontSize: '1.6rem', color: '#111' }}>
+                                                    {globalSettings?.institutionNameAr || globalSettings?.reportInstitutionNameAr || globalSettings?.instituteNameAr || 'معهد السلام الثقافي'}
+                                                </div>
+                                                <div style={{ fontSize: '1rem', color: '#444', fontWeight: 600 }}>
+                                                    {globalSettings?.institutionNameEn || globalSettings?.reportInstitutionNameEn || globalSettings?.instituteNameEn || 'Al Salam Cultural Institute'}
+                                                </div>
                                             </div>
                                             {globalSettings?.reportLogo && (
                                                 <img 
