@@ -289,6 +289,40 @@ export default function AcademicAssessorAI() {
 
     return (
         <div style={{ padding: '0 24px 24px' }}>
+            <style dangerouslySetInnerHTML={{ __html: `
+                @media print {
+                    @page { size: A4; margin: 10mm; }
+                    body, html, #root, .hz-root, .hz-app, .hz-main, .ag-root, .ag-body, .ag-main, .ag-container { 
+                        background: white !important; 
+                        background-color: white !important;
+                        color: black !important; 
+                    }
+                    .hz-topbar, .hz-sidebar, .ag-sidebar, .ag-header, .hide-on-print, .hz-btn, .ag-stepper, .hz-breadcrumb, header, .hz-subnav, h1, h2:not(.ag-report-title-main) { 
+                        display: none !important; 
+                    }
+                    #printable-academic-report { 
+                        display: block !important; 
+                        background: white !important; 
+                        color: black !important; 
+                        padding: 0 !important; 
+                        margin: 0 !important; 
+                        box-shadow: none !important; 
+                        border: none !important; 
+                    }
+                    .ag-marking-table, .ag-marking-table tr, .ag-marking-table td, .ag-marking-table th { 
+                        background: white !important; 
+                        color: black !important; 
+                        border: 1px solid #000 !important; 
+                    }
+                    .ag-marking-table th { background: #eee !important; }
+                    .ag-grade-pill, .ag-grade-box { 
+                        background: white !important; 
+                        color: black !important; 
+                        border: 1px solid #000 !important; 
+                    }
+                    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+                }
+            ` }} />
             <div className="ag-root">
                 {/* ── HEADER ── */}
                 <header className="ag-header">
