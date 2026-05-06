@@ -81,7 +81,7 @@ Analyze and output JSON:
         }
 
         try {
-            const genAI = new GoogleGenAI(apiKey);
+            const genAI = new GoogleGenAI({ apiKey });
             const model = genAI.getGenerativeModel({ 
                 model: 'gemini-1.5-flash',
                 generationConfig: {
