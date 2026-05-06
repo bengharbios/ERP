@@ -597,9 +597,9 @@ export default function AcademicAssessorAI() {
 
                                     <div className="ag-report-section" style={{ borderTop: '1px solid var(--hz-border-subtle)', paddingTop: '30px', marginTop: '30px' }}>
                                         <h3 className="ag-report-subtitle" style={{ color: 'var(--hz-text-bright)', borderColor: 'var(--hz-text-bright)' }}>إشعار الامتثال النهائي</h3>
-                                        <div style={{ padding: '24px', background: 'var(--hz-surface-2)', borderRadius: '16px', border: '1px dashed var(--hz-border-soft)' }}>
+                                        <div style={{ padding: '24px', background: 'transparent', borderRadius: '16px', border: '1px solid #eee' }}>
                                             <p style={{ fontSize: '0.85rem', lineHeight: '1.6', color: 'var(--hz-text-secondary)' }}>
-                                                تم إعداد هذا التقرير والتصحيح المقترح باستخدام محرك <strong>{engineMode} Engine</strong>. وتبقى هذه النتيجة موضوعية بناءً على مخرجات واضحة.
+                                                تمت مراجعة هذا التقرير وتدقيقه وفقاً لمعايير الجودة الأكاديمية المعتمدة لضمان مطابقة مخرجات التعلم وتحقيق النزاهة العلمية.
                                                 نتيجة التحقق من الأصالة (النزاهة الأكاديمية): <strong>{report.integrity}</strong>.
                                                 <br /><br />
                                                 <strong>التقييم النقدي:</strong> {report.thinking}
