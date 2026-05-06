@@ -531,86 +531,115 @@ export default function AcademicAssessorAI() {
                             )}
                             {report && (
                                 <div 
-                                        id="printable-academic-report"
-                                        className="ag-report-wrap" 
-                                        style={{ 
-                                            fontFamily: globalSettings?.reportFont || 'Tajawal',
-                                            '--report-watermark-text': `"${globalSettings?.reportWatermarkText || 'CREATIVITY ERP - SMART ASSESSOR'}"`,
-                                            '--report-watermark-display': globalSettings?.reportWatermarkType === 'none' ? 'none' : 'block',
-                                            background: '#ffffff',
-                                            backgroundColor: '#ffffff',
-                                            color: '#000000',
-                                            padding: '50px',
-                                            borderRadius: '0px',
-                                            boxShadow: '0 0 50px rgba(0,0,0,0.5)',
-                                            margin: '0 auto',
-                                            maxWidth: '1000px',
-                                            minHeight: '297mm'
-                                        }}
-                                    >
-                                        {/* Professional Header for Print Only */}
-                                        <div className="ag-print-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '3px solid #111', paddingBottom: '20px', marginBottom: '30px' }}>
-                                            <div style={{ textAlign: 'right' }}>
-                                                <div style={{ fontWeight: 900, fontSize: '1.8rem', color: '#000' }}>
-                                                    {globalSettings?.institutionNameAr || globalSettings?.reportInstitutionNameAr || globalSettings?.instituteNameAr || 'معهد السلام الثقافي'}
-                                                </div>
-                                                <div style={{ fontSize: '1.1rem', color: '#333', fontWeight: 600 }}>
-                                                    {globalSettings?.institutionNameEn || globalSettings?.reportInstitutionNameEn || globalSettings?.instituteNameEn || 'Al Salam Cultural Institute'}
-                                                </div>
+                                    id="printable-academic-report"
+                                    className="ag-report-wrap" 
+                                    style={{ 
+                                        fontFamily: globalSettings?.reportFont || 'Tajawal',
+                                        '--report-watermark-text': `"${globalSettings?.reportWatermarkText || 'CREATIVITY ERP - SMART ASSESSOR'}"`,
+                                        '--report-watermark-display': globalSettings?.reportWatermarkType === 'none' ? 'none' : 'block',
+                                        background: '#ffffff',
+                                        backgroundColor: '#ffffff',
+                                        color: '#000000',
+                                        padding: '50px',
+                                        borderRadius: '0px',
+                                        boxShadow: '0 0 50px rgba(0,0,0,0.5)',
+                                        margin: '0 auto',
+                                        maxWidth: '1000px',
+                                        minHeight: '297mm'
+                                    }}
+                                >
+                                    <div className="hide-on-print" style={{ textAlign: 'center', marginBottom: '20px' }}>
+                                        <HzBtn variant="primary" icon={<Download size={16} />} onClick={handleDownload}>تحميل التقرير</HzBtn>
+                                    </div>
+
+                                    {/* 1. Header (Logo + Name) */}
+                                    <div className="ag-print-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '3px solid #111', paddingBottom: '20px', marginBottom: '15px' }}>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <div style={{ fontWeight: 900, fontSize: '1.8rem', color: '#000' }}>
+                                                {globalSettings?.institutionNameAr || globalSettings?.reportInstitutionNameAr || globalSettings?.instituteNameAr || 'معهد السلام الثقافي'}
                                             </div>
-                                            {globalSettings?.reportLogo && (
-                                                <img 
-                                                    src={globalSettings.reportLogo} 
-                                                    alt="Logo" 
-                                                    style={{ height: '100px', width: 'auto' }} 
-                                                />
-                                            )}
+                                            <div style={{ fontSize: '1.1rem', color: '#333', fontWeight: 600 }}>
+                                                {globalSettings?.institutionNameEn || globalSettings?.reportInstitutionNameEn || globalSettings?.instituteNameEn || 'Al Salam Cultural Institute'}
+                                            </div>
                                         </div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#666', marginBottom: '10px' }}>
-                                            <div>{reportLanguage === 'Arabic' ? 'تاريخ التقرير:' : 'Report Date:'} {new Date().toLocaleDateString('en-GB')}</div>
-                                            <div>{reportLanguage === 'Arabic' ? 'رقم المرجع:' : 'Ref No:'} AI-{Math.random().toString(36).substring(2, 10).toUpperCase()}</div>
+                                        {globalSettings?.reportLogo && (
+                                            <img 
+                                                src={globalSettings.reportLogo} 
+                                                alt="Logo" 
+                                                style={{ height: '100px', width: 'auto' }} 
+                                            />
+                                        )}
+                                    </div>
+
+                                    {/* 2. Meta Row (Date + Ref) */}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#000', marginBottom: '30px', fontWeight: 600 }}>
+                                        <div>{reportLanguage === 'Arabic' ? 'تاريخ التقرير:' : 'Report Date:'} {new Date().toLocaleDateString('en-GB')}</div>
+                                        <div>{reportLanguage === 'Arabic' ? 'رقم المرجع:' : 'Ref No:'} AI-{Math.random().toString(36).substring(2, 10).toUpperCase()}</div>
+                                    </div>
+
+                                    {/* 3. Main Title (Center) */}
+                                    <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+                                        <h2 className="ag-report-title-main" style={{ fontSize: '2.2rem', fontWeight: 900, color: '#000', margin: 0, textDecoration: 'underline' }}>
+                                            {reportLanguage === 'Arabic' ? 'تقرير التقييم الأكاديمي' : 'Academic Assessment Report'}
+                                        </h2>
+                                    </div>
+
+                                    {/* 4. Split Info (2/3 Info, 1/3 Grade) */}
+                                    <div style={{ display: 'flex', gap: '30px', marginBottom: '40px', alignItems: 'stretch' }}>
+                                        {/* Right (2/3): Student, Program, Unit */}
+                                        <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: '15px', border: '1px solid #000', padding: '20px' }}>
+                                            <div style={{ fontSize: '1rem' }}>
+                                                <span style={{ fontWeight: 800 }}>{reportLanguage === 'Arabic' ? 'اسم الطالب:' : 'Student Name:'}</span>
+                                                <span style={{ marginRight: '10px', fontSize: '1.1rem' }}>{report.student}</span>
+                                            </div>
+                                            <div style={{ fontSize: '1rem' }}>
+                                                <span style={{ fontWeight: 800 }}>{reportLanguage === 'Arabic' ? 'البرنامج الدراسي:' : 'Program:'}</span>
+                                                <span style={{ marginRight: '10px' }}>{report.level}</span>
+                                            </div>
+                                            <div style={{ fontSize: '1rem' }}>
+                                                <span style={{ fontWeight: 800 }}>{reportLanguage === 'Arabic' ? 'الوحدة التعليمية:' : 'Unit:'}</span>
+                                                <span style={{ marginRight: '10px' }}>{report.unit || 'بيئة الأعمال الدولية'}</span>
+                                            </div>
                                         </div>
 
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                        <div>
-                                            <HzBadge color="neon" style={{ marginBottom: '10px' }}>مسودة معتمدة آلياً</HzBadge>
-                                            <h2 className="ag-report-title-main" style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--hz-text-bright)' }}>
-                                                {reportLanguage === 'Arabic' ? 'تقرير التقييم الأكاديمي' : 'Academic Assessment Report'}
-                                            </h2>
-                                            <div style={{ display: 'flex', gap: '24px', marginTop: '16px' }}>
-                                                <div style={{ fontSize: '0.8rem' }}><span style={{ color: 'var(--hz-text-muted)' }}>{reportLanguage === 'Arabic' ? 'الطالب:' : 'Student:'}</span> <strong style={{ color: 'var(--hz-neon)' }}>{report.student}</strong></div>
-                                                <div style={{ fontSize: '0.8rem' }}><span style={{ color: 'var(--hz-text-muted)' }}>{reportLanguage === 'Arabic' ? 'البرنامج:' : 'Program:'}</span> <strong style={{ color: 'var(--hz-text-bright)' }}>{report.level}</strong></div>
-                                                <div style={{ fontSize: '0.8rem' }}><span style={{ color: 'var(--hz-text-muted)' }}>{reportLanguage === 'Arabic' ? 'الوحدة:' : 'Unit:'}</span> <strong style={{ color: 'var(--hz-text-bright)' }}>{report.unit}</strong></div>
+                                        {/* Left (1/3): Grade & Score */}
+                                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', border: '2px solid #000', textAlign: 'center' }}>
+                                            <div style={{ background: '#f2f2f2', padding: '10px', fontWeight: 900, borderBottom: '2px solid #000', fontSize: '0.85rem' }}>
+                                                {reportLanguage === 'Arabic' ? 'النتيجة المقترحة آلياً' : 'Automated Result'}
                                             </div>
-                                        </div>
-                                        <div className="hide-on-print">
-                                            <HzBtn variant="primary" icon={<Download size={16} />} onClick={handleDownload}>تحميل التقرير</HzBtn>
+                                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '15px' }}>
+                                                <div style={{ fontSize: '2.5rem', fontWeight: 900 }}>{report.score}%</div>
+                                                <div style={{ fontSize: '1.2rem', fontWeight: 900, textTransform: 'uppercase', marginTop: '5px', border: '1px solid #000', padding: '4px 15px' }}>
+                                                    {report.grade}
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div className="ag-marking-section">
-                                        <h3 className="ag-report-subtitle">
-                                            {reportLanguage === 'Arabic' ? 'جدول توزيع الدرجات حسب المعايير' : 'Grading Distribution by Criteria'}
+                                    {/* 5. Table (Criteria) */}
+                                    <div style={{ marginBottom: '40px' }}>
+                                        <h3 style={{ fontSize: '1.1rem', fontWeight: 900, marginBottom: '15px', borderRight: '5px solid #000', paddingRight: '15px' }}>
+                                            {reportLanguage === 'Arabic' ? 'جدول توزيع الدرجات حسب المعايير' : 'Grade Distribution by Criteria'}
                                         </h3>
-                                        <table className="ag-marking-table">
+                                        <table className="ag-marking-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                                             <thead>
-                                                <tr>
-                                                    <th>{reportLanguage === 'Arabic' ? 'المعيار' : 'Criteria'}</th>
-                                                    <th>{reportLanguage === 'Arabic' ? 'مستوى العمق' : 'Depth'}</th>
-                                                    <th>{reportLanguage === 'Arabic' ? 'الحد الأقصى' : 'Max'}</th>
-                                                    <th>{reportLanguage === 'Arabic' ? 'الدرجة' : 'Awarded'}</th>
-                                                    <th>{reportLanguage === 'Arabic' ? 'حالة التقييم' : 'Status'}</th>
+                                                <tr style={{ background: '#f2f2f2' }}>
+                                                    <th style={{ border: '1px solid #000', padding: '12px' }}>{reportLanguage === 'Arabic' ? 'المعيار' : 'Criteria'}</th>
+                                                    <th style={{ border: '1px solid #000', padding: '12px' }}>{reportLanguage === 'Arabic' ? 'مستوى العمق' : 'Depth'}</th>
+                                                    <th style={{ border: '1px solid #000', padding: '12px' }}>{reportLanguage === 'Arabic' ? 'الحد الأقصى' : 'Max'}</th>
+                                                    <th style={{ border: '1px solid #000', padding: '12px' }}>{reportLanguage === 'Arabic' ? 'الدرجة' : 'Awarded'}</th>
+                                                    <th style={{ border: '1px solid #000', padding: '12px' }}>{reportLanguage === 'Arabic' ? 'حالة التقييم' : 'Status'}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {report.criteria.map((c: any) => (
-                                                    <tr key={c.id} style={{ background: 'white' }}>
-                                                        <td style={{ fontWeight: 800, color: '#111' }}>{c.id}</td>
-                                                        <td style={{ color: '#444' }}>{c.depth}</td>
-                                                        <td style={{ color: '#444' }}>{c.max}</td>
-                                                        <td style={{ fontWeight: 800, color: '#000' }}>{c.awarded}</td>
-                                                        <td>
-                                                            <span className={`ag-grade-pill ${c.status === 'Achieved' ? 'achieved' : 'not-achieved'}`}>
+                                                    <tr key={c.id}>
+                                                        <td style={{ border: '1px solid #000', padding: '10px', fontWeight: 800 }}>{c.id}</td>
+                                                        <td style={{ border: '1px solid #000', padding: '10px', textAlign: 'center' }}>{c.depth}</td>
+                                                        <td style={{ border: '1px solid #000', padding: '10px', textAlign: 'center' }}>{c.max}</td>
+                                                        <td style={{ border: '1px solid #000', padding: '10px', textAlign: 'center', fontWeight: 800 }}>{c.awarded}</td>
+                                                        <td style={{ border: '1px solid #000', padding: '10px', textAlign: 'center' }}>
+                                                            <span style={{ fontWeight: 800 }}>
                                                                 {reportLanguage === 'Arabic' 
                                                                     ? (c.status === 'Achieved' ? 'محقق' : 'غير محقق')
                                                                     : c.status}
@@ -622,47 +651,41 @@ export default function AcademicAssessorAI() {
                                         </table>
                                     </div>
 
-                                    <div className="ag-grade-box" style={{ background: 'white', border: '2px solid #000', borderRadius: '0' }}>
-                                        <div className="ag-grade-primary">
-                                            <span style={{ fontSize: '0.8rem', color: '#000', textTransform: 'uppercase', fontWeight: 800 }}>
-                                                {reportLanguage === 'Arabic' ? 'النسبة المقترحة آلياً' : 'Automated Suggested Score'}
-                                            </span>
-                                            <div className="ag-grade-val" style={{ color: '#000' }}>{report.score}%</div>
-                                        </div>
-                                        <div style={{ border: '1px solid #000', color: '#000', background: 'white', padding: '10px' }}>
-                                            {report.grade}
-                                        </div>
-                                    </div>
-
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginTop: '20px' }}>
-                                        <div className="ag-report-section">
-                                            <h3 className="ag-report-subtitle" style={{ color: '#000', borderColor: '#000' }}>
-                                                {reportLanguage === 'Arabic' ? 'نقاط القوة والملاحظات' : 'Key Strengths and Observations'}
-                                            </h3>
-                                            <ul style={{ paddingRight: '20px', display: 'flex', flexDirection: 'column', gap: '10px', listStyle: 'square', color: '#000' }}>
+                                    {/* 6. Strengths */}
+                                    <div style={{ marginBottom: '30px' }}>
+                                        <h3 style={{ fontSize: '1.1rem', fontWeight: 900, marginBottom: '15px', borderRight: '5px solid #000', paddingRight: '15px' }}>
+                                            {reportLanguage === 'Arabic' ? 'نقاط القوة والملاحظات' : 'Key Strengths and Observations'}
+                                        </h3>
+                                        <div style={{ border: '1px solid #000', padding: '20px' }}>
+                                            <ul style={{ margin: 0, paddingRight: '25px', display: 'flex', flexDirection: 'column', gap: '10px', listStyle: 'square' }}>
                                                 {report.strengths.map((s: string, idx: number) => (
-                                                    <li key={idx} style={{ fontSize: '0.85rem' }}>{s}</li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                        <div className="ag-report-section">
-                                            <h3 className="ag-report-subtitle" style={{ color: '#000', borderColor: '#000' }}>
-                                                {reportLanguage === 'Arabic' ? 'المجالات المطلوبة لرفع كفاءة العمل' : 'Areas for Improvement'}
-                                            </h3>
-                                            <ul style={{ paddingRight: '20px', display: 'flex', flexDirection: 'column', gap: '10px', listStyle: 'square', color: '#000' }}>
-                                                {report.improvements.map((im: string, idx: number) => (
-                                                    <li key={idx} style={{ fontSize: '0.85rem' }}>{im}</li>
+                                                    <li key={idx} style={{ fontSize: '0.9rem', lineHeight: '1.6' }}>{s}</li>
                                                 ))}
                                             </ul>
                                         </div>
                                     </div>
 
-                                    <div style={{ marginTop: '40px' }}>
-                                        <h3 className="ag-report-subtitle" style={{ borderBottom: '2px solid #000', paddingBottom: '10px', color: '#000' }}>
+                                    {/* 7. Improvements */}
+                                    <div style={{ marginBottom: '40px' }}>
+                                        <h3 style={{ fontSize: '1.1rem', fontWeight: 900, marginBottom: '15px', borderRight: '5px solid #000', paddingRight: '15px' }}>
+                                            {reportLanguage === 'Arabic' ? 'المجالات المطلوبة لرفع كفاءة العمل' : 'Areas for Improvement'}
+                                        </h3>
+                                        <div style={{ border: '1px solid #000', padding: '20px' }}>
+                                            <ul style={{ margin: 0, paddingRight: '25px', display: 'flex', flexDirection: 'column', gap: '10px', listStyle: 'square' }}>
+                                                {report.improvements.map((im: string, idx: number) => (
+                                                    <li key={idx} style={{ fontSize: '0.9rem', lineHeight: '1.6' }}>{im}</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    {/* 8. Compliance */}
+                                    <div style={{ marginBottom: '40px' }}>
+                                        <h3 style={{ fontSize: '1.1rem', fontWeight: 900, marginBottom: '15px', borderRight: '5px solid #000', paddingRight: '15px' }}>
                                             {reportLanguage === 'Arabic' ? 'إشعار الامتثال النهائي' : 'Final Compliance Notice'}
                                         </h3>
-                                        <div style={{ padding: '24px', background: 'white', border: '1px solid #000' }}>
-                                            <p style={{ fontSize: '0.85rem', lineHeight: '1.8', color: '#000' }}>
+                                        <div style={{ border: '1px solid #000', padding: '25px' }}>
+                                            <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: '1.8' }}>
                                                 {reportLanguage === 'Arabic' 
                                                     ? 'تمت مراجعة هذا التقرير وتدقيقه وفقاً لمعايير الجودة الأكاديمية المعتمدة لضمان مطابقة مخرجات التعلم وتحقيق النزاهة العلمية.'
                                                     : 'This report has been reviewed and audited in accordance with approved academic quality standards to ensure mapping of learning outcomes and scientific integrity.'}
@@ -672,13 +695,19 @@ export default function AcademicAssessorAI() {
                                                 <br /><br />
                                                 <strong>{reportLanguage === 'Arabic' ? 'التقييم النقدي:' : 'Critical Assessment:'}</strong> {report.thinking}
                                             </p>
-                                            <div style={{ marginTop: '30px', borderTop: '1px solid #000', paddingTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <div style={{ borderBottom: '1px solid #000', width: '250px', paddingBottom: '10px', fontSize: '0.75rem', color: '#000' }}>
-                                                    {reportLanguage === 'Arabic' ? 'توقيع المقيم المعتمد (الاعتماد النهائي)' : 'Authorized Assessor Signature (Final Approval)'}
+                                        {/* 9. Signatures */}
+                                        <div style={{ marginTop: '50px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                                            <div style={{ textAlign: 'center' }}>
+                                                <div style={{ borderBottom: '2px solid #000', width: '280px', paddingBottom: '10px', marginBottom: '10px', fontWeight: 900, color: '#000' }}>
+                                                    {reportLanguage === 'Arabic' ? 'توقيع المقيم المعتمد (الاعتماد النهائي)' : 'Authorized Assessor Signature'}
                                                 </div>
-                                                <div style={{ borderBottom: '1px solid #000', width: '150px', paddingBottom: '10px', fontSize: '0.75rem', color: '#000' }}>
+                                                <div style={{ fontSize: '0.8rem', color: '#666' }}>Assessor Signature Area</div>
+                                            </div>
+                                            <div style={{ textAlign: 'center' }}>
+                                                <div style={{ borderBottom: '2px solid #000', width: '180px', paddingBottom: '10px', marginBottom: '10px', fontWeight: 900, color: '#000' }}>
                                                     {reportLanguage === 'Arabic' ? 'تاريخ الاعتماد' : 'Approval Date'}
                                                 </div>
+                                                <div style={{ fontSize: '0.9rem', color: '#000' }}>{new Date().toLocaleDateString('en-GB')}</div>
                                             </div>
                                         </div>
                                     </div>
