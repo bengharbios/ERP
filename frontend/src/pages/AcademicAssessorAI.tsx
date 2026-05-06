@@ -502,24 +502,22 @@ export default function AcademicAssessorAI() {
                                 >
                                     {/* Professional Header for Print Only */}
                                     <div className="ag-print-header">
-                                        <div style={{ textAlign: 'right' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #333', paddingBottom: '15px', marginBottom: '25px' }}>
+                                            <div style={{ textAlign: 'right' }}>
+                                                <div style={{ fontWeight: 900, fontSize: '1.6rem', color: '#111' }}>{globalSettings?.institutionNameAr}</div>
+                                                <div style={{ fontSize: '1rem', color: '#444', fontWeight: 600 }}>{globalSettings?.institutionNameEn}</div>
+                                            </div>
                                             {globalSettings?.reportLogo && (
                                                 <img 
                                                     src={globalSettings.reportLogo} 
                                                     alt="Logo" 
-                                                    style={{ height: '60px', marginBottom: '10px', display: 'block' }} 
+                                                    style={{ height: '90px', width: 'auto' }} 
                                                 />
                                             )}
-                                            <h2 style={{ margin: 0, color: '#0088cc' }}>
-                                                {globalSettings?.reportInstitutionNameAr || globalSettings?.instituteNameAr || 'مؤسسة الإبداع الأكاديمي'}
-                                            </h2>
-                                            <p style={{ margin: 0, fontSize: '0.8rem', color: '#666' }}>
-                                                {globalSettings?.reportInstitutionNameEn || globalSettings?.instituteNameEn || 'نظام إدارة الموارد (ERP) - وحدة التقييم الذكي'}
-                                            </p>
                                         </div>
-                                        <div style={{ textAlign: 'left' }}>
-                                            <p style={{ margin: 0, fontSize: '0.8rem', color: '#666' }}>تاريخ التقرير: {new Date().toLocaleDateString('ar-EG')}</p>
-                                            <p style={{ margin: 0, fontSize: '0.8rem', color: '#666' }}>رقم المرجع: AI-{Math.random().toString(36).substr(2, 9).toUpperCase()}</p>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#666', marginBottom: '10px' }}>
+                                            <div>{reportLanguage === 'Arabic' ? 'تاريخ التقرير:' : 'Report Date:'} {new Date().toLocaleDateString('en-GB')}</div>
+                                            <div>{reportLanguage === 'Arabic' ? 'رقم المرجع:' : 'Ref No:'} AI-{Math.random().toString(36).substring(2, 10).toUpperCase()}</div>
                                         </div>
                                     </div>
 
