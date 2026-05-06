@@ -169,7 +169,8 @@ export default function AcademicAssessorAI() {
                     const aiReport = res.data.report;
                     // Inject details into AI report
                     const sProg = programs.find(p => p.id === selectedProgram)?.nameAr || "البرنامج المحدد";
-                    const sUnit = units.find(u => u.id === selectedUnit)?.nameAr || selectedUnit;
+                    const unitObj = units.find(u => u.id === selectedUnit);
+                    const sUnit = unitObj ? `[${unitObj.code}] ${unitObj.nameAr || unitObj.nameEn}` : selectedUnit;
                     const sStud = students.find(s => s.id === selectedStudent);
                     const stName = sStud ? `${sStud.firstNameAr || ''} ${sStud.lastNameAr || ''}` : "اسم الطالب";
 
@@ -202,8 +203,8 @@ export default function AcademicAssessorAI() {
 
     const generateReport = () => {
         // Find names for mock report
-        const sProg = programs.find(p => p.id === selectedProgram)?.nameAr || "البرنامج المحدد";
-        const sUnit = units.find(u => u.id === selectedUnit)?.nameAr || selectedUnit;
+        const unitObj = units.find(u => u.id === selectedUnit);
+        const sUnit = unitObj ? `[${unitObj.code}] ${unitObj.nameAr || unitObj.nameEn}` : selectedUnit;
         const sStud = students.find(s => s.id === selectedStudent);
         const stName = sStud ? `${sStud.firstNameAr || ''} ${sStud.lastNameAr || ''}` : "اسم الطالب";
 
@@ -497,30 +498,31 @@ export default function AcademicAssessorAI() {
                                     style={{ 
                                         fontFamily: globalSettings?.reportFont || 'Tajawal',
                                         '--report-watermark-text': `"${globalSettings?.reportWatermarkText || 'CREATIVITY ERP - SMART ASSESSOR'}"`,
+                                        '--report-watermark-url': globalSettings?.reportWatermarkUrl ? `url(${globalSettings.reportWatermarkUrl})` : 'none',
                                         '--report-watermark-display': globalSettings?.reportWatermarkType === 'none' ? 'none' : 'block'
                                     }}
                                 >
-                                    {/* Professional Header for Print Only */}
-                                    <div className="ag-print-header hide-on-desktop hide-on-mobile" style={{ display: 'none' }}>
-                                        <div style={{ textAlign: 'right' }}>
-                                            {globalSettings?.reportLogo && (
-                                                <img 
-                                                    src={globalSettings.reportLogo} 
-                                                    alt="Logo" 
-                                                    style={{ height: '60px', marginBottom: '10px', display: 'block' }} 
-                                                />
-                                            )}
-                                            <h2 style={{ margin: 0, color: '#0088cc' }}>
-                                                {globalSettings?.reportInstitutionNameAr || globalSettings?.instituteNameAr || 'مؤسسة الإبداع الأكاديمي'}
-                                            </h2>
-                                            <p style={{ margin: 0, fontSize: '0.8rem', color: '#666' }}>
-                                                {globalSettings?.reportInstitutionNameEn || globalSettings?.instituteNameEn || 'نظام إدارة الموارد (ERP) - وحدة التقييم الذكي'}
-                                            </p>
+                                    {/* ——— PROFESSIONAL LETTERHEAD (PRINT ONLY) ——— */}
+                                    <div className="ag-print-header hide-on-desktop hide-on-mobile">
+                                        <div className="letterhead-top">
+                                            <div className="letterhead-brand">
+                                                {globalSettings?.reportLogo ? (
+                                                    <img src={globalSettings.reportLogo} alt="Institution Logo" className="letterhead-logo" />
+                                                ) : (
+                                                    <div className="letterhead-logo-placeholder">ERP</div>
+                                                )}
+                                                <div className="letterhead-titles">
+                                                    <h1 className="inst-name-ar">{globalSettings?.reportInstitutionNameAr || globalSettings?.instituteNameAr || 'معهد السلام الثقافي'}</h1>
+                                                    <h2 className="inst-name-en">{globalSettings?.reportInstitutionNameEn || globalSettings?.instituteNameEn || 'Al Salam Cultural Institute'}</h2>
+                                                </div>
+                                            </div>
+                                            <div className="letterhead-meta">
+                                                <div className="meta-row"><span>التاريخ:</span> <strong>{new Date().toLocaleDateString('ar-EG')}</strong></div>
+                                                <div className="meta-row"><span>الرقم:</span> <strong>AI-{Math.random().toString(36).substr(2, 6).toUpperCase()}</strong></div>
+                                                <div className="meta-row"><span>الصفحة:</span> <strong>1 من 1</strong></div>
+                                            </div>
                                         </div>
-                                        <div style={{ textAlign: 'left' }}>
-                                            <p style={{ margin: 0, fontSize: '0.8rem', color: '#666' }}>تاريخ التقرير: {new Date().toLocaleDateString('ar-EG')}</p>
-                                            <p style={{ margin: 0, fontSize: '0.8rem', color: '#666' }}>رقم المرجع: AI-{Math.random().toString(36).substr(2, 9).toUpperCase()}</p>
-                                        </div>
+                                        <div className="letterhead-divider"></div>
                                     </div>
 
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
