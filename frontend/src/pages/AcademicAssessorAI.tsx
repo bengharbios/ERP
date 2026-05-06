@@ -713,7 +713,6 @@ export default function AcademicAssessorAI() {
                                                 <div style={{ fontSize: '0.9rem', color: '#000' }}>{new Date().toLocaleDateString('en-GB')}</div>
                                             </div>
                                         </div>
-                                    </div>
                                 </div>
                             )}
                         </div>
