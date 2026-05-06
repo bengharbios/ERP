@@ -714,21 +714,6 @@
     }
 
     .ag-step-label {
-        display: block;
-        font-size: 0.6rem;
-        white-space: nowrap;
-    }
-
-    .ag-report-wrap {
-        padding: 20px;
-        border-radius: 20px;
-    }
-
-    .ag-report-wrap>div:first-child {
-        flex-direction: column;
-        gap: 20px;
-        align-items: center;
-        text-align: center;
     }
 
     .ag-marking-section {
