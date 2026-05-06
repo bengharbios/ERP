@@ -81,18 +81,13 @@ Analyze and output JSON:
         }
 
         try {
-            const genAI = new GoogleGenAI({ apiKey });
-            const model = genAI.getGenerativeModel({ 
+            const ai = new GoogleGenAI({ apiKey: apiKey });
+            const response = await ai.models.generateContent({
                 model: 'gemini-1.5-flash',
-                generationConfig: {
-                    responseMimeType: "application/json",
-                }
+                contents: prompt,
             });
 
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            const text = response.text();
-            
+            const text = response.text || '';
             return this.parseAIResponse(text);
         } catch (error: any) {
             console.error("Gemini AI Error:", error.message);
