@@ -490,25 +490,28 @@ export default function AcademicAssessorAI() {
                                     </div>
                                 </div>
                             )}
-
                             {report && (
                                 <div 
-                                    id="printable-academic-report"
-                                    className="ag-report-wrap" 
-                                    style={{ 
-                                        fontFamily: globalSettings?.reportFont || 'Tajawal',
-                                        '--report-watermark-text': `"${globalSettings?.reportWatermarkText || 'CREATIVITY ERP - SMART ASSESSOR'}"`,
-                                        '--report-watermark-display': globalSettings?.reportWatermarkType === 'none' ? 'none' : 'block'
-                                    }}
-                                >
-                                    {/* Professional Header for Print Only */}
-                                    <div className="ag-print-header">
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #333', paddingBottom: '15px', marginBottom: '25px' }}>
+                                        id="printable-academic-report"
+                                        className="ag-report-wrap" 
+                                        style={{ 
+                                            fontFamily: globalSettings?.reportFont || 'Tajawal',
+                                            '--report-watermark-text': `"${globalSettings?.reportWatermarkText || 'CREATIVITY ERP - SMART ASSESSOR'}"`,
+                                            '--report-watermark-display': globalSettings?.reportWatermarkType === 'none' ? 'none' : 'block',
+                                            background: 'white',
+                                            color: 'black',
+                                            padding: '40px',
+                                            borderRadius: '8px',
+                                            boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+                                        }}
+                                    >
+                                        {/* Professional Header for Print Only */}
+                                        <div className="ag-print-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '3px solid #111', paddingBottom: '20px', marginBottom: '30px' }}>
                                             <div style={{ textAlign: 'right' }}>
-                                                <div style={{ fontWeight: 900, fontSize: '1.6rem', color: '#111' }}>
+                                                <div style={{ fontWeight: 900, fontSize: '1.8rem', color: '#000' }}>
                                                     {globalSettings?.institutionNameAr || globalSettings?.reportInstitutionNameAr || globalSettings?.instituteNameAr || 'معهد السلام الثقافي'}
                                                 </div>
-                                                <div style={{ fontSize: '1rem', color: '#444', fontWeight: 600 }}>
+                                                <div style={{ fontSize: '1.1rem', color: '#333', fontWeight: 600 }}>
                                                     {globalSettings?.institutionNameEn || globalSettings?.reportInstitutionNameEn || globalSettings?.instituteNameEn || 'Al Salam Cultural Institute'}
                                                 </div>
                                             </div>
@@ -516,7 +519,7 @@ export default function AcademicAssessorAI() {
                                                 <img 
                                                     src={globalSettings.reportLogo} 
                                                     alt="Logo" 
-                                                    style={{ height: '90px', width: 'auto' }} 
+                                                    style={{ height: '100px', width: 'auto' }} 
                                                 />
                                             )}
                                         </div>
