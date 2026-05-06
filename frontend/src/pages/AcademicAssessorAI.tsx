@@ -166,21 +166,19 @@ export default function AcademicAssessorAI() {
                 clearInterval(interval);
                 setProcessingStep(5);
                 setTimeout(() => {
-                const aiReport = res.data.report || res.data;
-                
-                // Inject details into AI report
-                const sProg = programs.find(p => p.id === selectedProgram)?.nameAr || "البرنامج المحدد";
-                const unitObj = units.find(u => u.id === selectedUnit);
-                const sUnit = unitObj ? `[${unitObj.code}] ${unitObj.nameAr || unitObj.nameEn}` : selectedUnit;
-                const sStud = students.find(s => s.id === selectedStudent);
-                const stName = sStud ? `${sStud.firstNameAr || ''} ${sStud.lastNameAr || ''}` : "اسم الطالب";
+                    const aiReport = res.data.report;
+                    // Inject details into AI report
+                    const sProg = programs.find(p => p.id === selectedProgram)?.nameAr || "البرنامج المحدد";
+                    const sUnit = units.find(u => u.id === selectedUnit)?.nameAr || selectedUnit;
+                    const sStud = students.find(s => s.id === selectedStudent);
+                    const stName = sStud ? `${sStud.firstNameAr || ''} ${sStud.lastNameAr || ''}` : "اسم الطالب";
 
-                aiReport.student = stName;
-                aiReport.level = sProg;
-                aiReport.unit = sUnit;
+                    aiReport.student = stName;
+                    aiReport.level = sProg;
+                    aiReport.unit = sUnit;
 
-                setReport(aiReport);
-                setLoading(false);
+                    setReport(aiReport);
+                    setLoading(false);
                 }, 1000);
             }).catch(err => {
                 clearInterval(interval);
@@ -204,8 +202,8 @@ export default function AcademicAssessorAI() {
 
     const generateReport = () => {
         // Find names for mock report
-        const unitObj = units.find(u => u.id === selectedUnit);
-        const sUnit = unitObj ? `[${unitObj.code}] ${unitObj.nameAr || unitObj.nameEn}` : selectedUnit;
+        const sProg = programs.find(p => p.id === selectedProgram)?.nameAr || "البرنامج المحدد";
+        const sUnit = units.find(u => u.id === selectedUnit)?.nameAr || selectedUnit;
         const sStud = students.find(s => s.id === selectedStudent);
         const stName = sStud ? `${sStud.firstNameAr || ''} ${sStud.lastNameAr || ''}` : "اسم الطالب";
 
@@ -509,20 +507,19 @@ export default function AcademicAssessorAI() {
                                                 <img 
                                                     src={globalSettings.reportLogo} 
                                                     alt="Logo" 
-                                                    style={{ height: '70px', marginBottom: '10px', display: 'block', objectFit: 'contain' }} 
+                                                    style={{ height: '60px', marginBottom: '10px', display: 'block' }} 
                                                 />
                                             )}
-                                            <h2 style={{ margin: 0, color: '#0088cc', fontSize: '1.4rem' }}>
+                                            <h2 style={{ margin: 0, color: '#0088cc' }}>
                                                 {globalSettings?.reportInstitutionNameAr || globalSettings?.instituteNameAr || 'مؤسسة الإبداع الأكاديمي'}
                                             </h2>
-                                            <p style={{ margin: 0, fontSize: '0.9rem', color: '#666', fontWeight: 600 }}>
-                                                {globalSettings?.reportInstitutionNameEn || globalSettings?.instituteNameEn || 'Academic Assessor AI - Professional Report'}
+                                            <p style={{ margin: 0, fontSize: '0.8rem', color: '#666' }}>
+                                                {globalSettings?.reportInstitutionNameEn || globalSettings?.instituteNameEn || 'نظام إدارة الموارد (ERP) - وحدة التقييم الذكي'}
                                             </p>
                                         </div>
-                                        <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-                                            <p style={{ margin: '2px 0', fontSize: '0.85rem', color: '#444' }}><strong>تاريخ التقرير:</strong> {new Date().toLocaleDateString('ar-EG')}</p>
-                                            <p style={{ margin: '2px 0', fontSize: '0.85rem', color: '#444' }}><strong>رقم المرجع:</strong> AI-{Math.random().toString(36).substr(2, 7).toUpperCase()}</p>
-                                            <p style={{ margin: '2px 0', fontSize: '0.85rem', color: '#444' }}><strong>الصفحة:</strong> 1 من 1</p>
+                                        <div style={{ textAlign: 'left' }}>
+                                            <p style={{ margin: 0, fontSize: '0.8rem', color: '#666' }}>تاريخ التقرير: {new Date().toLocaleDateString('ar-EG')}</p>
+                                            <p style={{ margin: 0, fontSize: '0.8rem', color: '#666' }}>رقم المرجع: AI-{Math.random().toString(36).substr(2, 9).toUpperCase()}</p>
                                         </div>
                                     </div>
 
