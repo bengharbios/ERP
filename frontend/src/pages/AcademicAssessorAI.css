@@ -787,6 +787,7 @@
     }
     .hz-root, .hz-app, .hz-main, .ag-root, .ag-body, .ag-main, .ag-container {
         background: white !important;
+        background-color: white !important;
         padding: 0 !important;
         margin: 0 !important;
         border: none !important;
@@ -794,6 +795,12 @@
         display: block !important;
         overflow: visible !important;
         position: static !important;
+    }
+    /* Kill any potential dark bars at the top */
+    .hz-topbar, header, .ag-header {
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
     }
     .ag-report-wrap {
         position: absolute !important;
