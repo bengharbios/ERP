@@ -175,7 +175,9 @@ export default function AcademicAssessorAI() {
 
                     aiReport.student = stName;
                     aiReport.level = sProg;
-                    aiReport.unit = sUnit;
+                    const unitObj = units.find(u => u.id === selectedUnit);
+                    aiReport.unit = unitObj?.nameAr || selectedUnit;
+                    aiReport.unitCode = unitObj?.code || unitObj?.id || '';
 
                     setReport(aiReport);
                     setLoading(false);
@@ -213,6 +215,7 @@ export default function AcademicAssessorAI() {
                 student: stName,
                 level: sProg,
                 unit: sUnit,
+                unitCode: units.find(u => u.id === selectedUnit)?.code || units.find(u => u.id === selectedUnit)?.id || '',
                 outcome: "تم تقييم المهام بنجاح عبر النظام التجريبي",
                 score: 85,
                 grade: "امتياز",
@@ -598,7 +601,10 @@ export default function AcademicAssessorAI() {
                                             </div>
                                             <div style={{ fontSize: '1rem' }}>
                                                 <span style={{ fontWeight: 800 }}>{reportLanguage === 'Arabic' ? 'الوحدة التعليمية:' : 'Unit:'}</span>
-                                                <span style={{ marginRight: '10px' }}>{report.unit || 'بيئة الأعمال الدولية'}</span>
+                                                <span style={{ marginRight: '10px' }}>
+                                                    {report.unit || 'بيئة الأعمال الدولية'}
+                                                    {report.unitCode ? ` — ${report.unitCode}` : ''}
+                                                </span>
                                             </div>
                                         </div>
 
@@ -623,7 +629,7 @@ export default function AcademicAssessorAI() {
                                         </h3>
                                         <table className="ag-marking-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                                             <thead>
-                                                <tr style={{ background: '#f2f2f2' }}>
+                                                <tr style={{ background: 'white', backgroundColor: 'white', color: '#000' }}>
                                                     <th style={{ border: '1px solid #000', padding: '12px' }}>{reportLanguage === 'Arabic' ? 'المعيار' : 'Criteria'}</th>
                                                     <th style={{ border: '1px solid #000', padding: '12px' }}>{reportLanguage === 'Arabic' ? 'مستوى العمق' : 'Depth'}</th>
                                                     <th style={{ border: '1px solid #000', padding: '12px' }}>{reportLanguage === 'Arabic' ? 'الحد الأقصى' : 'Max'}</th>
@@ -633,12 +639,12 @@ export default function AcademicAssessorAI() {
                                             </thead>
                                             <tbody>
                                                 {report.criteria.map((c: any) => (
-                                                    <tr key={c.id}>
-                                                        <td style={{ border: '1px solid #000', padding: '10px', fontWeight: 800 }}>{c.id}</td>
-                                                        <td style={{ border: '1px solid #000', padding: '10px', textAlign: 'center' }}>{c.depth}</td>
-                                                        <td style={{ border: '1px solid #000', padding: '10px', textAlign: 'center' }}>{c.max}</td>
-                                                        <td style={{ border: '1px solid #000', padding: '10px', textAlign: 'center', fontWeight: 800 }}>{c.awarded}</td>
-                                                        <td style={{ border: '1px solid #000', padding: '10px', textAlign: 'center' }}>
+                                                    <tr key={c.id} style={{ background: 'white', backgroundColor: 'white', color: '#000' }}>
+                                                        <td style={{ border: '1px solid #000', padding: '10px', fontWeight: 800, background: 'white', color: '#000' }}>{c.id}</td>
+                                                        <td style={{ border: '1px solid #000', padding: '10px', textAlign: 'center', background: 'white', color: '#000' }}>{c.depth}</td>
+                                                        <td style={{ border: '1px solid #000', padding: '10px', textAlign: 'center', background: 'white', color: '#000' }}>{c.max}</td>
+                                                        <td style={{ border: '1px solid #000', padding: '10px', textAlign: 'center', fontWeight: 800, background: 'white', color: '#000' }}>{c.awarded}</td>
+                                                        <td style={{ border: '1px solid #000', padding: '10px', textAlign: 'center', background: 'white', color: '#000' }}>
                                                             <span style={{ fontWeight: 800 }}>
                                                                 {reportLanguage === 'Arabic' 
                                                                     ? (c.status === 'Achieved' ? 'محقق' : 'غير محقق')
