@@ -6,7 +6,8 @@ import {
     Zap, Sparkles, AlertCircle, CheckCircle2,
     Settings2, Cpu, FileCheck, Layers,
     Search, Download, RefreshCw, Send,
-    Info, User, BookOpen, GraduationCap, X
+    Info, User, BookOpen, GraduationCap, X,
+    Trash2, Eye, PlusCircle, History
 } from 'lucide-react';
 import { Toast, ToastType } from '../components/Toast';
 import {
@@ -34,6 +35,77 @@ export default function AcademicAssessorAI() {
     const [units, setUnits] = useState<any[]>([]);
     const [students, setStudents] = useState<any[]>([]);
     const [loadingData, setLoadingData] = useState(true);
+
+    // Records History & Prefix Settings
+    const [savedRecords, setSavedRecords] = useState<any[]>([]);
+    const [activeTab, setActiveTab] = useState<'evaluate' | 'history'>('evaluate');
+    const [showSaveModal, setShowSaveModal] = useState(false);
+    const [saveNotes, setSaveNotes] = useState('');
+    const [reportRefPrefix, setReportRefPrefix] = useState('REP');
+    const [historySearch, setHistorySearch] = useState('');
+
+    // Load saved records and report reference prefix from localstorage
+    useEffect(() => {
+        const saved = localStorage.getItem('osarab_academic_assessor_records');
+        if (saved) {
+            try {
+                setSavedRecords(JSON.parse(saved));
+            } catch (e) {
+                console.error('Failed to parse saved academic records:', e);
+            }
+        }
+        const prefix = localStorage.getItem('osarab_report_ref_prefix');
+        if (prefix) {
+            setReportRefPrefix(prefix);
+        }
+    }, []);
+
+    // Helper to persist records
+    const saveRecordsToStorage = (records: any[]) => {
+        setSavedRecords(records);
+        localStorage.setItem('osarab_academic_assessor_records', JSON.stringify(records));
+    };
+
+    // Helper to persist prefix
+    const saveRefPrefix = (newPrefix: string) => {
+        const clean = newPrefix.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        setReportRefPrefix(clean || 'REP');
+        localStorage.setItem('osarab_report_ref_prefix', clean || 'REP');
+    };
+
+    // Calculate sequential report ref number
+    const generateSeqRefNo = () => {
+        const nextSeq = String(savedRecords.length + 1).padStart(4, '0');
+        const year = new Date().getFullYear();
+        return `${reportRefPrefix}-${year}-${nextSeq}`;
+    };
+
+    // Helper functions to fetch current details in real-time
+    const currentStudentName = () => {
+        const sStud = students.find(s => s.id === selectedStudent);
+        if (!sStud) return reportLanguage === 'Arabic' ? (report?.student || 'اسم الطالب') : (report?.studentEn || 'Student Name');
+        return reportLanguage === 'Arabic'
+            ? `${sStud.firstNameAr || ''} ${sStud.lastNameAr || ''}`.trim()
+            : `${sStud.firstNameEn || sStud.firstNameAr || ''} ${sStud.lastNameEn || sStud.lastNameAr || ''}`.trim();
+    };
+
+    const currentProgramName = () => {
+        const sProg = programs.find(p => p.id === selectedProgram);
+        if (!sProg) return reportLanguage === 'Arabic' ? (report?.level || 'البرنامج الدراسي') : (report?.levelEn || 'Program');
+        return reportLanguage === 'Arabic' ? sProg.nameAr : (sProg.nameEn || sProg.nameAr);
+    };
+
+    const currentUnitName = () => {
+        const sUnit = units.find(u => u.id === selectedUnit);
+        if (!sUnit) return reportLanguage === 'Arabic' ? (report?.unit || 'الوحدة التعليمية') : (report?.unitEn || 'Unit');
+        return reportLanguage === 'Arabic' ? sUnit.nameAr : (sUnit.nameEn || sUnit.nameAr);
+    };
+
+    const currentUnitCode = () => {
+        const sUnit = units.find(u => u.id === selectedUnit);
+        if (!sUnit) return report?.unitCode || '';
+        return sUnit.code || sUnit.id || '';
+    };
 
     const [selectedProgram, setSelectedProgram] = useState('');
     const [selectedUnit, setSelectedUnit] = useState('');
@@ -106,6 +178,85 @@ export default function AcademicAssessorAI() {
         if (engineMode) localStorage.setItem('osarab_ai_engine_mode', engineMode);
     }, [apiKeyStore, engineMode]);
 
+    const handleSaveToHistory = () => {
+        if (!report) return;
+        
+        // Check if already saved
+        const exists = savedRecords.some(r => r.id === report.refNo);
+        if (exists) {
+            setToast({ type: 'warning', message: '⚠️ هذا التقرير محفوظ بالفعل في السجل' });
+            return;
+        }
+
+        setShowSaveModal(true);
+    };
+
+    const confirmSaveToHistory = () => {
+        const sStud = students.find(s => s.id === selectedStudent);
+        const sProg = programs.find(p => p.id === selectedProgram);
+        const sUnit = units.find(u => u.id === selectedUnit);
+
+        const newRecord = {
+            id: report.refNo || generateSeqRefNo(),
+            studentId: selectedStudent || 'N/A',
+            studentNameAr: sStud ? `${sStud.firstNameAr || ''} ${sStud.lastNameAr || ''}`.trim() : 'اسم الطالب',
+            studentNameEn: sStud ? `${sStud.firstNameEn || sStud.firstNameAr || ''} ${sStud.lastNameEn || sStud.lastNameAr || ''}`.trim() : 'Student Name',
+            programId: selectedProgram || 'N/A',
+            programNameAr: sProg?.nameAr || 'البرنامج الأكاديمي',
+            programNameEn: sProg?.nameEn || 'Academic Program',
+            unitId: selectedUnit || 'N/A',
+            unitNameAr: sUnit?.nameAr || 'الوحدة التعليمية',
+            unitNameEn: sUnit?.nameEn || 'Unit',
+            unitCode: sUnit?.code || sUnit?.id || '',
+            score: report.score || 0,
+            grade: report.grade || 'N/A',
+            date: new Date().toLocaleDateString('en-GB'),
+            notes: saveNotes,
+            fullReport: report // Store full report JSON to reload/preview
+        };
+
+        const updated = [newRecord, ...savedRecords];
+        saveRecordsToStorage(updated);
+        setShowSaveModal(false);
+        setSaveNotes('');
+        setToast({ type: 'success', message: '✅ تم حفظ التقرير بنجاح في السجل الأكاديمي' });
+    };
+
+    const handleDeleteRecord = (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (window.confirm('هل أنت متأكد من حذف هذا السجل؟')) {
+            const filtered = savedRecords.filter(r => r.id !== id);
+            saveRecordsToStorage(filtered);
+            setToast({ type: 'success', message: 'تم حذف السجل بنجاح' });
+        }
+    };
+
+    const handleLoadRecord = (record: any) => {
+        setReport(record.fullReport);
+        setSelectedStudent(record.studentId);
+        setSelectedProgram(record.programId);
+        setSelectedUnit(record.unitId);
+        setActiveTab('evaluate');
+        setToast({ type: 'success', message: `تم تحميل تقرير المرجع: ${record.id}` });
+    };
+
+    const filteredRecords = savedRecords.filter(r => {
+        const term = historySearch.toLowerCase();
+        if (!term) return true;
+        return (
+            r.id.toLowerCase().includes(term) ||
+            r.studentId.toLowerCase().includes(term) ||
+            r.studentNameAr.toLowerCase().includes(term) ||
+            r.studentNameEn.toLowerCase().includes(term) ||
+            r.programNameAr.toLowerCase().includes(term) ||
+            r.programNameEn.toLowerCase().includes(term) ||
+            r.unitNameAr.toLowerCase().includes(term) ||
+            r.unitNameEn.toLowerCase().includes(term) ||
+            (r.unitCode || '').toLowerCase().includes(term)
+        );
+    });
+
+
     const steps = [
         { id: 1, label: 'استخراج الأدلة', icon: <FileText size={18} /> },
         { id: 2, label: 'مطابقة المعايير', icon: <Layers size={18} /> },
@@ -173,6 +324,7 @@ export default function AcademicAssessorAI() {
                     const sStud = students.find(s => s.id === selectedStudent);
                     const stName = sStud ? `${sStud.firstNameAr || ''} ${sStud.lastNameAr || ''}` : "اسم الطالب";
 
+                    aiReport.refNo = generateSeqRefNo();
                     aiReport.student = stName;
                     aiReport.studentEn = sStud ? `${sStud.firstNameEn || sStud.firstNameAr || ''} ${sStud.lastNameEn || sStud.lastNameAr || ''}`.trim() : 'Student Name';
                     aiReport.level = sProg;
@@ -215,6 +367,7 @@ export default function AcademicAssessorAI() {
         // Mock data based on the requested prompt structure
         if (reportLanguage === 'Arabic') {
             setReport({
+                refNo: generateSeqRefNo(),
                 student: stName,
                 studentEn: sStud ? `${sStud.firstNameEn || sStud.firstNameAr || ''} ${sStud.lastNameEn || sStud.lastNameAr || ''}`.trim() : 'Student Name',
                 level: sProg,
@@ -244,10 +397,17 @@ export default function AcademicAssessorAI() {
                 thinking: "أظهر الطالب مهارات تحليلية جيدة في مناقشة النتائج."
             });
         } else {
+            const unitObjEn = units.find(u => u.id === selectedUnit);
+            const stStudEn = students.find(s => s.id === selectedStudent);
             setReport({
-                student: stName,
-                level: sProg,
-                unit: sUnit,
+                refNo: generateSeqRefNo(),
+                student: stStudEn ? `${stStudEn.firstNameAr || ''} ${stStudEn.lastNameAr || ''}`.trim() : 'اسم الطالب',
+                studentEn: stStudEn ? `${stStudEn.firstNameEn || stStudEn.firstNameAr || ''} ${stStudEn.lastNameEn || stStudEn.lastNameAr || ''}`.trim() : 'Student Name',
+                level: programs.find(p => p.id === selectedProgram)?.nameAr || 'البرنامج',
+                levelEn: programs.find(p => p.id === selectedProgram)?.nameEn || 'Program',
+                unit: unitObjEn?.nameAr || selectedUnit,
+                unitEn: unitObjEn?.nameEn || unitObjEn?.nameAr || selectedUnit,
+                unitCode: unitObjEn?.code || unitObjEn?.id || '',
                 outcome: "Tasks assessed successfully via Mock System",
                 score: 85,
                 grade: "Distinction",
@@ -353,9 +513,13 @@ export default function AcademicAssessorAI() {
                     </div>
 
                     <div className="ag-header-right">
-                        <div className="ag-tabs hide-on-mobile" style={{ marginLeft: '12px', marginRight: '0' }}>
-                            <button className="ag-tab-btn active">التحليل</button>
-                            <button className="ag-tab-btn">السجل</button>
+                        <div className="ag-tabs" style={{ marginLeft: '12px', marginRight: '0' }}>
+                            <button className={`ag-tab-btn ${activeTab === 'evaluate' ? 'active' : ''}`} onClick={() => setActiveTab('evaluate')}>
+                                <Zap size={14} /> التحليل
+                            </button>
+                            <button className={`ag-tab-btn ${activeTab === 'history' ? 'active' : ''}`} onClick={() => setActiveTab('history')}>
+                                <History size={14} /> السجل ({savedRecords.length})
+                            </button>
                         </div>
                         <div className="ag-header-actions">
                             <button
@@ -426,6 +590,21 @@ export default function AcademicAssessorAI() {
                             </div>
 
                             <div className="ag-setting-group">
+                                <span className="ag-setting-label"><FileText size={14} /> بادئة الرقم المرجعي</span>
+                                <input
+                                    type="text"
+                                    className="ag-input"
+                                    style={{ fontSize: '12px', padding: '8px', textTransform: 'uppercase' }}
+                                    placeholder="مثل: REP, AI, BGB"
+                                    value={reportRefPrefix}
+                                    onChange={e => saveRefPrefix(e.target.value)}
+                                />
+                                <span style={{ fontSize: '10px', color: 'var(--hz-text-muted)', marginTop: '4px', display: 'block' }}>
+                                    الرقم القادم: {generateSeqRefNo()}
+                                </span>
+                            </div>
+
+                            <div className="ag-setting-group">
                                 <span className="ag-setting-label"><ShieldAlert size={14} /> حساسية التقييم</span>
                                 <div className="ag-toggle-group">
                                     <button className={`ag-toggle-btn ${evalMode === 'Moderate' ? 'active' : ''}`} onClick={() => setEvalMode('Moderate')}>متوسطة</button>
@@ -462,11 +641,105 @@ export default function AcademicAssessorAI() {
                         </div>
                     </aside>
 
-                    {/* ── MAIN CONTENT ── */}
                     <main className="ag-main">
                         <div className="ag-container">
-                            {!report && !loading && (
+                            {activeTab === 'history' ? (
+                                <div className="ag-history-pane" style={{ animation: 'fadeIn 0.3s ease' }}>
+                                    <div className="ag-history-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', gap: '20px', flexWrap: 'wrap' }}>
+                                        <div>
+                                            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--hz-text-bright)' }}>سجل تقارير التقييم المؤرشفة</h2>
+                                            <p style={{ fontSize: '0.8rem', color: 'var(--hz-text-muted)', margin: 0 }}>مجلد شامل بكافة المخرجات والتدقيقات السابقة لجميع الطلاب والوحدات.</p>
+                                        </div>
+                                        <div style={{ position: 'relative', width: '300px', minWidth: '200px' }}>
+                                            <Search size={16} style={{ position: 'absolute', right: '12px', top: '12px', color: 'var(--hz-text-muted)' }} />
+                                            <input 
+                                                type="text" 
+                                                className="ag-input" 
+                                                style={{ paddingRight: '35px', fontSize: '0.85rem' }} 
+                                                placeholder="البحث بالاسم، المرجع، أو الكود..."
+                                                value={historySearch}
+                                                onChange={e => setHistorySearch(e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {filteredRecords.length === 0 ? (
+                                        <div style={{ background: 'var(--hz-surface)', border: '1px solid var(--hz-border-soft)', padding: '40px', borderRadius: '12px', textAlign: 'center' }}>
+                                            <History size={48} style={{ color: 'var(--hz-text-muted)', marginBottom: '15px', opacity: 0.5 }} />
+                                            <h3 style={{ fontSize: '1.1rem', color: 'var(--hz-text-bright)', marginBottom: '5px' }}>لا توجد سجلات مطابقة</h3>
+                                            <p style={{ fontSize: '0.85rem', color: 'var(--hz-text-muted)' }}>لم يتم العثور على أي تقييمات محفوظة تطابق استعلام البحث الخاص بك.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="ag-history-table-wrapper" style={{ background: 'var(--hz-surface)', border: '1px solid var(--hz-border-soft)', borderRadius: '12px', overflowX: 'auto' }}>
+                                            <table className="ag-history-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right' }}>
+                                                <thead>
+                                                    <tr style={{ background: 'var(--hz-surface-2)', borderBottom: '1px solid var(--hz-border-soft)' }}>
+                                                        <th style={{ padding: '12px 16px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--hz-text-muted)' }}>رقم المرجع</th>
+                                                        <th style={{ padding: '12px 16px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--hz-text-muted)' }}>الطالب</th>
+                                                        <th style={{ padding: '12px 16px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--hz-text-muted)' }}>البرنامج والوحدة</th>
+                                                        <th style={{ padding: '12px 16px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--hz-text-muted)' }}>النتيجة والدرجة</th>
+                                                        <th style={{ padding: '12px 16px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--hz-text-muted)' }}>التاريخ</th>
+                                                        <th style={{ padding: '12px 16px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--hz-text-muted)' }}>ملاحظات</th>
+                                                        <th style={{ padding: '12px 16px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--hz-text-muted)', textAlign: 'center' }}>الإجراءات</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {filteredRecords.map(record => (
+                                                        <tr key={record.id} style={{ borderBottom: '1px solid var(--hz-border-subtle)', transition: 'background 0.2s' }} className="ag-history-tr">
+                                                            <td style={{ padding: '16px', fontWeight: 800, color: 'var(--hz-neon)' }}>{record.id}</td>
+                                                            <td style={{ padding: '16px' }}>
+                                                                <div style={{ fontWeight: 700, color: 'var(--hz-text-bright)' }}>{reportLanguage === 'Arabic' ? record.studentNameAr : record.studentNameEn}</div>
+                                                                <div style={{ fontSize: '0.75rem', color: 'var(--hz-text-muted)' }}>ID: {record.studentId}</div>
+                                                            </td>
+                                                            <td style={{ padding: '16px' }}>
+                                                                <div style={{ fontWeight: 600, color: 'var(--hz-text-bright)' }}>{reportLanguage === 'Arabic' ? record.programNameAr : record.programNameEn}</div>
+                                                                <div style={{ fontSize: '0.75rem', color: 'var(--hz-text-muted)' }}>
+                                                                    {reportLanguage === 'Arabic' ? record.unitNameAr : record.unitNameEn} {record.unitCode ? `[${record.unitCode}]` : ''}
+                                                                </div>
+                                                            </td>
+                                                            <td style={{ padding: '16px' }}>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                    <span style={{ fontWeight: 800, color: 'var(--hz-text-bright)' }}>{record.score}%</span>
+                                                                    <span style={{ fontSize: '0.75rem', background: 'rgba(0, 245, 160, 0.1)', color: 'var(--hz-neon)', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                                                                        {record.grade}
+                                                                    </span>
+                                                                </div>
+                                                            </td>
+                                                            <td style={{ padding: '16px', fontSize: '0.8rem', color: 'var(--hz-text-muted)' }}>{record.date}</td>
+                                                            <td style={{ padding: '16px', fontSize: '0.8rem', color: 'var(--hz-text-muted)', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                                {record.notes || '—'}
+                                                            </td>
+                                                            <td style={{ padding: '16px', textAlign: 'center' }}>
+                                                                <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                                                                    <button 
+                                                                        className="ag-toggle-btn" 
+                                                                        style={{ padding: '4px 10px', height: '30px' }}
+                                                                        onClick={() => handleLoadRecord(record)}
+                                                                        title="تحميل وعرض التقرير الكامل"
+                                                                    >
+                                                                        <Eye size={14} style={{ marginLeft: '4px' }} /> عرض
+                                                                    </button>
+                                                                    <button 
+                                                                        className="ag-toggle-btn" 
+                                                                        style={{ padding: '4px 10px', height: '30px', color: '#ff4d4d', border: '1px solid rgba(255, 77, 77, 0.2)' }}
+                                                                        onClick={(e) => handleDeleteRecord(record.id, e)}
+                                                                        title="حذف من السجل"
+                                                                    >
+                                                                        <Trash2 size={14} />
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
                                 <>
+                                    {!report && !loading && (
+                                        <>
                                     <div className="ag-glass-card" style={{ padding: '20px' }}>
                                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
                                             <HzSelect
@@ -562,8 +835,18 @@ export default function AcademicAssessorAI() {
                                         textAlign: reportLanguage === 'Arabic' ? 'right' : 'left',
                                     }}
                                 >
-                                    <div className="hide-on-print" style={{ textAlign: 'center', marginBottom: '20px' }}>
-                                        <HzBtn variant="primary" icon={<Download size={16} />} onClick={handleDownload}>تحميل التقرير</HzBtn>
+                                    <div className="hide-on-print" style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginBottom: '30px' }}>
+                                        <HzBtn variant="primary" icon={<Download size={16} />} onClick={handleDownload}>
+                                            {reportLanguage === 'Arabic' ? 'تحميل / طباعة التقرير' : 'Download / Print Report'}
+                                        </HzBtn>
+                                        <HzBtn variant="secondary" icon={<FileCheck size={16} />} onClick={handleSaveToHistory} disabled={savedRecords.some(r => r.id === report.refNo)}>
+                                            {savedRecords.some(r => r.id === report.refNo)
+                                                ? (reportLanguage === 'Arabic' ? 'تم الحفظ في السجل' : 'Saved to Records')
+                                                : (reportLanguage === 'Arabic' ? 'حفظ في السجل الأكاديمي' : 'Save to Academic Records')}
+                                        </HzBtn>
+                                        <HzBtn variant="danger" icon={<X size={16} />} onClick={() => setReport(null)}>
+                                            {reportLanguage === 'Arabic' ? 'إغلاق المعاينة' : 'Close Preview'}
+                                        </HzBtn>
                                     </div>
 
                                     {/* 1. Header - logo position swaps per language */}
@@ -601,7 +884,7 @@ export default function AcademicAssessorAI() {
                                     {/* 2. Meta Row (Date + Ref) */}
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#000', marginBottom: '30px', fontWeight: 600 }}>
                                         <div>{reportLanguage === 'Arabic' ? 'تاريخ التقرير:' : 'Report Date:'} {new Date().toLocaleDateString('en-GB')}</div>
-                                        <div>{reportLanguage === 'Arabic' ? 'رقم المرجع:' : 'Ref No:'} AI-{Math.random().toString(36).substring(2, 10).toUpperCase()}</div>
+                                        <div>{reportLanguage === 'Arabic' ? 'رقم المرجع:' : 'Ref No:'} {report.refNo || generateSeqRefNo()}</div>
                                     </div>
 
                                     {/* 3. Main Title (Center) */}
@@ -618,26 +901,20 @@ export default function AcademicAssessorAI() {
                                             <div style={{ fontSize: '1rem' }}>
                                                 <span style={{ fontWeight: 800 }}>{reportLanguage === 'Arabic' ? 'اسم الطالب:' : 'Student Name:'}</span>
                                                 <span style={{ marginInlineStart: '10px', fontSize: '1.1rem' }}>
-                                                    {reportLanguage === 'Arabic'
-                                                        ? report.student
-                                                        : (report.studentEn || report.student)}
+                                                    {currentStudentName()}
                                                 </span>
                                             </div>
                                             <div style={{ fontSize: '1rem' }}>
                                                 <span style={{ fontWeight: 800 }}>{reportLanguage === 'Arabic' ? 'البرنامج الدراسي:' : 'Program:'}</span>
                                                 <span style={{ marginInlineStart: '10px' }}>
-                                                    {reportLanguage === 'Arabic'
-                                                        ? report.level
-                                                        : (report.levelEn || report.level)}
+                                                    {currentProgramName()}
                                                 </span>
                                             </div>
                                             <div style={{ fontSize: '1rem' }}>
                                                 <span style={{ fontWeight: 800 }}>{reportLanguage === 'Arabic' ? 'الوحدة التعليمية:' : 'Unit:'}</span>
                                                 <span style={{ marginInlineStart: '10px' }}>
-                                                    {reportLanguage === 'Arabic'
-                                                        ? (report.unit || 'بيئة الأعمال الدولية')
-                                                        : (report.unitEn || report.unit || 'International Business Environment')}
-                                                    {report.unitCode ? ` — ${report.unitCode}` : ''}
+                                                    {currentUnitName()}
+                                                    {currentUnitCode() ? ` — ${currentUnitCode()}` : ''}
                                                 </span>
                                             </div>
                                         </div>
@@ -755,10 +1032,50 @@ export default function AcademicAssessorAI() {
                                         </div>
                                 </div>
                             )}
-                        </div>
+                        </>
+                    )}
+                </div>
                     </main>
                 </div>
             </div>
+
+            {showSaveModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(5, 8, 22, 0.85)',
+                    backdropFilter: 'blur(10px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000,
+                    animation: 'fadeIn 0.2s ease'
+                }}>
+                    <div className="ag-glass-card" style={{ width: '450px', padding: '25px', border: '1px solid var(--hz-border-soft)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
+                            <FileCheck size={20} color="var(--hz-neon)" />
+                            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--hz-text-bright)', margin: 0 }}>حفظ التقرير في السجل الأكاديمي</h3>
+                        </div>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--hz-text-muted)', marginBottom: '15px' }}>
+                            أدخل أي ملاحظات مختصرة ترغب في أرشفتها مع هذا السجل (مثل: حالة التسليم، الدفعة، أو توصية سريعة).
+                        </p>
+                        <div style={{ marginBottom: '20px' }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--hz-text-muted)', display: 'block', marginBottom: '6px' }}>ملاحظات الأرشفة (اختياري)</label>
+                            <textarea
+                                className="ag-textarea"
+                                style={{ height: '80px', fontSize: '0.85rem' }}
+                                placeholder="مثال: واجب الدفعة الأولى - متميز جداً..."
+                                value={saveNotes}
+                                onChange={e => setSaveNotes(e.target.value)}
+                            />
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                            <button className="ag-toggle-btn" style={{ padding: '6px 15px' }} onClick={() => setShowSaveModal(false)}>إلغاء</button>
+                            <HzBtn variant="primary" size="sm" onClick={confirmSaveToHistory}>تأكيد الحفظ</HzBtn>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
         </div>
