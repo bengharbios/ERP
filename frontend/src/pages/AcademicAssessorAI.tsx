@@ -536,6 +536,7 @@ export default function AcademicAssessorAI() {
                                 <div 
                                     id="printable-academic-report"
                                     className="ag-report-wrap" 
+                                    dir={reportLanguage === 'Arabic' ? 'rtl' : 'ltr'}
                                     style={{ 
                                         fontFamily: globalSettings?.reportFont || 'Tajawal',
                                         '--report-watermark-text': `"${globalSettings?.reportWatermarkText || 'CREATIVITY ERP - SMART ASSESSOR'}"`,
@@ -548,7 +549,9 @@ export default function AcademicAssessorAI() {
                                         boxShadow: '0 0 50px rgba(0,0,0,0.5)',
                                         margin: '0 auto',
                                         maxWidth: '1000px',
-                                        minHeight: '297mm'
+                                        minHeight: '297mm',
+                                        direction: reportLanguage === 'Arabic' ? 'rtl' : 'ltr',
+                                        textAlign: reportLanguage === 'Arabic' ? 'right' : 'left',
                                     }}
                                 >
                                     <div className="hide-on-print" style={{ textAlign: 'center', marginBottom: '20px' }}>
