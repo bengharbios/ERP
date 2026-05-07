@@ -174,9 +174,12 @@ export default function AcademicAssessorAI() {
                     const stName = sStud ? `${sStud.firstNameAr || ''} ${sStud.lastNameAr || ''}` : "اسم الطالب";
 
                     aiReport.student = stName;
+                    aiReport.studentEn = sStud ? `${sStud.firstNameEn || sStud.firstNameAr || ''} ${sStud.lastNameEn || sStud.lastNameAr || ''}`.trim() : 'Student Name';
                     aiReport.level = sProg;
+                    aiReport.levelEn = programs.find(p => p.id === selectedProgram)?.nameEn || sProg;
                     const unitObj = units.find(u => u.id === selectedUnit);
                     aiReport.unit = unitObj?.nameAr || selectedUnit;
+                    aiReport.unitEn = unitObj?.nameEn || unitObj?.nameAr || selectedUnit;
                     aiReport.unitCode = unitObj?.code || unitObj?.id || '';
 
                     setReport(aiReport);
@@ -213,8 +216,11 @@ export default function AcademicAssessorAI() {
         if (reportLanguage === 'Arabic') {
             setReport({
                 student: stName,
+                studentEn: sStud ? `${sStud.firstNameEn || sStud.firstNameAr || ''} ${sStud.lastNameEn || sStud.lastNameAr || ''}`.trim() : 'Student Name',
                 level: sProg,
-                unit: sUnit,
+                levelEn: programs.find(p => p.id === selectedProgram)?.nameEn || sProg,
+                unit: units.find(u => u.id === selectedUnit)?.nameAr || selectedUnit,
+                unitEn: units.find(u => u.id === selectedUnit)?.nameEn || units.find(u => u.id === selectedUnit)?.nameAr || selectedUnit,
                 unitCode: units.find(u => u.id === selectedUnit)?.code || units.find(u => u.id === selectedUnit)?.id || '',
                 outcome: "تم تقييم المهام بنجاح عبر النظام التجريبي",
                 score: 85,
@@ -558,15 +564,28 @@ export default function AcademicAssessorAI() {
                                         <HzBtn variant="primary" icon={<Download size={16} />} onClick={handleDownload}>تحميل التقرير</HzBtn>
                                     </div>
 
-                                    {/* 1. Header (Logo + Name) */}
-                                    <div className="ag-print-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '3px solid #111', paddingBottom: '20px', marginBottom: '15px' }}>
-                                        <div style={{ textAlign: 'right' }}>
-                                            <div style={{ fontWeight: 900, fontSize: '1.8rem', color: '#000' }}>
-                                                {globalSettings?.institutionNameAr || globalSettings?.reportInstitutionNameAr || globalSettings?.instituteNameAr || 'معهد السلام الثقافي'}
-                                            </div>
-                                            <div style={{ fontSize: '1.1rem', color: '#333', fontWeight: 600 }}>
-                                                {globalSettings?.institutionNameEn || globalSettings?.reportInstitutionNameEn || globalSettings?.instituteNameEn || 'Al Salam Cultural Institute'}
-                                            </div>
+                                    {/* 1. Header (Logo + Name) - always LTR */}
+                                    <div className="ag-print-header" dir="ltr" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '3px solid #111', paddingBottom: '20px', marginBottom: '15px' }}>
+                                        <div style={{ textAlign: 'left' }}>
+                                            {reportLanguage === 'Arabic' ? (
+                                                <>
+                                                    <div style={{ fontWeight: 900, fontSize: '1.8rem', color: '#000' }}>
+                                                        {globalSettings?.institutionNameAr || globalSettings?.reportInstitutionNameAr || globalSettings?.instituteNameAr || 'معهد السلام الثقافي'}
+                                                    </div>
+                                                    <div style={{ fontSize: '1.1rem', color: '#333', fontWeight: 600 }}>
+                                                        {globalSettings?.institutionNameEn || globalSettings?.reportInstitutionNameEn || globalSettings?.instituteNameEn || 'Al Salam Cultural Institute'}
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div style={{ fontWeight: 900, fontSize: '1.8rem', color: '#000' }}>
+                                                        {globalSettings?.institutionNameEn || globalSettings?.reportInstitutionNameEn || globalSettings?.instituteNameEn || 'Al Salam Cultural Institute'}
+                                                    </div>
+                                                    <div style={{ fontSize: '1.1rem', color: '#333', fontWeight: 600 }}>
+                                                        {globalSettings?.institutionNameAr || globalSettings?.reportInstitutionNameAr || globalSettings?.instituteNameAr || 'معهد السلام الثقافي'}
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
                                         {globalSettings?.reportLogo && (
                                             <img 
@@ -592,20 +611,30 @@ export default function AcademicAssessorAI() {
 
                                     {/* 4. Split Info (2/3 Info, 1/3 Grade) */}
                                     <div style={{ display: 'flex', gap: '30px', marginBottom: '40px', alignItems: 'stretch' }}>
-                                        {/* Right (2/3): Student, Program, Unit */}
+                                        {/* Info (2/3): Student, Program, Unit */}
                                         <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: '15px', border: '1px solid #000', padding: '20px' }}>
                                             <div style={{ fontSize: '1rem' }}>
                                                 <span style={{ fontWeight: 800 }}>{reportLanguage === 'Arabic' ? 'اسم الطالب:' : 'Student Name:'}</span>
-                                                <span style={{ marginRight: '10px', fontSize: '1.1rem' }}>{report.student}</span>
+                                                <span style={{ marginInlineStart: '10px', fontSize: '1.1rem' }}>
+                                                    {reportLanguage === 'Arabic'
+                                                        ? report.student
+                                                        : (report.studentEn || report.student)}
+                                                </span>
                                             </div>
                                             <div style={{ fontSize: '1rem' }}>
                                                 <span style={{ fontWeight: 800 }}>{reportLanguage === 'Arabic' ? 'البرنامج الدراسي:' : 'Program:'}</span>
-                                                <span style={{ marginRight: '10px' }}>{report.level}</span>
+                                                <span style={{ marginInlineStart: '10px' }}>
+                                                    {reportLanguage === 'Arabic'
+                                                        ? report.level
+                                                        : (report.levelEn || report.level)}
+                                                </span>
                                             </div>
                                             <div style={{ fontSize: '1rem' }}>
                                                 <span style={{ fontWeight: 800 }}>{reportLanguage === 'Arabic' ? 'الوحدة التعليمية:' : 'Unit:'}</span>
-                                                <span style={{ marginRight: '10px' }}>
-                                                    {report.unit || 'بيئة الأعمال الدولية'}
+                                                <span style={{ marginInlineStart: '10px' }}>
+                                                    {reportLanguage === 'Arabic'
+                                                        ? (report.unit || 'بيئة الأعمال الدولية')
+                                                        : (report.unitEn || report.unit || 'International Business Environment')}
                                                     {report.unitCode ? ` — ${report.unitCode}` : ''}
                                                 </span>
                                             </div>
@@ -633,11 +662,11 @@ export default function AcademicAssessorAI() {
                                         <table className="ag-marking-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                                             <thead>
                                                 <tr style={{ background: 'white', backgroundColor: 'white', color: '#000' }}>
-                                                    <th style={{ border: '1px solid #000', padding: '12px' }}>{reportLanguage === 'Arabic' ? 'المعيار' : 'Criteria'}</th>
-                                                    <th style={{ border: '1px solid #000', padding: '12px' }}>{reportLanguage === 'Arabic' ? 'مستوى العمق' : 'Depth'}</th>
-                                                    <th style={{ border: '1px solid #000', padding: '12px' }}>{reportLanguage === 'Arabic' ? 'الحد الأقصى' : 'Max'}</th>
-                                                    <th style={{ border: '1px solid #000', padding: '12px' }}>{reportLanguage === 'Arabic' ? 'الدرجة' : 'Awarded'}</th>
-                                                    <th style={{ border: '1px solid #000', padding: '12px' }}>{reportLanguage === 'Arabic' ? 'حالة التقييم' : 'Status'}</th>
+                                                    <th style={{ border: '1px solid #000', padding: '12px', textAlign: 'center' }}>{reportLanguage === 'Arabic' ? 'المعيار' : 'Criteria'}</th>
+                                                    <th style={{ border: '1px solid #000', padding: '12px', textAlign: 'center' }}>{reportLanguage === 'Arabic' ? 'مستوى العمق' : 'Depth'}</th>
+                                                    <th style={{ border: '1px solid #000', padding: '12px', textAlign: 'center' }}>{reportLanguage === 'Arabic' ? 'الحد الأقصى' : 'Max'}</th>
+                                                    <th style={{ border: '1px solid #000', padding: '12px', textAlign: 'center' }}>{reportLanguage === 'Arabic' ? 'الدرجة' : 'Awarded'}</th>
+                                                    <th style={{ border: '1px solid #000', padding: '12px', textAlign: 'center' }}>{reportLanguage === 'Arabic' ? 'حالة التقييم' : 'Status'}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
