@@ -1200,6 +1200,7 @@ export default function CRMPipeline2026() {
                                                 <option value="2">مهمة</option>
                                                 <option value="3">عاجلة</option>
                                             </select>
+                                        </div>
                                         <div className="hz-form-group" style={{ marginBottom: 10, marginTop: 15 }}>
                                             <label className="hz-label">📝 إضافة ملاحظة جديدة</label>
                                             <textarea className="hz-input" placeholder="أدخل أي ملاحظة إضافية جديدة لحفظها في السجل..." value={detailForm.notes || ''} onChange={e => setDetailForm({ ...detailForm, notes: e.target.value })} style={{ height: '70px', resize: 'vertical' }} />
