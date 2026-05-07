@@ -1,4 +1,4 @@
-import { prisma } from '../../common/db/prisma';
+import prisma from '../../common/db/prisma';
 
 export const crmService = {
     /**
