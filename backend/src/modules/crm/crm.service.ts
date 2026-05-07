@@ -110,6 +110,13 @@ export const crmService = {
         let duplicateCount = 0;
         let firstMessageDate = new Date().toISOString();
 
+        // Retrieve the first active CRM stage to use as the default "NEW" column
+        const firstStage = await prisma.crmStage.findFirst({
+            where: { isActive: true },
+            orderBy: { sequence: 'asc' }
+        });
+        const defaultStageId = firstStage?.id || null;
+
         if (!lead) {
             // Promote immediately to opportunity if salesperson is assigned, otherwise keep as raw lead
             const type = salespersonId ? 'opportunity' : 'lead';
@@ -126,6 +133,7 @@ export const crmService = {
                     platform: 'Telegram Bot',
                     salespersonId,
                     type,
+                    stageId: type === 'opportunity' ? defaultStageId : null,
                     firstMessageDate,
                     isDuplicate: false,
                     duplicateCount: 0
@@ -149,7 +157,7 @@ export const crmService = {
                     levelOfInterest: parsedData.interestLevel ? parseInt(parsedData.interestLevel) : lead.levelOfInterest,
                     salespersonId: salespersonId || lead.salespersonId,
                     type: updatedType,
-                    stageId: null, // Reset stage back to active column NEW for salesperson visibility
+                    stageId: updatedType === 'opportunity' ? (lead.stageId || defaultStageId) : null, // Retain existing stage or reset back to active column NEW
                     isDuplicate: true,
                     duplicateCount
                 }
