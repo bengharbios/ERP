@@ -32,6 +32,7 @@ import { hrService } from '../services/hr.service';
 import { academicService } from '../services/academic.service';
 import { Toast, ToastType } from '../components/Toast';
 import { HzModal, HzBtn, HzLoader } from '../layouts/Rapidos2026/components/RapidosUI';
+import { useAuthStore } from '../store/authStore';
 import './CRMPipeline2026.css';
 
 /**
@@ -331,7 +332,9 @@ function KanbanColumn({ id, title, opportunities, totalRevenue, onAdd, onCardCli
 export default function CRMPipeline2026() {
     const navigate = useNavigate();
     const boardRef = React.useRef<HTMLDivElement>(null);
+    const { user: currentUser } = useAuthStore();
     const [opportunities, setOpportunities] = useState([]);
+    const [showMyNotesOnly, setShowMyNotesOnly] = useState(false);
     const [stages, setStages] = useState([]);
     const [employees, setEmployees] = useState([]);
     const [programs, setPrograms] = useState([]);
@@ -407,32 +410,42 @@ export default function CRMPipeline2026() {
     };
 
     const openDetailPanel = async (opp: any) => {
-        setSelectedOpp(opp);
+        // Fetch fresh lead details to get complete notes history
+        setLoadingActivities(true);
+        let leadData = opp;
+        try {
+            const leadRes = await leadApi.getById(opp.id);
+            if (leadRes.data) {
+                leadData = leadRes.data;
+            }
+        } catch {}
+
+        setSelectedOpp(leadData);
         setDetailForm({
-            name: opp.name || '',
-            expectedRevenue: opp.expectedRevenue?.toString() || '',
-            probability: opp.probability?.toString() || '50',
-            stageId: opp.stageId || '',
-            priority: opp.priority || '1',
-            salespersonId: opp.salespersonId || '',
+            name: leadData.name || '',
+            expectedRevenue: leadData.expectedRevenue?.toString() || '',
+            probability: leadData.probability?.toString() || '50',
+            stageId: leadData.stageId || '',
+            priority: leadData.priority || '1',
+            salespersonId: leadData.salespersonId || '',
             
             // Custom CRM fields
-            contactName: opp.contactName || '',
-            phone: opp.phone || '',
-            mobile: opp.mobile || '',
-            emailFrom: opp.emailFrom || '',
-            nationality: opp.nationality || '',
-            emirate: opp.emirate || '',
-            interestedDiploma: opp.interestedDiploma || '',
-            levelOfInterest: opp.levelOfInterest?.toString() || '0',
+            contactName: leadData.contactName || '',
+            phone: leadData.phone || '',
+            mobile: leadData.mobile || '',
+            emailFrom: leadData.emailFrom || '',
+            nationality: leadData.nationality || '',
+            emirate: leadData.emirate || '',
+            interestedDiploma: leadData.interestedDiploma || '',
+            levelOfInterest: leadData.levelOfInterest?.toString() || '0',
+            notes: '',
         });
         setDetailTab('details');
         setActForm({ activityTypeId: actTypes[0]?.id || '', summary: '', dateDeadline: '' });
         setShowDetailPanel(true);
         // Fetch activities
-        setLoadingActivities(true);
         try {
-            const r = await activityApi.getByLead(opp.id);
+            const r = await activityApi.getByLead(leadData.id);
             setOppActivities(r.data || []);
         } catch { } finally { setLoadingActivities(false); }
     };
@@ -446,12 +459,21 @@ export default function CRMPipeline2026() {
                 expectedRevenue: detailForm.expectedRevenue ? parseFloat(detailForm.expectedRevenue) : 0,
                 probability: parseInt(detailForm.probability) || 0,
                 levelOfInterest: parseInt(detailForm.levelOfInterest) || 0,
+                salespersonId: detailForm.salespersonId || null,
             };
             const res = await leadApi.update(selectedOpp.id, payload);
             if (res.data) {
                 setToast({ type: 'success', message: '✅ تم تحديث الفرصة' });
                 fetchAll();
-                setSelectedOpp({ ...selectedOpp, ...payload });
+                
+                // Fetch fresh lead to update notes and details
+                const freshRes = await leadApi.getById(selectedOpp.id);
+                if (freshRes.data) {
+                    setSelectedOpp(freshRes.data);
+                } else {
+                    setSelectedOpp({ ...selectedOpp, ...payload });
+                }
+                setDetailForm(prev => ({ ...prev, notes: '' }));
             }
         } catch { setToast({ type: 'error', message: '❌ فشل الحفظ' }); }
         finally { setSavingDetail(false); }
@@ -1178,10 +1200,53 @@ export default function CRMPipeline2026() {
                                                 <option value="2">مهمة</option>
                                                 <option value="3">عاجلة</option>
                                             </select>
+                                        <div className="hz-form-group" style={{ marginBottom: 10, marginTop: 15 }}>
+                                            <label className="hz-label">📝 إضافة ملاحظة جديدة</label>
+                                            <textarea className="hz-input" placeholder="أدخل أي ملاحظة إضافية جديدة لحفظها في السجل..." value={detailForm.notes || ''} onChange={e => setDetailForm({ ...detailForm, notes: e.target.value })} style={{ height: '70px', resize: 'vertical' }} />
+                                        </div>
+
+                                        {/* Notes History Timeline */}
+                                        <div className="crm-notes-timeline-section" style={{ marginTop: 20, borderTop: '1px solid var(--hz-border-soft)', paddingTop: 15 }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                                                <h4 style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--hz-text-main)', margin: 0 }}>📜 سجل الملاحظات السابقة</h4>
+                                                <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', color: 'var(--hz-text-muted)', cursor: 'pointer', userSelect: 'none' }}>
+                                                    <input type="checkbox" checked={showMyNotesOnly} onChange={e => setShowMyNotesOnly(e.target.checked)} />
+                                                    ملاحظاتي فقط
+                                                </label>
+                                            </div>
+
+                                            {(() => {
+                                                const leadNotes = selectedOpp?.notes || [];
+                                                const visibleNotes = showMyNotesOnly && currentUser
+                                                    ? leadNotes.filter((n: any) => n.userId === currentUser.id)
+                                                    : leadNotes;
+
+                                                if (visibleNotes.length === 0) {
+                                                    return (
+                                                        <div style={{ padding: '12px', textAlign: 'center', color: 'var(--hz-text-muted)', background: 'var(--hz-bg-soft)', borderRadius: 8, fontSize: '0.75rem' }}>
+                                                            لا توجد ملاحظات مسجلة تطابق التصفية.
+                                                        </div>
+                                                    );
+                                                }
+
+                                                return (
+                                                    <div className="crm-timeline-list" style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 180, overflowY: 'auto', paddingLeft: 4 }}>
+                                                        {visibleNotes.map((note: any) => (
+                                                            <div key={note.id} style={{ background: 'var(--hz-bg-soft)', padding: 10, borderRadius: 8, borderRight: '3px solid var(--hz-primary)', fontSize: '0.75rem' }}>
+                                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, color: 'var(--hz-text-muted)', fontSize: '0.68rem' }}>
+                                                                    <span style={{ fontWeight: 'bold', color: 'var(--hz-primary)' }}>✍️ {note.user?.username || 'النظام'}</span>
+                                                                    <span>{new Date(note.createdAt).toLocaleDateString('ar-AE', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                                                                </div>
+                                                                <p style={{ margin: 0, whiteSpace: 'pre-line', color: 'var(--hz-text-main)', lineHeight: '1.4' }}>{note.content}</p>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                );
+                                            })()}
                                         </div>
                                     </div>
                                     
-                                    <HzBtn variant="primary" onClick={saveDetail} style={{ width: '100%', marginTop: 8 }}>
+                                    <HzBtn variant="primary" onClick={saveDetail} style={{ width: '100%', marginTop: 15 }}>
                                         {savingDetail ? '...' : '💾 حفظ التغييرات'}
                                     </HzBtn>
                                 </div>

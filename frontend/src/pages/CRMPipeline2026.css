@@ -832,16 +832,28 @@
     background: var(--hz-surface);
     border-left: 1px solid var(--hz-border-soft);
     box-shadow: -8px 0 40px rgba(0, 0, 0, 0.35);
-    z-index: 901;
+    z-index: 1050; /* Ensure it stays above columns and boards */
     display: flex;
     flex-direction: column;
-    transform: translateX(100%);
+    transform: translateX(110%);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
 }
 
+/* RTL Support for Slide-in Side Drawer */
+:global([dir='rtl']) .opp-detail-panel,
+[dir='rtl'] .opp-detail-panel,
+.rtl .opp-detail-panel {
+    right: auto;
+    left: 0;
+    border-left: none;
+    border-right: 1px solid var(--hz-border-soft);
+    box-shadow: 8px 0 40px rgba(0, 0, 0, 0.35);
+    transform: translateX(-110%);
+}
+
 .opp-detail-panel.open {
-    transform: translateX(0);
+    transform: translateX(0) !important;
 }
 
 /* ── PANEL HEADER ──────────────────────────── */

@@ -338,6 +338,18 @@ export async function updateLead(id: string, data: any, _userId: string) {
     // Strip private meta fields that don't belong in CrmLead
     const { _source, _notes, _programId, ...cleanData } = data;
 
+    // Persist new note if provided
+    if (_notes && _notes.trim()) {
+        await prisma.crmNote.create({
+            data: {
+                leadId: id,
+                userId: _userId,
+                content: _notes.trim(),
+                type: 'note'
+            }
+        });
+    }
+
     // Normalize phone numbers if changed
     const updateData: any = { ...cleanData };
 

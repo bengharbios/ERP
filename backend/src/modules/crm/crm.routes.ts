@@ -4,11 +4,16 @@ import * as activityController from './controllers/activity.controller';
 import * as teamController from './controllers/team.controller';
 import { crmController } from './crm.controller';
 
+import { authenticateToken } from '../../common/utils/jwt';
+
 const router = Router();
 
 // --- Telegram & Bot Routes ---
 router.post('/telegram/webhook', crmController.handleTelegramWebhook);
 router.get('/telegram/setup', crmController.setupWebhook);
+
+// Protect all subsequent CRM routes with JWT authentication
+router.use(authenticateToken);
 
 // --- Lead Routes ---
 router.get('/leads', leadController.getLeads);
