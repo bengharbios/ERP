@@ -139,6 +139,19 @@ export async function getLeads(filters: {
                     name: true
                 }
             },
+            notes: {
+                orderBy: {
+                    createdAt: 'desc'
+                },
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            username: true
+                        }
+                    }
+                }
+            },
             activities: {
                 where: {
                     status: 'PLANNED'

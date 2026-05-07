@@ -29,7 +29,52 @@ export const crmService = {
     },
 
     /**
-     * Updates or creates a lead based on parsed data
+     * Fuzzy lookup to match salesperson names in the database
+     */
+    async findUserByName(name: string) {
+        if (!name) return null;
+        const normalized = name.trim().toLowerCase();
+
+        // 1. Direct username check
+        let user = await prisma.user.findFirst({
+            where: { username: { equals: normalized } }
+        });
+        if (user) return user;
+
+        // 2. Fetch all users to do partial/fuzzy matching
+        const users = await prisma.user.findMany({
+            select: {
+                id: true,
+                username: true,
+                name: true
+            }
+        });
+
+        // Try partial matching on full name or username
+        for (const u of users) {
+            if (u.name && u.name.toLowerCase().includes(normalized)) {
+                return u;
+            }
+            if (u.username.toLowerCase().includes(normalized)) {
+                return u;
+            }
+        }
+
+        // 3. Try parts match
+        for (const u of users) {
+            if (u.name) {
+                const uParts = u.name.toLowerCase().split(/\s+/);
+                const inputParts = normalized.split(/\s+/);
+                const allMatch = inputParts.every(part => uParts.some(up => up.includes(part) || part.includes(up)));
+                if (allMatch) return u;
+            }
+        }
+
+        return null;
+    },
+
+    /**
+     * Updates or creates a lead based on parsed data from Telegram
      */
     async updateLeadFromMessage(parsedData: any) {
         if (!parsedData.phone) {
@@ -39,7 +84,16 @@ export const crmService = {
         // Normalize phone: remove spaces and extra chars
         const normalizedPhone = parsedData.phone.replace(/\s+/g, '');
 
-        // 1. Find or Create Lead
+        // 1. Try to find matched salesperson/employee
+        let salespersonId = null;
+        if (parsedData.employee) {
+            const matchedEmployee = await this.findUserByName(parsedData.employee);
+            if (matchedEmployee) {
+                salespersonId = matchedEmployee.id;
+            }
+        }
+
+        // 2. Search for existing lead in the database
         let lead = await prisma.crmLead.findFirst({
             where: {
                 OR: [
@@ -49,48 +103,72 @@ export const crmService = {
             }
         });
 
+        let isDuplicate = false;
+        let duplicateCount = 0;
+        let firstMessageDate = new Date().toISOString();
+
         if (!lead) {
+            // Promote immediately to opportunity if salesperson is assigned, otherwise keep as raw lead
+            const type = salespersonId ? 'opportunity' : 'lead';
+
             lead = await prisma.crmLead.create({
                 data: {
                     name: parsedData.name || 'Unknown',
                     mobile: normalizedPhone,
+                    phone: normalizedPhone,
                     nationality: parsedData.nationality,
                     emirate: parsedData.emirate,
                     interestedDiploma: parsedData.diploma,
                     levelOfInterest: parsedData.interestLevel ? parseInt(parsedData.interestLevel) : 0,
-                    platform: 'Telegram Bot'
+                    platform: 'Telegram Bot',
+                    salespersonId,
+                    type,
+                    firstMessageDate,
+                    isDuplicate: false,
+                    duplicateCount: 0
                 }
             });
         } else {
-            // Update existing lead fields if provided (including name if different/provided)
-            await prisma.crmLead.update({
+            isDuplicate = true;
+            duplicateCount = (lead.duplicateCount || 0) + 1;
+            firstMessageDate = lead.firstMessageDate || lead.createdAt?.toISOString() || new Date().toISOString();
+
+            // Promote to opportunity if salesperson is assigned or already was assigned
+            const updatedType = (salespersonId || lead.salespersonId) ? 'opportunity' : lead.type;
+
+            lead = await prisma.crmLead.update({
                 where: { id: lead.id },
                 data: {
                     name: parsedData.name || lead.name,
                     nationality: parsedData.nationality || lead.nationality,
                     emirate: parsedData.emirate || lead.emirate,
                     interestedDiploma: parsedData.diploma || lead.interestedDiploma,
-                    levelOfInterest: parsedData.interestLevel ? parseInt(parsedData.interestLevel) : lead.levelOfInterest
+                    levelOfInterest: parsedData.interestLevel ? parseInt(parsedData.interestLevel) : lead.levelOfInterest,
+                    salespersonId: salespersonId || lead.salespersonId,
+                    type: updatedType,
+                    stageId: null, // Reset stage back to active column NEW for salesperson visibility
+                    isDuplicate: true,
+                    duplicateCount
                 }
             });
         }
 
-        // 2. Add the Note/Interaction
+        // 3. Create the Note / Call Report stamped with the matched salesperson's ID
         if (parsedData.notes) {
-            // Find a valid user to associate with this note (default to first user if 'system' doesn't exist)
-            let user = await prisma.user.findFirst({
-                where: { OR: [{ id: 'system' }, { username: 'admin' }] }
-            });
-
-            if (!user) {
-                user = await prisma.user.findFirst(); // Get any existing user
+            // Resolve author: default to matched salesperson, then system/admin
+            let authorId = salespersonId;
+            if (!authorId) {
+                const adminUser = await prisma.user.findFirst({
+                    where: { OR: [{ username: 'admin' }, { id: 'system' }] }
+                });
+                authorId = adminUser?.id || (await prisma.user.findFirst())?.id || null;
             }
 
-            if (user) {
+            if (authorId) {
                 await prisma.crmNote.create({
                     data: {
                         leadId: lead.id,
-                        userId: user.id,
+                        userId: authorId,
                         content: parsedData.notes,
                         type: 'call_report'
                     }
@@ -98,6 +176,11 @@ export const crmService = {
             }
         }
 
-        return lead;
+        return {
+            lead,
+            isDuplicate,
+            duplicateCount,
+            firstMessageDate
+        };
     }
 };

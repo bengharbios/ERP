@@ -360,6 +360,17 @@ export default function Settings() {
             ]
         },
         {
+            id: 'telegram',
+            code: 'تليجرام',
+            icon: '🤖',
+            title: 'إعدادات بوت تليجرام',
+            subtitle: 'مفتاح الربط وتفعيل الويب هوك',
+            stats: [
+                { value: formData.telegramBotEnabled ? 'نشط' : 'معطل', label: 'الحالة' },
+                { value: formData.telegramBotToken ? '✓ متصل' : '× غير متصل', label: 'الربط', highlight: true }
+            ]
+        },
+        {
             id: 'database',
             code: 'صيانة',
             icon: '💾',
@@ -1609,6 +1620,70 @@ export default function Settings() {
                             <div className="ai-status-notice orange" style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(255, 107, 0, 0.05)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(255, 107, 0, 0.1)' }}>
                                 <p style={{ fontSize: '0.85rem', color: 'var(--text-main)', margin: 0 }}>
                                     <strong>💡 ملاحظة:</strong> النظام سيستمر في استخدام المحرك المحلي المجاني للمهام البسيطة والترحيب لتوفير التكاليف، وسيلجأ للمحرك الخارجي فقط عند الحاجة لـ "تفكير أعمق".
+                                </p>
+                            </div>
+                        </div>
+                        <div className="form-actions-footer">
+                            <button type="button" className="btn-cancel" onClick={() => setSelectedSection(null)}>إلغاء</button>
+                            <button type="button" className="btn-save orange" onClick={handleSave}>حفظ التعديلات</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {selectedSection === 'telegram' && (
+                <div className="modal-overlay-2026" onClick={() => setSelectedSection(null)}>
+                    <div className="modal-content-2026 large" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2>🤖 إعدادات بوت تليجرام المخصص</h2>
+                            <button className="close-modal" onClick={() => setSelectedSection(null)}>×</button>
+                        </div>
+                        <div className="modal-form">
+                            <div className="form-group">
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.telegramBotEnabled || false}
+                                        onChange={e => updateField('telegramBotEnabled', e.target.checked)}
+                                    />
+                                    <span style={{ fontWeight: 600 }}>تفعيل ربط بوت تليجرام مخصص (Multi-Bot)</span>
+                                </label>
+                                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem', marginRight: '1.8rem' }}>
+                                    عند التفعيل، سيستخدم النظام المفتاح والمعرف المدخلين بالأسفل بدلاً من البوت الافتراضي لاستقبال تقارير المبيعات وتحديث العملاء.
+                                </p>
+                            </div>
+
+                            <div className={`form-grid ${!formData.telegramBotEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
+                                <div className="form-group">
+                                    <label>معرف البوت (Bot Username)</label>
+                                    <input
+                                        type="text"
+                                        value={formData.telegramBotUsername || ''}
+                                        onChange={e => updateField('telegramBotUsername', e.target.value)}
+                                        placeholder="@my_custom_crm_bot"
+                                        disabled={!formData.telegramBotEnabled}
+                                        dir="ltr"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>مفتاح البوت (Bot Token) *</label>
+                                    <input
+                                        type="password"
+                                        value={formData.telegramBotToken || ''}
+                                        onChange={e => updateField('telegramBotToken', e.target.value)}
+                                        placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ"
+                                        disabled={!formData.telegramBotEnabled}
+                                        dir="ltr"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="ai-status-notice orange" style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(0, 136, 204, 0.05)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(0, 136, 204, 0.1)' }}>
+                                <p style={{ fontSize: '0.85rem', color: 'var(--text-main)', margin: 0 }}>
+                                    <strong>💡 دليل الإعداد السريع لربط البوت:</strong><br/>
+                                    1. تواصل مع <a href="https://t.me/BotFather" target="_blank" rel="noreferrer" style={{ color: '#0088cc', textDecoration: 'underline' }}>@BotFather</a> على تليجرام وأنشئ بوت جديد باستخدام أمر <code style={{ dir: 'ltr' }}>/newbot</code>.<br/>
+                                    2. انسخ الـ <strong>API Token</strong> والصقه في الحقل أعلاه.<br/>
+                                    3. عند الحفظ، سيتم تفعيل الـ Webhook تلقائياً للربط المباشر مع سيرفر الـ ERP.
                                 </p>
                             </div>
                         </div>

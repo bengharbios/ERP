@@ -11,6 +11,7 @@ import { leadApi, stageApi } from '../services/crm.service';
 import { hrService } from '../services/hr.service';
 import { academicService } from '../services/academic.service';
 import { Toast } from '../components/Toast';
+import { useAuthStore } from '../store/authStore';
 import { HzModal, HzBtn, HzLoader, HzEmpty } from '../layouts/Rapidos2026/components/RapidosUI';
 import './CRMLeads2026.css';
 
@@ -143,6 +144,7 @@ export default function CRMLeads2026() {
     const [employees, setEmployees] = useState([]);
     const [programs, setPrograms] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { user: currentUser } = useAuthStore();
 
     // UI
     const [viewMode, setViewMode] = useState<'kanban' | 'table'>('table');
@@ -166,6 +168,7 @@ export default function CRMLeads2026() {
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
     const [dupWarning, setDupWarning] = useState<any[]>([]);
     const [dupChecking, setDupChecking] = useState(false);
+    const [showMyNotesOnly, setShowMyNotesOnly] = useState(false);
 
     // Custom fields manager
     const [showCfManager, setShowCfManager] = useState(false);
@@ -859,7 +862,11 @@ export default function CRMLeads2026() {
                                                             <div className="crm-cell-avatar">{lead.name?.charAt(0)?.toUpperCase() || '؟'}</div>
                                                             <div>
                                                                 <div className="crm-cell-name-text">
-                                                                    {lead.isDuplicate && <span className="crm-dup-tag" style={{ marginLeft: 6 }}><AlertTriangle size={9} />مكرر</span>}
+                                                                    {lead.isDuplicate && (
+                                                                        <span className="crm-dup-tag animate-pulse" style={{ marginLeft: 6, background: '#FF6B00', color: '#fff', border: 'none', padding: '2px 6px', borderRadius: '4px', fontSize: '0.68rem', display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 'bold' }}>
+                                                                            🔥 مكرر {lead.duplicateCount ? `${lead.duplicateCount} مرات` : ''}
+                                                                        </span>
+                                                                    )}
                                                                     {lead.name}
                                                                 </div>
                                                                 {lead.contactName && <div style={{ fontSize: '0.72rem', color: 'var(--hz-text-muted)' }}>{lead.contactName}</div>}
@@ -890,7 +897,9 @@ export default function CRMLeads2026() {
                                     return (
                                         <div key={lead.id} className="crm-card" onClick={() => openModal(lead)}>
                                             {lead.isDuplicate && (
-                                                <div className="crm-card-dup-badge"><AlertTriangle size={10} /> مكرر</div>
+                                                <div className="crm-card-dup-badge" style={{ background: '#FF6B00', color: '#fff', fontSize: '0.68rem', fontWeight: 'bold', padding: '3px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                                    🔥 مكرر {lead.duplicateCount ? `${lead.duplicateCount} مرات` : ''}
+                                                </div>
                                             )}
                                             <div className="crm-card-header">
                                                 <div className="crm-avatar">{lead.name?.charAt(0)?.toUpperCase() || '؟'}</div>
@@ -952,6 +961,31 @@ export default function CRMLeads2026() {
                             تحذير: يوجد {dupWarning.length} عميل مشابه بنفس الهاتف أو الإيميل —{' '}
                             {dupWarning.map((d, i) => <a key={d.id} onClick={() => { setShowModal(false); openModal(d); }}>{d.name}</a>).reduce((a, b) => [a, ', ', b] as any)}
                         </span>
+                    </div>
+                )}
+
+                {editingId && (
+                    <div className="crm-dates-badges-row" style={{ display: 'flex', gap: 15, marginBottom: 20, background: 'var(--hz-bg-soft)', padding: '10px 15px', borderRadius: 8, border: '1px solid var(--hz-border-soft)' }}>
+                        <div style={{ flex: 1, fontSize: '0.78rem', color: 'var(--hz-text-muted)' }}>
+                            <span>📅 تاريخ أول تواصل: </span>
+                            <strong style={{ color: 'var(--hz-text-main)' }}>
+                                {(() => {
+                                    const lObj = leads.find((l: any) => l.id === editingId) as any;
+                                    const d = lObj?.firstMessageDate || lObj?.createdAt;
+                                    return d ? new Date(d).toLocaleDateString('ar-AE', { day: 'numeric', month: 'short', year: 'numeric' }) : 'غير متوفر';
+                                })()}
+                            </strong>
+                        </div>
+                        <div style={{ flex: 1, fontSize: '0.78rem', color: 'var(--hz-text-muted)' }}>
+                            <span>🔄 تاريخ آخر تنشيط: </span>
+                            <strong style={{ color: 'var(--hz-text-main)' }}>
+                                {(() => {
+                                    const lObj = leads.find((l: any) => l.id === editingId) as any;
+                                    const d = lObj?.updatedAt;
+                                    return d ? new Date(d).toLocaleDateString('ar-AE', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'غير متوفر';
+                                })()}
+                            </strong>
+                        </div>
                     </div>
                 )}
 
@@ -1070,10 +1104,52 @@ export default function CRMLeads2026() {
 
                 <div className="hz-form-row">
                     <div className="hz-form-group">
-                        <label className="hz-label">ملاحظات</label>
-                        <textarea className="hz-input" placeholder="أي ملاحظات إضافية..." value={formData.notes} onChange={e => setField('notes', e.target.value)} />
+                        <label className="hz-label">ملاحظات جديدة</label>
+                        <textarea className="hz-input" placeholder="أدخل أي ملاحظة إضافية جديدة لحفظها في السجل..." value={formData.notes} onChange={e => setField('notes', e.target.value)} />
                     </div>
                 </div>
+
+                {editingId && (
+                    <div className="crm-notes-timeline-section" style={{ marginTop: 20, borderTop: '1px solid var(--hz-border-soft)', paddingTop: 20 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+                            <h4 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--hz-text-main)', margin: 0 }}>📜 سجل الملاحظات السابقة</h4>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.78rem', color: 'var(--hz-text-muted)', cursor: 'pointer', userSelect: 'none' }}>
+                                <input type="checkbox" checked={showMyNotesOnly} onChange={e => setShowMyNotesOnly(e.target.checked)} />
+                                إظهار ملاحظاتي فقط
+                            </label>
+                        </div>
+
+                        {(() => {
+                            const editingLeadObj = leads.find((l: any) => l.id === editingId) as any;
+                            const leadNotes = editingLeadObj?.notes || [];
+                            const visibleNotes = showMyNotesOnly && currentUser
+                                ? leadNotes.filter((n: any) => n.userId === currentUser.id)
+                                : leadNotes;
+
+                            if (visibleNotes.length === 0) {
+                                return (
+                                    <div style={{ padding: '15px', textAlign: 'center', color: 'var(--hz-text-muted)', background: 'var(--hz-bg-soft)', borderRadius: 8, fontSize: '0.8rem' }}>
+                                        لا توجد ملاحظات مسجلة تطابق التصفية.
+                                    </div>
+                                );
+                            }
+
+                            return (
+                                <div className="crm-timeline-list" style={{ display: 'flex', flexDirection: 'column', gap: 12, maxHeight: 200, overflowY: 'auto', paddingRight: 4 }}>
+                                    {visibleNotes.map((note: any) => (
+                                        <div key={note.id} style={{ background: 'var(--hz-bg-soft)', padding: 12, borderRadius: 8, borderRight: '3px solid var(--hz-primary)', fontSize: '0.8rem' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, color: 'var(--hz-text-muted)', fontSize: '0.72rem' }}>
+                                                <span style={{ fontWeight: 'bold', color: 'var(--hz-primary)' }}>✍️ {note.user?.username || 'النظام'}</span>
+                                                <span>{new Date(note.createdAt).toLocaleDateString('ar-AE', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                                            </div>
+                                            <p style={{ margin: 0, whiteSpace: 'pre-line', color: 'var(--hz-text-main)', lineHeight: '1.4' }}>{note.content}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            );
+                        })()}
+                    </div>
+                )}
 
                 {customFieldDefs.length > 0 && (
                     <div className="hz-form-row cols-2" style={{ marginTop: 24, borderTop: '1px dashed var(--hz-border-soft)', paddingTop: 24 }}>

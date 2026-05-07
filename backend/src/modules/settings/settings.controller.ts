@@ -59,6 +59,7 @@ export const updateSettings = async (req: Request, res: Response): Promise<void>
             'emailEnabled', 'smtpHost', 'smtpPort', 'smtpUsername', 'smtpPassword',
             'smsEnabled', 'smsProvider', 'smsApiKey',
             'externalAiEnabled', 'externalAiProvider', 'externalAiApiKey',
+            'telegramBotEnabled', 'telegramBotToken', 'telegramBotUsername',
             'hrWorkingDays', 'hrWorkStartTime', 'hrWorkEndTime', 'hrLateGracePeriod',
             'hrAbsenceThreshold', 'hrLateHourDeduction', 'hrShiftEnabled', 'activeTemplate',
             'announcementTicker',

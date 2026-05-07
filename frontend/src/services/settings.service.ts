@@ -195,6 +195,11 @@ export interface SystemSettings {
     externalAiProvider?: string;
     externalAiApiKey?: string;
 
+    // Telegram Bot Settings
+    telegramBotToken?: string;
+    telegramBotUsername?: string;
+    telegramBotEnabled: boolean;
+
     // HR Settings
     hrWorkingDays?: string[] | string;
     hrWorkStartTime?: string;
@@ -294,6 +299,11 @@ export interface UpdateSystemSettingsRequest {
     externalAiEnabled?: boolean;
     externalAiProvider?: string;
     externalAiApiKey?: string;
+
+    // Telegram Bot Settings
+    telegramBotToken?: string;
+    telegramBotUsername?: string;
+    telegramBotEnabled?: boolean;
 
     // HR Settings
     hrWorkingDays?: string[] | string;
