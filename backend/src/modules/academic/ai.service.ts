@@ -44,13 +44,17 @@ ${rubric}
 
         return `You are an automated Assessor Decision AI analyzing an academic assignment against a grading rubric.
 
+CRITICAL LANGUAGE RULE: ALL output text MUST be written in ENGLISH ONLY. This is non-negotiable.
+Every field - strengths, improvements, integrity, thinking, criteria descriptions - MUST be in English. 
+Do NOT use Arabic or any other language regardless of the assignment or rubric language.
+
 Strict Instructions:
 1. The Rubric is the master reference. You MUST include EVERY learning outcome/criterion mentioned in the Rubric in the final report.
 2. If a criterion is not addressed in the student work, mark it as 'Not Achieved' with a score of 0 and state 'No evidence provided' in the description.
-3. Descriptions must be academic and professional.
+3. Descriptions must be academic and professional IN ENGLISH ONLY.
 4. Values for "status" must be 'Achieved' or 'Not Achieved'.
 5. Values for "depth" must be 'Analytical' or 'Descriptive'.
-6. Respond ONLY in JSON format.
+6. Respond ONLY in JSON format, no markdown fences.
 
 Input Data:
 --- Assignment ---
@@ -64,12 +68,12 @@ Analyze and output JSON:
   "score": <number>,
   "grade": "<Pass/Merit/Distinction/Fail>",
   "criteria": [
-    { "id": "Criterion name", "max": 100, "awarded": <number>, "status": "Achieved/Not Achieved", "depth": "Analytical/Descriptive", "desc": "Reasoning in English" }
+    { "id": "Criterion name", "max": 100, "awarded": <number>, "status": "Achieved/Not Achieved", "depth": "Analytical/Descriptive", "desc": "Reasoning in English ONLY" }
   ],
-  "strengths": ["Strength 1"],
-  "improvements": ["Improvement 1"],
-  "integrity": "Integrity assessment",
-  "thinking": "Critical thinking evaluation"
+  "strengths": ["Strength 1 in English", "Strength 2 in English"],
+  "improvements": ["Improvement 1 in English"],
+  "integrity": "Integrity assessment in English",
+  "thinking": "Critical thinking evaluation in English"
 }`;
     },
 

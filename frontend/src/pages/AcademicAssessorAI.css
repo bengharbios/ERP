@@ -803,3 +803,31 @@
     color: #ff4757;
     border: 1px solid #ff4757;
 }
+
+/* ── WATERMARK ── */
+.ag-report-wrap {
+    position: relative;
+    overflow: hidden;
+}
+
+.ag-report-wrap::before {
+    content: var(--report-watermark-text, 'CREATIVITY ERP');
+    display: var(--report-watermark-display, block);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    font-size: 5rem;
+    font-weight: 900;
+    color: #000;
+    opacity: 0.04;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 0;
+    letter-spacing: 0.1em;
+}
+
+.ag-report-wrap > * {
+    position: relative;
+    z-index: 1;
+}

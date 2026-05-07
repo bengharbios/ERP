@@ -322,7 +322,7 @@ export default function AcademicAssessorAI() {
                     .ag-report-wrap {
                         box-shadow: none !important;
                         border: none !important;
-                        padding: 0 !important;
+                        padding: 20mm !important;
                         margin: 0 !important;
                         background: white !important;
                     }
@@ -331,9 +331,11 @@ export default function AcademicAssessorAI() {
                         background-color: transparent !important; 
                         box-shadow: none !important;
                         border-color: #000 !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
                     }
                     .ag-marking-table th { background: #f2f2f2 !important; }
-                    img { filter: grayscale(100%); }
+                    img { -webkit-print-color-adjust: exact !important; }
                     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
                 }
             ` }} />
@@ -564,9 +566,9 @@ export default function AcademicAssessorAI() {
                                         <HzBtn variant="primary" icon={<Download size={16} />} onClick={handleDownload}>تحميل التقرير</HzBtn>
                                     </div>
 
-                                    {/* 1. Header (Logo + Name) - always LTR */}
-                                    <div className="ag-print-header" dir="ltr" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '3px solid #111', paddingBottom: '20px', marginBottom: '15px' }}>
-                                        <div style={{ textAlign: 'left' }}>
+                                    {/* 1. Header - logo position swaps per language */}
+                                    <div className="ag-print-header" dir="ltr" style={{ display: 'flex', flexDirection: reportLanguage === 'Arabic' ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center', borderBottom: '3px solid #111', paddingBottom: '20px', marginBottom: '15px' }}>
+                                        <div style={{ textAlign: reportLanguage === 'Arabic' ? 'right' : 'left' }}>
                                             {reportLanguage === 'Arabic' ? (
                                                 <>
                                                     <div style={{ fontWeight: 900, fontSize: '1.8rem', color: '#000' }}>
@@ -656,7 +658,7 @@ export default function AcademicAssessorAI() {
 
                                     {/* 5. Table (Criteria) */}
                                     <div style={{ marginBottom: '40px' }}>
-                                        <h3 style={{ fontSize: '1.1rem', fontWeight: 900, marginBottom: '15px', borderRight: '5px solid #000', paddingRight: '15px' }}>
+                                        <h3 style={{ fontSize: '1.1rem', fontWeight: 900, marginBottom: '15px', borderInlineStart: '5px solid #000', paddingInlineStart: '15px' }}>
                                             {reportLanguage === 'Arabic' ? 'جدول توزيع الدرجات حسب المعايير' : 'Grade Distribution by Criteria'}
                                         </h3>
                                         <table className="ag-marking-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -691,11 +693,11 @@ export default function AcademicAssessorAI() {
 
                                     {/* 6. Strengths */}
                                     <div style={{ marginBottom: '30px' }}>
-                                        <h3 style={{ fontSize: '1.1rem', fontWeight: 900, marginBottom: '15px', borderRight: '5px solid #000', paddingRight: '15px' }}>
+                                        <h3 style={{ fontSize: '1.1rem', fontWeight: 900, marginBottom: '15px', borderInlineStart: '5px solid #000', paddingInlineStart: '15px' }}>
                                             {reportLanguage === 'Arabic' ? 'نقاط القوة والملاحظات' : 'Key Strengths and Observations'}
                                         </h3>
                                         <div style={{ border: '1px solid #000', padding: '20px' }}>
-                                            <ul style={{ margin: 0, paddingRight: '25px', display: 'flex', flexDirection: 'column', gap: '10px', listStyle: 'square' }}>
+                                            <ul style={{ margin: 0, paddingInlineStart: '25px', display: 'flex', flexDirection: 'column', gap: '10px', listStyle: 'square' }}>
                                                 {report.strengths.map((s: string, idx: number) => (
                                                     <li key={idx} style={{ fontSize: '0.9rem', lineHeight: '1.6' }}>{s}</li>
                                                 ))}
@@ -705,11 +707,11 @@ export default function AcademicAssessorAI() {
 
                                     {/* 7. Improvements */}
                                     <div style={{ marginBottom: '40px' }}>
-                                        <h3 style={{ fontSize: '1.1rem', fontWeight: 900, marginBottom: '15px', borderRight: '5px solid #000', paddingRight: '15px' }}>
+                                        <h3 style={{ fontSize: '1.1rem', fontWeight: 900, marginBottom: '15px', borderInlineStart: '5px solid #000', paddingInlineStart: '15px' }}>
                                             {reportLanguage === 'Arabic' ? 'المجالات المطلوبة لرفع كفاءة العمل' : 'Areas for Improvement'}
                                         </h3>
                                         <div style={{ border: '1px solid #000', padding: '20px' }}>
-                                            <ul style={{ margin: 0, paddingRight: '25px', display: 'flex', flexDirection: 'column', gap: '10px', listStyle: 'square' }}>
+                                            <ul style={{ margin: 0, paddingInlineStart: '25px', display: 'flex', flexDirection: 'column', gap: '10px', listStyle: 'square' }}>
                                                 {report.improvements.map((im: string, idx: number) => (
                                                     <li key={idx} style={{ fontSize: '0.9rem', lineHeight: '1.6' }}>{im}</li>
                                                 ))}
@@ -719,7 +721,7 @@ export default function AcademicAssessorAI() {
 
                                     {/* 8. Compliance */}
                                     <div style={{ marginBottom: '40px' }}>
-                                        <h3 style={{ fontSize: '1.1rem', fontWeight: 900, marginBottom: '15px', borderRight: '5px solid #000', paddingRight: '15px' }}>
+                                        <h3 style={{ fontSize: '1.1rem', fontWeight: 900, marginBottom: '15px', borderInlineStart: '5px solid #000', paddingInlineStart: '15px' }}>
                                             {reportLanguage === 'Arabic' ? 'إشعار الامتثال النهائي' : 'Final Compliance Notice'}
                                         </h3>
                                         <div style={{ border: '1px solid #000', padding: '25px' }}>
