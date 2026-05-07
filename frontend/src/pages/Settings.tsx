@@ -1683,7 +1683,8 @@ export default function Settings() {
                                     <strong>💡 دليل الإعداد السريع لربط البوت:</strong><br/>
                                     1. تواصل مع <a href="https://t.me/BotFather" target="_blank" rel="noreferrer" style={{ color: '#0088cc', textDecoration: 'underline' }}>@BotFather</a> على تليجرام وأنشئ بوت جديد باستخدام أمر <code style={{ dir: 'ltr' }}>/newbot</code>.<br/>
                                     2. انسخ الـ <strong>API Token</strong> والصقه في الحقل أعلاه.<br/>
-                                    3. عند الحفظ، سيتم تفعيل الـ Webhook تلقائياً للربط المباشر مع سيرفر الـ ERP.
+                                    3. <strong>⚡ ربط تلقائي بالكامل:</strong> بمجرد النقر على زر <strong>"حفظ التعديلات"</strong> بالأسفل، سيقوم النظام تلقائياً بربط البوت بالـ Webhook وتفعيله فوراً دون أي حاجة لفتح روابط خارجية يدويًا!<br/>
+                                    4. <em>تنبيه احتياطي:</em> إذا احتجت لإعادة الربط يدوياً في أي وقت، يمكنك فتح الرابط التالي في المتصفح: <a href="https://erp-xi-lac.vercel.app/api/v1/crm/telegram/setup" target="_blank" rel="noreferrer" style={{ color: '#0088cc', fontWeight: 'bold' }}>رابط التفعيل اليدوي للـ Webhook</a>.
                                 </p>
                             </div>
                         </div>

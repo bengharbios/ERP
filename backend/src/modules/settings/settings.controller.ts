@@ -106,6 +106,22 @@ export const updateSettings = async (req: Request, res: Response): Promise<void>
 
         console.log('[SettingsController] Successfully upserted settings:', settings.id);
 
+        // Automatically setup Telegram Webhook on settings save so they don't have to visit /setup manually
+        if (settings.telegramBotEnabled && settings.telegramBotToken) {
+            try {
+                const host = req.get('host');
+                const protocol = host?.includes('localhost') ? 'http' : 'https';
+                const webhookUrl = `${protocol}://${host}/api/v1/crm/telegram/webhook`;
+                
+                const { Telegraf } = require('telegraf');
+                const tempBot = new Telegraf(settings.telegramBotToken);
+                await tempBot.telegram.setWebhook(webhookUrl);
+                console.log('[SettingsController] Automatically registered Telegram webhook on settings save:', webhookUrl);
+            } catch (tgError: any) {
+                console.error('[SettingsController] Failed to auto-register Telegram webhook on settings save:', tgError.message);
+            }
+        }
+
         res.json({
             success: true,
             data: { settings }
