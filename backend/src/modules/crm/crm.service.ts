@@ -46,13 +46,15 @@ export const crmService = {
             select: {
                 id: true,
                 username: true,
-                name: true
+                firstName: true,
+                lastName: true
             }
         });
 
         // Try partial matching on full name or username
         for (const u of users) {
-            if (u.name && u.name.toLowerCase().includes(normalized)) {
+            const fullName = `${u.firstName || ''} ${u.lastName || ''}`.trim().toLowerCase();
+            if (fullName && fullName.includes(normalized)) {
                 return u;
             }
             if (u.username.toLowerCase().includes(normalized)) {
@@ -62,8 +64,9 @@ export const crmService = {
 
         // 3. Try parts match
         for (const u of users) {
-            if (u.name) {
-                const uParts = u.name.toLowerCase().split(/\s+/);
+            const fullName = `${u.firstName || ''} ${u.lastName || ''}`.trim().toLowerCase();
+            if (fullName) {
+                const uParts = fullName.split(/\s+/);
                 const inputParts = normalized.split(/\s+/);
                 const allMatch = inputParts.every(part => uParts.some(up => up.includes(part) || part.includes(up)));
                 if (allMatch) return u;
