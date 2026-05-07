@@ -857,7 +857,7 @@ export default function AcademicAssessorAI() {
                                         <HzBtn variant="primary" icon={<Download size={16} />} onClick={handleDownload}>
                                             {reportLanguage === 'Arabic' ? 'تحميل / طباعة التقرير' : 'Download / Print Report'}
                                         </HzBtn>
-                                        <HzBtn variant="secondary" icon={<FileCheck size={16} />} onClick={handleSaveToHistory} disabled={savedRecords.some(r => r.id === report.refNo)} style={savedRecords.some(r => r.id === report.refNo) ? { background: '#f5f5f5', color: '#888888', border: '1px solid #dddddd', cursor: 'not-allowed', opacity: 0.8 } : { background: '#0d1527', color: '#00f5a0', border: '2px solid #00f5a0', fontWeight: 800, boxShadow: '0 4px 15px rgba(0, 245, 160, 0.2)' }}>
+                                        <HzBtn variant="secondary" icon={<FileCheck size={16} />} onClick={handleSaveToHistory} disabled={savedRecords.some(r => r.id === report.refNo)} style={savedRecords.some(r => r.id === report.refNo) ? { background: '#f5f5f5', color: '#888888', border: '1px solid #dddddd', cursor: 'not-allowed', opacity: 0.8 } : { background: '#00f5a0', color: '#000000', border: '2px solid #00d485', fontWeight: 900, boxShadow: '0 4px 15px rgba(0, 245, 160, 0.3)' }}>
                                             {savedRecords.some(r => r.id === report.refNo)
                                                 ? (reportLanguage === 'Arabic' ? 'تم الحفظ في السجل' : 'Saved to Records')
                                                 : (reportLanguage === 'Arabic' ? 'حفظ في السجل الأكاديمي' : 'Save to Academic Records')}

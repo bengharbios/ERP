@@ -96,10 +96,11 @@ interface HzBtnProps {
     type?: 'button' | 'submit' | 'reset';
     className?: string;
     icon?: React.ReactNode;
+    style?: React.CSSProperties;
 }
 
 export function HzBtn({
-    children, variant = 'primary', size = 'md', onClick, disabled, type = 'button', className = '', icon
+    children, variant = 'primary', size = 'md', onClick, disabled, type = 'button', className = '', icon, style
 }: HzBtnProps) {
     const cls = [
         'hz-btn',
@@ -108,7 +109,7 @@ export function HzBtn({
         className
     ].filter(Boolean).join(' ');
     return (
-        <button className={cls} onClick={onClick} disabled={disabled} type={type}>
+        <button className={cls} onClick={onClick} disabled={disabled} type={type} style={style}>
             {icon && icon}
             {children}
         </button>
