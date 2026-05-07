@@ -119,6 +119,78 @@ function OpportunityCard({ opp, isOverlay = false, onClick, onEdit, onArchive })
                         {showContactFirst && opp.name !== opp.contactName && <span>💼 {opp.name}</span>}
                         {opp.phone && <span style={{ marginRight: 8 }}>📞 {opp.phone}</span>}
                     </div>
+                    {/* CRM Custom Info Badges */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 6 }}>
+                        {opp.isDuplicate && (
+                            <span style={{ 
+                                background: 'rgba(250, 204, 21, 0.1)', 
+                                color: '#facc15', 
+                                border: '1px solid rgba(250, 204, 21, 0.3)',
+                                fontSize: '0.62rem',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 3,
+                                fontWeight: 800
+                            }}>
+                                ⚠️ مكرر ({opp.duplicateCount})
+                            </span>
+                        )}
+                        {opp.nationality && (
+                            <span style={{ 
+                                background: 'var(--hz-surface-3)', 
+                                color: 'var(--hz-text-secondary)', 
+                                border: '1px solid var(--hz-border-soft)',
+                                fontSize: '0.62rem',
+                                padding: '2px 6px',
+                                borderRadius: '4px'
+                            }}>
+                                🌍 {opp.nationality}
+                            </span>
+                        )}
+                        {opp.emirate && (
+                            <span style={{ 
+                                background: 'var(--hz-surface-3)', 
+                                color: 'var(--hz-text-secondary)', 
+                                border: '1px solid var(--hz-border-soft)',
+                                fontSize: '0.62rem',
+                                padding: '2px 6px',
+                                borderRadius: '4px'
+                            }}>
+                                📍 {opp.emirate}
+                            </span>
+                        )}
+                        {opp.interestedDiploma && (
+                            <span style={{ 
+                                background: 'var(--hz-surface-3)', 
+                                color: 'var(--hz-text-secondary)', 
+                                border: '1px solid var(--hz-border-soft)',
+                                fontSize: '0.62rem',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                maxWidth: '140px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                            }} title={opp.interestedDiploma}>
+                                🎓 {opp.interestedDiploma}
+                            </span>
+                        )}
+                        {opp.levelOfInterest !== undefined && opp.levelOfInterest !== null && (
+                            <span style={{ 
+                                background: 'rgba(255, 77, 106, 0.08)', 
+                                color: 'var(--hz-coral)', 
+                                border: '1px solid rgba(255, 77, 106, 0.2)',
+                                fontSize: '0.62rem',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                fontWeight: 800
+                            }}>
+                                🔥 {opp.levelOfInterest}/10
+                            </span>
+                        )}
+                    </div>
                 </div>
                 <div style={{ display: 'flex', gap: 3, opacity: isLost ? 0.3 : 0.8 }}>
                     {[1, 2, 3].map(i => (
@@ -280,6 +352,14 @@ export default function CRMPipeline2026() {
         stageId: '',
         priority: '1',
         salespersonId: '',
+        contactName: '',
+        phone: '',
+        mobile: '',
+        emailFrom: '',
+        nationality: '',
+        emirate: '',
+        interestedDiploma: '',
+        levelOfInterest: '0',
     });
 
     // Detail Panel state
@@ -335,6 +415,16 @@ export default function CRMPipeline2026() {
             stageId: opp.stageId || '',
             priority: opp.priority || '1',
             salespersonId: opp.salespersonId || '',
+            
+            // Custom CRM fields
+            contactName: opp.contactName || '',
+            phone: opp.phone || '',
+            mobile: opp.mobile || '',
+            emailFrom: opp.emailFrom || '',
+            nationality: opp.nationality || '',
+            emirate: opp.emirate || '',
+            interestedDiploma: opp.interestedDiploma || '',
+            levelOfInterest: opp.levelOfInterest?.toString() || '0',
         });
         setDetailTab('details');
         setActForm({ activityTypeId: actTypes[0]?.id || '', summary: '', dateDeadline: '' });
@@ -355,6 +445,7 @@ export default function CRMPipeline2026() {
                 ...detailForm,
                 expectedRevenue: detailForm.expectedRevenue ? parseFloat(detailForm.expectedRevenue) : 0,
                 probability: parseInt(detailForm.probability) || 0,
+                levelOfInterest: parseInt(detailForm.levelOfInterest) || 0,
             };
             const res = await leadApi.update(selectedOpp.id, payload);
             if (res.data) {
@@ -423,6 +514,14 @@ export default function CRMPipeline2026() {
                 stageId: opp.stageId || '',
                 priority: opp.priority || '1',
                 salespersonId: opp.salespersonId || '',
+                contactName: opp.contactName || '',
+                phone: opp.phone || '',
+                mobile: opp.mobile || '',
+                emailFrom: opp.emailFrom || '',
+                nationality: opp.nationality || '',
+                emirate: opp.emirate || '',
+                interestedDiploma: opp.interestedDiploma || '',
+                levelOfInterest: opp.levelOfInterest?.toString() || '0',
             });
         } else {
             setEditingId(null);
@@ -433,6 +532,14 @@ export default function CRMPipeline2026() {
                 stageId: stageId || (stages[0]?.id || ''),
                 priority: '1',
                 salespersonId: '',
+                contactName: '',
+                phone: '',
+                mobile: '',
+                emailFrom: '',
+                nationality: '',
+                emirate: '',
+                interestedDiploma: '',
+                levelOfInterest: '0',
             });
         }
         setShowModal(true);
@@ -444,6 +551,7 @@ export default function CRMPipeline2026() {
                 ...formData,
                 expectedRevenue: formData.expectedRevenue ? parseFloat(formData.expectedRevenue) : 0,
                 probability: parseInt(formData.probability) || 0,
+                levelOfInterest: parseInt(formData.levelOfInterest) || 0,
                 type: 'opportunity'
             };
 
@@ -860,6 +968,36 @@ export default function CRMPipeline2026() {
                 </div>
                 <div className="hz-form-row cols-2">
                     <div className="hz-form-group">
+                        <label className="hz-label">الاسم الكامل للمخاطب</label>
+                        <input className="hz-input" placeholder="اسم المخاطب" value={formData.contactName} onChange={e => setFormData({ ...formData, contactName: e.target.value })} />
+                    </div>
+                    <div className="hz-form-group">
+                        <label className="hz-label">رقم الهاتف</label>
+                        <input className="hz-input" placeholder="رقم الهاتف" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
+                    </div>
+                </div>
+                <div className="hz-form-row cols-2">
+                    <div className="hz-form-group">
+                        <label className="hz-label">الجنسية</label>
+                        <input className="hz-input" placeholder="مثال: الإمارات" value={formData.nationality} onChange={e => setFormData({ ...formData, nationality: e.target.value })} />
+                    </div>
+                    <div className="hz-form-group">
+                        <label className="hz-label">الإمارة</label>
+                        <input className="hz-input" placeholder="مثال: أبوظبي" value={formData.emirate} onChange={e => setFormData({ ...formData, emirate: e.target.value })} />
+                    </div>
+                </div>
+                <div className="hz-form-row cols-2">
+                    <div className="hz-form-group">
+                        <label className="hz-label">الدبلوم المهتم به</label>
+                        <input className="hz-input" placeholder="إدارة أعمال" value={formData.interestedDiploma} onChange={e => setFormData({ ...formData, interestedDiploma: e.target.value })} />
+                    </div>
+                    <div className="hz-form-group">
+                        <label className="hz-label">درجة الاهتمام (0-10)</label>
+                        <input className="hz-input" type="number" min="0" max="10" value={formData.levelOfInterest} onChange={e => setFormData({ ...formData, levelOfInterest: e.target.value })} />
+                    </div>
+                </div>
+                <div className="hz-form-row cols-2">
+                    <div className="hz-form-group">
                         <label className="hz-label">الإيرادات المتوقعة</label>
                         <div style={{ position: 'relative' }}>
                             <input className="hz-input" placeholder="0.00" type="number" style={{ paddingLeft: 45 }} value={formData.expectedRevenue} onChange={e => setFormData({ ...formData, expectedRevenue: e.target.value })} />
@@ -921,43 +1059,128 @@ export default function CRMPipeline2026() {
                             {/* ── DETAILS TAB ── */}
                             {detailTab === 'details' && (
                                 <div className="odp-details-form">
-                                    <div className="hz-form-group">
-                                        <label className="hz-label">اسم الفرصة / العميل</label>
-                                        <input className="hz-input" value={detailForm.name} onChange={e => setDetailForm({ ...detailForm, name: e.target.value })} />
-                                    </div>
-                                    <div className="hz-form-row cols-2">
-                                        <div className="hz-form-group">
-                                            <label className="hz-label">الإيرادات المتوقعة</label>
-                                            <input className="hz-input" type="number" value={detailForm.expectedRevenue} onChange={e => setDetailForm({ ...detailForm, expectedRevenue: e.target.value })} />
+                                    {/* Duplicate Warning Indicator */}
+                                    {selectedOpp.isDuplicate && (
+                                        <div style={{
+                                            background: 'rgba(250, 204, 21, 0.12)',
+                                            border: '1px solid rgba(250, 204, 21, 0.4)',
+                                            borderRadius: '8px',
+                                            padding: '12px',
+                                            fontSize: '0.8rem',
+                                            color: '#facc15',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: 4,
+                                            marginBottom: 10
+                                        }}>
+                                            <div style={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                <span>⚠️ هذا العميل مكرر واستفسر سابقاً!</span>
+                                            </div>
+                                            <div style={{ opacity: 0.9, fontSize: '0.72rem' }}>
+                                                🔄 عدد مرات التكرار: {selectedOpp.duplicateCount} مرات
+                                            </div>
+                                            {selectedOpp.createdAt && (
+                                                <div style={{ opacity: 0.9, fontSize: '0.72rem' }}>
+                                                    📅 أول تواصل: {new Date(selectedOpp.createdAt).toLocaleDateString('ar-EG')}
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="hz-form-group">
-                                            <label className="hz-label">الاحتمالية (%)</label>
-                                            <input className="hz-input" type="number" min={0} max={100} value={detailForm.probability} onChange={e => setDetailForm({ ...detailForm, probability: e.target.value })} />
+                                    )}
+
+                                    {/* Section 1: Contact Details */}
+                                    <div style={{ borderBottom: '1px solid var(--hz-border-soft)', paddingBottom: 12, marginBottom: 4 }}>
+                                        <div style={{ fontSize: '0.75rem', fontWeight: 900, color: 'var(--hz-primary)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>👤 بيانات الاتصال للعميل</div>
+                                        
+                                        <div className="hz-form-group" style={{ marginBottom: 10 }}>
+                                            <label className="hz-label">الاسم الكامل للمخاطب</label>
+                                            <input className="hz-input" value={detailForm.contactName || ''} onChange={e => setDetailForm({ ...detailForm, contactName: e.target.value })} placeholder="الاسم الكامل للعميل" />
+                                        </div>
+                                        <div className="hz-form-row cols-2" style={{ marginBottom: 10 }}>
+                                            <div className="hz-form-group">
+                                                <label className="hz-label">رقم الهاتف</label>
+                                                <input className="hz-input" value={detailForm.phone || ''} onChange={e => setDetailForm({ ...detailForm, phone: e.target.value })} placeholder="مثال: 971..." />
+                                            </div>
+                                            <div className="hz-form-group">
+                                                <label className="hz-label">رقم الجوال</label>
+                                                <input className="hz-input" value={detailForm.mobile || ''} onChange={e => setDetailForm({ ...detailForm, mobile: e.target.value })} placeholder="رقم الجوال الإضافي" />
+                                            </div>
+                                        </div>
+                                        <div className="hz-form-group" style={{ marginBottom: 10 }}>
+                                            <label className="hz-label">البريد الإلكتروني</label>
+                                            <input className="hz-input" type="email" value={detailForm.emailFrom || ''} onChange={e => setDetailForm({ ...detailForm, emailFrom: e.target.value })} placeholder="example@mail.com" />
                                         </div>
                                     </div>
-                                    <div className="hz-form-group">
-                                        <label className="hz-label">المرحلة</label>
-                                        <select className="hz-input" value={detailForm.stageId} onChange={e => setDetailForm({ ...detailForm, stageId: e.target.value })}>
-                                            {stages.map(s => <option key={s.id} value={s.id}>{s.nameAr || s.name}</option>)}
-                                        </select>
+
+                                    {/* Section 2: Specialized CRM Data */}
+                                    <div style={{ borderBottom: '1px solid var(--hz-border-soft)', paddingBottom: 12, marginBottom: 4 }}>
+                                        <div style={{ fontSize: '0.75rem', fontWeight: 900, color: 'var(--hz-primary)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>🌍 بيانات العميل المتخصصة</div>
+                                        
+                                        <div className="hz-form-row cols-2" style={{ marginBottom: 10 }}>
+                                            <div className="hz-form-group">
+                                                <label className="hz-label">الجنسية</label>
+                                                <input className="hz-input" value={detailForm.nationality || ''} onChange={e => setDetailForm({ ...detailForm, nationality: e.target.value })} placeholder="مثال: الإمارات" />
+                                            </div>
+                                            <div className="hz-form-group">
+                                                <label className="hz-label">الإمارة</label>
+                                                <input className="hz-input" value={detailForm.emirate || ''} onChange={e => setDetailForm({ ...detailForm, emirate: e.target.value })} placeholder="مثال: أبوظبي" />
+                                            </div>
+                                        </div>
+                                        <div className="hz-form-group" style={{ marginBottom: 10 }}>
+                                            <label className="hz-label">الدبلوم المهتم به</label>
+                                            <input className="hz-input" value={detailForm.interestedDiploma || ''} onChange={e => setDetailForm({ ...detailForm, interestedDiploma: e.target.value })} placeholder="مثال: إدارة أعمال" />
+                                        </div>
+                                        <div className="hz-form-group" style={{ marginBottom: 10 }}>
+                                            <label className="hz-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                <span>درجة الاهتمام</span>
+                                                <span style={{ fontWeight: 900, color: parseInt(detailForm.levelOfInterest) >= 7 ? 'var(--hz-coral)' : 'var(--hz-neon)' }}>🔥 {detailForm.levelOfInterest || '0'}/10</span>
+                                            </label>
+                                            <input className="hz-input" type="range" min="0" max="10" value={detailForm.levelOfInterest || '0'} onChange={e => setDetailForm({ ...detailForm, levelOfInterest: e.target.value })} style={{ padding: '0px', height: '6px', background: 'var(--hz-border-soft)' }} />
+                                        </div>
                                     </div>
-                                    <div className="hz-form-group">
-                                        <label className="hz-label">مسؤول المبيعات</label>
-                                        <select className="hz-input" value={detailForm.salespersonId} onChange={e => setDetailForm({ ...detailForm, salespersonId: e.target.value })}>
-                                            <option value="">اختر...</option>
-                                            {employees.map((e: any) => (
-                                                <option key={e.userId} value={e.userId}>{`${e.user?.firstName || ''} ${e.user?.lastName || ''}`.trim()}</option>
-                                            ))}
-                                        </select>
+
+                                    {/* Section 3: Opportunity Details */}
+                                    <div>
+                                        <div style={{ fontSize: '0.75rem', fontWeight: 900, color: 'var(--hz-primary)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>💼 بيانات فرصة المبيعات</div>
+                                        
+                                        <div className="hz-form-group" style={{ marginBottom: 10 }}>
+                                            <label className="hz-label">اسم الفرصة</label>
+                                            <input className="hz-input" value={detailForm.name} onChange={e => setDetailForm({ ...detailForm, name: e.target.value })} />
+                                        </div>
+                                        <div className="hz-form-row cols-2" style={{ marginBottom: 10 }}>
+                                            <div className="hz-form-group">
+                                                <label className="hz-label">الإيرادات المتوقعة</label>
+                                                <input className="hz-input" type="number" value={detailForm.expectedRevenue} onChange={e => setDetailForm({ ...detailForm, expectedRevenue: e.target.value })} />
+                                            </div>
+                                            <div className="hz-form-group">
+                                                <label className="hz-label">الاحتمالية (%)</label>
+                                                <input className="hz-input" type="number" min={0} max={100} value={detailForm.probability} onChange={e => setDetailForm({ ...detailForm, probability: e.target.value })} />
+                                            </div>
+                                        </div>
+                                        <div className="hz-form-group" style={{ marginBottom: 10 }}>
+                                            <label className="hz-label">المرحلة</label>
+                                            <select className="hz-input" value={detailForm.stageId} onChange={e => setDetailForm({ ...detailForm, stageId: e.target.value })}>
+                                                {stages.map(s => <option key={s.id} value={s.id}>{s.nameAr || s.name}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="hz-form-group" style={{ marginBottom: 10 }}>
+                                            <label className="hz-label">مسؤول المبيعات</label>
+                                            <select className="hz-input" value={detailForm.salespersonId} onChange={e => setDetailForm({ ...detailForm, salespersonId: e.target.value })}>
+                                                <option value="">اختر...</option>
+                                                {employees.map((e: any) => (
+                                                    <option key={e.userId} value={e.userId}>{`${e.user?.firstName || ''} ${e.user?.lastName || ''}`.trim()}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="hz-form-group" style={{ marginBottom: 10 }}>
+                                            <label className="hz-label">الأولوية</label>
+                                            <select className="hz-input" value={detailForm.priority} onChange={e => setDetailForm({ ...detailForm, priority: e.target.value })}>
+                                                <option value="1">عادية</option>
+                                                <option value="2">مهمة</option>
+                                                <option value="3">عاجلة</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div className="hz-form-group">
-                                        <label className="hz-label">الأولوية</label>
-                                        <select className="hz-input" value={detailForm.priority} onChange={e => setDetailForm({ ...detailForm, priority: e.target.value })}>
-                                            <option value="1">عادية</option>
-                                            <option value="2">مهمة</option>
-                                            <option value="3">عاجلة</option>
-                                        </select>
-                                    </div>
+                                    
                                     <HzBtn variant="primary" onClick={saveDetail} style={{ width: '100%', marginTop: 8 }}>
                                         {savingDetail ? '...' : '💾 حفظ التغييرات'}
                                     </HzBtn>
