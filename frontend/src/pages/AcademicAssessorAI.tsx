@@ -240,6 +240,24 @@ export default function AcademicAssessorAI() {
         setToast({ type: 'success', message: `تم تحميل تقرير المرجع: ${record.id}` });
     };
 
+    const getTranslatedGrade = (gradeStr: string) => {
+        if (!gradeStr) return '';
+        const g = gradeStr.toString().trim().toUpperCase();
+        if (g === 'FAIL' || g === 'INCOMPLETE') {
+            return reportLanguage === 'Arabic' ? 'غير مكتمل' : 'INCOMPLETE';
+        }
+        if (g === 'PASS') {
+            return reportLanguage === 'Arabic' ? 'ناجح' : 'PASS';
+        }
+        if (g === 'MERIT') {
+            return reportLanguage === 'Arabic' ? 'جيد جداً' : 'MERIT';
+        }
+        if (g === 'DISTINCTION') {
+            return reportLanguage === 'Arabic' ? 'ممتاز' : 'DISTINCTION';
+        }
+        return gradeStr;
+    };
+
     const filteredRecords = savedRecords.filter(r => {
         const term = historySearch.toLowerCase();
         if (!term) return true;
@@ -701,7 +719,7 @@ export default function AcademicAssessorAI() {
                                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                                     <span style={{ fontWeight: 800, color: 'var(--hz-text-bright)' }}>{record.score}%</span>
                                                                     <span style={{ fontSize: '0.75rem', background: 'rgba(0, 245, 160, 0.1)', color: 'var(--hz-neon)', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
-                                                                        {record.grade}
+                                                                        {getTranslatedGrade(record.grade)}
                                                                     </span>
                                                                 </div>
                                                             </td>
@@ -927,7 +945,7 @@ export default function AcademicAssessorAI() {
                                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '15px' }}>
                                                 <div style={{ fontSize: '2.5rem', fontWeight: 900 }}>{report.score}%</div>
                                                 <div style={{ fontSize: '1.2rem', fontWeight: 900, textTransform: 'uppercase', marginTop: '5px', border: '1px solid #000', padding: '4px 15px' }}>
-                                                    {report.grade}
+                                                    {getTranslatedGrade(report.grade)}
                                                 </div>
                                             </div>
                                         </div>

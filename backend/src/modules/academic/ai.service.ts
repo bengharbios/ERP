@@ -13,7 +13,7 @@ export const aiService = {
 2. **قاعدة عدم توفر الأدلة (Zero Evidence Rule):** إذا أجاب الطالب على جزء محدد فقط من الواجب (على سبيل المثال: أجاب فقط على المخرج LO3 وتجاهل LO1 و LO2)، فيجب عليك إعطاء درجة (0) وحالة (Not Achieved) للمعايير غير المجاب عليها مع كتابة "لم يتم العثور على أي أدلة أو إجابة مقدمة من الطالب لهذا المعيار" في الوصف. يمنع منعاً باتاً منح أي درجات جزئية أو كاملة لمعايير لم يقدم الطالب دليلاً عليها.
 3. **الحساب الرياضي الفعلي للدرجة الكلية (Mathematical Score Summation):** الدرجة الإجمالية (score) يجب أن تكون مساوية تماماً للعملية الحسابية التالية: (مجموع الدرجات الفعلية الممنوحة awarded لجميع المعايير ÷ مجموع الحد الأقصى للدرجات max لجميع المعايير) × 100. يمنع منعاً باتاً تقدير الدرجة الإجمالية بشكل حدسي أو منفصل عن المجموع الفعلي الرياضي للمعايير.
 4. يجب مواءمة الدرجة الإجمالية (score) مع حقل التقدير الإجمالي (grade) وفقاً للمعايير الأكاديمية التالية:
-   - إذا كانت الدرجة الكلية أقل من 50%: التقدير Fail حتماً.
+    - إذا كانت الدرجة الكلية أقل من 50%: التقدير Incomplete حتماً.
    - من 50% إلى 59%: التقدير Pass.
    - من 60% إلى 69%: التقدير Merit.
    - من 70% إلى 100%: التقدير Distinction.
@@ -36,7 +36,7 @@ ${rubric}
 قم بتحليل الواجب وإخراج JSON بهذا الهيكل تماماً:
 {
   "score": <الدرجة الكلية الفعلية المحسوبة رياضياً بدقة بين 0-100>,
-  "grade": "Pass / Merit / Distinction / Fail",
+  "grade": "Pass / Merit / Distinction / Incomplete",
   "criteria": [
     { "id": "اسم المعيار", "max": 100, "awarded": <رقم دقيق>, "status": "Achieved/Not Achieved", "depth": "Analytical/Descriptive", "desc": "شرح الأسباب بالتفصيل الأكاديمي بالعربي" }
   ],
@@ -58,7 +58,7 @@ Strict Instructions & Mathematical Evaluation Rigor:
 2. **Zero Evidence Rule:** If a student only answers a specific part of the assignment (e.g., they only answered LO3 and completely skipped/ignored LO1 and LO2), you MUST strictly award a score of 0, mark the status as 'Not Achieved', and write "No evidence or answer provided by the student for this criterion." in the description. Do NOT award any partial or full marks for unanswered criteria.
 3. **Strict Mathematical Score Calculation:** The overall cumulative score (score) MUST be mathematically calculated exactly as: (Sum of actual awarded scores for all criteria ÷ Sum of maximum possible max scores for all criteria) * 100. Intuitive or disconnected scoring is strictly forbidden. The overall score MUST match this formula precisely.
 4. Align the cumulative score with the appropriate grade according to these academic rules:
-   - Score < 50%: grade MUST be Fail.
+   - Score < 50%: grade MUST be Incomplete.
    - Score 50% - 59%: grade MUST be Pass.
    - Score 60% - 69%: grade MUST be Merit.
    - Score 70% - 100%: grade MUST be Distinction.
@@ -77,7 +77,7 @@ ${rubric}
 Analyze and output JSON:
 {
   "score": <precise overall cumulative mathematically calculated score between 0 and 100>,
-  "grade": "<Pass/Merit/Distinction/Fail>",
+  "grade": "<Pass/Merit/Distinction/Incomplete>",
   "criteria": [
     { "id": "Criterion name", "max": 100, "awarded": <number>, "status": "Achieved/Not Achieved", "depth": "Analytical/Descriptive", "desc": "Detailed academic justification in English ONLY" }
   ],
