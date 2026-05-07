@@ -17,10 +17,10 @@ export const aiService = {
    - من 50% إلى 59%: التقدير Pass.
    - من 60% إلى 69%: التقدير Merit.
    - من 70% إلى 100%: التقدير Distinction.
-5. يجب أن يبدأ حقل "id" برمز المعيار (مثل: LO1, AC1.1, Task 1) متبوعاً بعنوان المعيار.
-6. يجب أن تكون **جميع** نصوص التقرير والتحليل باللغة العربية الفصحى حصراً، حتى لو كان الواجب أو المقياس باللغة الإنجليزية.
-7. يجب أن تكون قيم "status" هي (Achieved) أو (Not Achieved).
-8. يجب أن تكون قيم "depth" هي (Analytical) أو (Descriptive).
+5. يجب أن يبدأ حقل "id" برمز المعيار (مثل: LO1, AC1.1, Task 1) متبوعاً بعنوان المعيار باللغة الإنجليزية حصراً (ENGLISH ONLY) كما ورد في الروبريك.
+6. **قاعدة لغة معايير الجدول (Table Criteria Language Rule):** يجب أن تكون نصوص حقول الجدول الأكاديمي (بما في ذلك "id" و "desc" و "depth" و "status") مكتوبة باللغة الإنجليزية حصراً (ENGLISH ONLY). أما بقية حقول التقرير العامة (مثل strengths, improvements, integrity, thinking) فتُكتب باللغة العربية الفصحى.
+7. يجب أن تكون قيم "status" هي (Achieved) أو (Not Achieved) بالإنجليزية حصراً.
+8. يجب أن تكون قيم "depth" هي (Analytical) أو (Descriptive) بالإنجليزية حصراً.
 9. أجب فقط بصيغة JSON، بدون أي نصوص إضافية.
 
 البيانات:
@@ -38,7 +38,7 @@ ${rubric}
   "score": <الدرجة الكلية الفعلية المحسوبة رياضياً بدقة بين 0-100>,
   "grade": "Pass / Merit / Distinction / Incomplete",
   "criteria": [
-    { "id": "اسم المعيار", "max": 100, "awarded": <رقم دقيق>, "status": "Achieved/Not Achieved", "depth": "Analytical/Descriptive", "desc": "شرح الأسباب بالتفصيل الأكاديمي بالعربي" }
+    { "id": "رمز واسم المعيار باللغة الإنجليزية حصراً", "max": 100, "awarded": <رقم دقيق>, "status": "Achieved/Not Achieved", "depth": "Analytical/Descriptive", "desc": "شرح الأسباب والتقييم الأكاديمي باللغة الإنجليزية حصراً ENGLISH ONLY" }
   ],
   "strengths": ["نقطة قوة 1 بالعربي", "نقطة قوة 2 بالعربي"],
   "improvements": ["نقطة تحسين 1 بالعربي", "نقطة تحسين 2 بالعربي"],
