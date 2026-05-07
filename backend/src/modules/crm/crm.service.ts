@@ -62,10 +62,11 @@ export const crmService = {
                 }
             });
         } else {
-            // Update existing lead fields if provided
+            // Update existing lead fields if provided (including name if different/provided)
             await prisma.crmLead.update({
                 where: { id: lead.id },
                 data: {
+                    name: parsedData.name || lead.name,
                     nationality: parsedData.nationality || lead.nationality,
                     emirate: parsedData.emirate || lead.emirate,
                     interestedDiploma: parsedData.diploma || lead.interestedDiploma,
