@@ -8,7 +8,7 @@ export async function getLeads(req: Request, res: Response) {
             teamId: req.query.teamId as string,
             salespersonId: req.query.salespersonId as string,
             stageId: req.query.stageId as string,
-            isDuplicate: req.query.isDuplicate === 'true',
+            isDuplicate: req.query.isDuplicate !== undefined ? req.query.isDuplicate === 'true' : undefined,
             search: req.query.search as string
         };
 
