@@ -175,6 +175,40 @@ export class GoogleSheetsService {
             throw new Error('فشل مطابقة عناوين الأعمدة تلقائياً. يرجى التأكد من وجود عمود باسم "الاسم" وعمود باسم "الهاتف" أو "رقم الهاتف" في السطر الأول.');
         }
 
+        // Ordered priority keys to construct notes/status reports in a logical flow
+        const orderedNoteKeys = [
+            { label: 'هل تم الإتصال؟', keywords: ['اتصال', 'call', 'تواصل'] },
+            { label: 'هل رد العميل؟', keywords: ['رد', 'answer'] },
+            { label: 'اهتمام العميل', keywords: ['مهتم', 'interested'] },
+            { label: 'درجة الإهتمام', keywords: ['درجة', 'level'] },
+            { label: 'فئة المعاملة', keywords: ['فئة', 'category'] },
+            { label: 'وصف المعاملة (التخصص)', keywords: ['وصف', 'description', 'تخصص'] },
+            { label: 'حالة المعاملة', keywords: ['حالة', 'status'] },
+            { label: 'ملاحظات العميل', keywords: ['ملاحظات', 'note', 'comment'] }
+        ];
+
+        const orderedMapping: { label: string; index: number }[] = [];
+        orderedNoteKeys.forEach(keyObj => {
+            const foundIdx = headers.findIndex((h, idx) => {
+                if (
+                    idx === mapping['name'] || 
+                    idx === mapping['phone'] || 
+                    idx === mapping['mobile'] || 
+                    idx === mapping['emailFrom'] || 
+                    idx === mapping['nationality'] || 
+                    idx === mapping['emirate']
+                ) {
+                    return false;
+                }
+                const cleanH = h.trim().toLowerCase().replace(/[^a-zA-Z0-9\u0621-\u064A]/g, '');
+                return keyObj.keywords.some(kw => cleanH.includes(kw));
+            });
+            
+            if (foundIdx !== -1) {
+                orderedMapping.push({ label: keyObj.label, index: foundIdx });
+            }
+        });
+
         // Fetch default stage for NEW leads
         const defaultStage = await prisma.crmStage.findFirst({
             where: { isActive: true },
@@ -236,39 +270,13 @@ export class GoogleSheetsService {
             }
 
             try {
-                // Gather all potential note/description/status columns from the sheet for this row
+                // Gather potential note/description/status columns in strict, beautiful prioritized order
                 const extraNotes: string[] = [];
-                headers.forEach((header, colIdx) => {
-                    const val = row[colIdx]?.toString().trim();
+                orderedMapping.forEach(mapObj => {
+                    const val = row[mapObj.index]?.toString().trim();
                     if (val && val !== '-' && val !== '') {
-                        const cleanH = header.trim().toLowerCase().replace(/[^a-zA-Z0-9\u0621-\u064A]/g, '');
-                        
-                        // Capture columns that represent notes, descriptions, classifications, call outcomes or interest levels
-                        if (
-                            colIdx !== mapping['name'] &&
-                            colIdx !== mapping['phone'] &&
-                            colIdx !== mapping['mobile'] &&
-                            colIdx !== mapping['emailFrom'] &&
-                            (cleanH.includes('ملاحظات') || 
-                             cleanH.includes('note') || 
-                             cleanH.includes('comment') ||
-                             cleanH.includes('تفاصيل') || 
-                             cleanH.includes('وصف') || 
-                             cleanH.includes('description') ||
-                             cleanH.includes('حالة') || 
-                             cleanH.includes('status') ||
-                             cleanH.includes('اهتمام') || 
-                             cleanH.includes('interest') ||
-                             cleanH.includes('رد') ||
-                             cleanH.includes('اتصال') ||
-                             cleanH.includes('تواصل') ||
-                             cleanH.includes('call') ||
-                             cleanH.includes('تخصص') ||
-                             cleanH.includes('فئة'))
-                        ) {
-                            const headerName = header.replace(/\n/g, ' ').trim();
-                            extraNotes.push(`• **${headerName}**: ${val}`);
-                        }
+                        const originalHeader = headers[mapObj.index].replace(/\n/g, ' ').trim();
+                        extraNotes.push(`• **${originalHeader}**: ${val}`);
                     }
                 });
 
