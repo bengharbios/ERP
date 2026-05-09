@@ -236,6 +236,42 @@ export class GoogleSheetsService {
             }
 
             try {
+                // Gather all potential note/description/status columns from the sheet for this row
+                const extraNotes: string[] = [];
+                headers.forEach((header, colIdx) => {
+                    const val = row[colIdx]?.toString().trim();
+                    if (val && val !== '-' && val !== '') {
+                        const cleanH = header.trim().toLowerCase().replace(/[^a-zA-Z0-9\u0621-\u064A]/g, '');
+                        
+                        // Capture columns that represent notes, descriptions, classifications, call outcomes or interest levels
+                        if (
+                            colIdx !== mapping['name'] &&
+                            colIdx !== mapping['phone'] &&
+                            colIdx !== mapping['mobile'] &&
+                            colIdx !== mapping['emailFrom'] &&
+                            (cleanH.includes('ملاحظات') || 
+                             cleanH.includes('note') || 
+                             cleanH.includes('comment') ||
+                             cleanH.includes('تفاصيل') || 
+                             cleanH.includes('وصف') || 
+                             cleanH.includes('description') ||
+                             cleanH.includes('حالة') || 
+                             cleanH.includes('status') ||
+                             cleanH.includes('اهتمام') || 
+                             cleanH.includes('interest') ||
+                             cleanH.includes('رد') ||
+                             cleanH.includes('اتصال') ||
+                             cleanH.includes('تواصل') ||
+                             cleanH.includes('call') ||
+                             cleanH.includes('تخصص') ||
+                             cleanH.includes('فئة'))
+                        ) {
+                            const headerName = header.replace(/\n/g, ' ').trim();
+                            extraNotes.push(`• **${headerName}**: ${val}`);
+                        }
+                    }
+                });
+
                 // Check if lead already exists in ERP
                 const existingLeads = await prisma.crmLead.findMany({
                     where: {
@@ -268,9 +304,12 @@ export class GoogleSheetsService {
                     });
 
                     // Append the spreadsheet row comment as a new timeline note
-                    const formattedNote = noteValue 
-                        ? `🔄 تكرار تواصل من Google Sheet (السطر رقم ${i + 1}):\n${noteValue}` 
-                        : `🔄 تكرار تواصل من Google Sheet (السطر رقم ${i + 1} - بدون ملاحظات إضافية).`;
+                    let formattedNote = `🔄 تكرار تواصل من Google Sheet (السطر رقم ${i + 1})`;
+                    if (extraNotes.length > 0) {
+                        formattedNote += `:\n\n${extraNotes.join('\n')}`;
+                    } else {
+                        formattedNote += ` (بدون ملاحظات إضافية في الشيت).`;
+                    }
 
                     await prisma.crmNote.create({
                         data: {
@@ -310,7 +349,10 @@ export class GoogleSheetsService {
                     const noteParts: string[] = [];
                     noteParts.push(`📥 تم الاستيراد بنجاح من Google Sheet (السطر رقم ${i + 1})`);
                     if (sourceValue) noteParts.push(`📌 مصدر القناة: ${sourceValue}`);
-                    if (noteValue) noteParts.push(`📝 ملاحظة الشيت: ${noteValue}`);
+                    
+                    if (extraNotes.length > 0) {
+                        noteParts.push(`\n📝 **بيانات وملاحظات الشيت المستوردة:**\n${extraNotes.join('\n')}`);
+                    }
 
                     await prisma.crmNote.create({
                         data: {
