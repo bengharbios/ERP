@@ -315,14 +315,30 @@ export class GoogleSheetsService {
                 if (!existing && mobileNormalized) existing = phoneMap.get(mobileNormalized);
 
                 if (existing) {
-                    // Check if this specific row has already been logged as a note for this lead
-                    const isAlreadySynced = existing.notes.some(n => 
-                        n.content.includes(`السطر رقم ${i + 1}`) ||
-                        n.content.includes(`(السطر رقم ${i + 1})`)
-                    );
+                    // Append the spreadsheet row comment as a new timeline note
+                    let formattedNote = `🔄 تكرار تواصل من Google Sheet (السطر رقم ${i + 1})`;
+                    if (extraNotes.length > 0) {
+                        formattedNote += `:\n\n${extraNotes.join('\n')}`;
+                    } else {
+                        formattedNote += ` (بدون ملاحظات إضافية في الشيت).`;
+                    }
+
+                    // Check if this specific row and its note content are already fully synced
+                    const isAlreadySynced = existing.notes.some(n => {
+                        const hasRowMarker = n.content.includes(`السطر رقم ${i + 1}`) || n.content.includes(`(السطر رقم ${i + 1})`);
+                        if (!hasRowMarker) return false;
+                        
+                        // If we have extra notes in the sheet, check if they are already present in this note
+                        if (extraNotes.length > 0) {
+                            const extraNotesStr = extraNotes.join('\n');
+                            return n.content.includes(extraNotesStr);
+                        }
+                        
+                        return true; // No extra notes in sheet, and row marker matches, so it is fully synced
+                    });
 
                     if (isAlreadySynced) {
-                        // Already synced! Skip any database writes for this duplicate row!
+                        // Already synced with identical notes! Skip database write!
                         continue;
                     }
 
@@ -355,14 +371,6 @@ export class GoogleSheetsService {
                     if (!existing.emirate) existing.emirate = emirateValue || null;
                     if (!existing.interestedDiploma) existing.interestedDiploma = diplomaValue || null;
                     if (!existing.levelOfInterest) existing.levelOfInterest = levelValue || null;
-
-                    // Append the spreadsheet row comment as a new timeline note
-                    let formattedNote = `🔄 تكرار تواصل من Google Sheet (السطر رقم ${i + 1})`;
-                    if (extraNotes.length > 0) {
-                        formattedNote += `:\n\n${extraNotes.join('\n')}`;
-                    } else {
-                        formattedNote += ` (بدون ملاحظات إضافية في الشيت).`;
-                    }
 
                     await prisma.crmNote.create({
                         data: {
