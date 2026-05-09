@@ -175,16 +175,9 @@ export class GoogleSheetsService {
             throw new Error('فشل مطابقة عناوين الأعمدة تلقائياً. يرجى التأكد من وجود عمود باسم "الاسم" وعمود باسم "الهاتف" أو "رقم الهاتف" في السطر الأول.');
         }
 
-        // Ordered priority keys to construct notes/status reports in a logical flow
+        // Ordered note keys to construct monthly/general notes in a clean chronological sequence
         const orderedNoteKeys = [
-            { label: 'هل تم الإتصال؟', keywords: ['اتصال', 'call', 'تواصل'] },
-            { label: 'هل رد العميل؟', keywords: ['رد', 'answer'] },
-            { label: 'اهتمام العميل', keywords: ['مهتم', 'interested'] },
-            { label: 'درجة الإهتمام', keywords: ['درجة', 'level'] },
-            { label: 'فئة المعاملة', keywords: ['فئة', 'category'] },
-            { label: 'وصف المعاملة (التخصص)', keywords: ['وصف', 'description', 'تخصص'] },
-            { label: 'حالة المعاملة', keywords: ['حالة', 'status'] },
-            { label: 'ملاحظات العميل', keywords: ['ملاحظات', 'note', 'comment'] }
+            { label: 'الملاحظات', keywords: ['ملاحظات', 'note', 'comment'] }
         ];
 
         const orderedMapping: { label: string; index: number }[] = [];
@@ -304,13 +297,13 @@ export class GoogleSheetsService {
             }
 
             try {
-                // Gather potential note/description/status columns in strict, beautiful prioritized order
+                // Gather actual monthly and general notes in a clean sequential order
                 const extraNotes: string[] = [];
                 orderedMapping.forEach(mapObj => {
                     const val = row[mapObj.index]?.toString().trim();
                     if (val && val !== '-' && val !== '') {
                         const originalHeader = headers[mapObj.index].replace(/\n/g, ' ').trim();
-                        extraNotes.push(`• **${originalHeader}**: ${val}`);
+                        extraNotes.push(`📌 **${originalHeader}**:\n${val}`);
                     }
                 });
 
