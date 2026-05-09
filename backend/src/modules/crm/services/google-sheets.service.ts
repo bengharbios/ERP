@@ -259,12 +259,16 @@ export class GoogleSheetsService {
             const row = rows[i];
             summary.totalProcessed++;
 
-            const nameValue = row[mapping['name']]?.toString().trim();
+            let nameValue = row[mapping['name']]?.toString().trim();
             const phoneValue = row[mapping['phone']]?.toString().trim();
 
-            if (!nameValue || !phoneValue) {
-                summary.errors.push(`السطر رقم ${i + 1}: تم تخطيه لعدم وجود اسم أو رقم هاتف.`);
+            if (!phoneValue) {
+                summary.errors.push(`السطر رقم ${i + 1}: تم تخطيه لعدم وجود رقم هاتف.`);
                 continue;
+            }
+
+            if (!nameValue) {
+                nameValue = 'عميل';
             }
 
             const mobileValue = mapping['mobile'] !== undefined ? row[mapping['mobile']]?.toString().trim() : undefined;
