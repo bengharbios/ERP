@@ -175,9 +175,11 @@ export class GoogleSheetsService {
             throw new Error('فشل مطابقة عناوين الأعمدة تلقائياً. يرجى التأكد من وجود عمود باسم "الاسم" وعمود باسم "الهاتف" أو "رقم الهاتف" في السطر الأول.');
         }
 
-        // Ordered note keys to construct monthly/general notes in a clean chronological sequence
+        // Ordered note keys to construct monthly and status notes in a clean chronological sequence
         const orderedNoteKeys = [
-            { label: 'الملاحظات', keywords: ['ملاحظات', 'note', 'comment'] }
+            { label: 'الملاحظات', keywords: ['ملاحظات', 'note', 'comment'] },
+            { label: 'درجة الاهتمام', keywords: ['درجة', 'level'] },
+            { label: 'حالة التواصل / اهتمام العميل', keywords: ['مهتم', 'interested', 'يتسفر', 'حالة', 'status', 'رد', 'answer', 'اتصال', 'call', 'تواصل'] }
         ];
 
         const orderedMapping: { label: string; index: number }[] = [];

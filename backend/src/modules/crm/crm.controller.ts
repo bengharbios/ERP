@@ -61,6 +61,71 @@ async function getDynamicBot() {
                 console.error('Telegram Parse Error:', error.message);
                 ctx.reply('⚠️ عذراً، حدث خطأ أثناء قراءة التقرير. تأكد من التنسيق الصحيح.');
             }
+        } else if (text.startsWith('/search') || text.startsWith('/find') || text.startsWith('/بحث') || /^\+?[0-9\s\-]{8,18}$/.test(text.trim())) {
+            try {
+                let searchPhone = text.trim();
+                if (searchPhone.startsWith('/search') || searchPhone.startsWith('/find') || searchPhone.startsWith('/بحث')) {
+                    searchPhone = searchPhone.replace(/^\/(search|find|بحث)\s*/, '').trim();
+                }
+
+                if (!searchPhone) {
+                    ctx.reply('⚠️ يرجى إدخال رقم الهاتف المراد البحث عنه. مثال:\n971501234567');
+                    return;
+                }
+
+                const { normalizePhone } = require('./services/lead.service');
+                const normalized = normalizePhone(searchPhone);
+
+                const results = await prisma.crmLead.findMany({
+                    where: {
+                        OR: [
+                            normalized ? { phoneNormalized: normalized } : undefined,
+                            normalized ? { mobileNormalized: normalized } : undefined,
+                            { phone: { contains: searchPhone } },
+                            { mobile: { contains: searchPhone } }
+                        ].filter(Boolean) as any
+                    },
+                    include: {
+                        notes: {
+                            orderBy: { createdAt: 'desc' },
+                            take: 2
+                        }
+                    }
+                });
+
+                if (results.length === 0) {
+                    ctx.reply(`🔍 لم يتم العثور على أي عميل مسجل بالرقم: ${searchPhone}`);
+                } else {
+                    let replyMsg = `🔍 **نتائج البحث للرقم (${searchPhone}):**\n\n`;
+                    results.forEach((lead, index) => {
+                        replyMsg += `${index + 1}. 👤 **الاسم**: ${lead.name}\n`;
+                        replyMsg += `📞 **الهاتف**: ${lead.phone || 'غير متوفر'}\n`;
+                        if (lead.mobile) replyMsg += `📱 **الموبايل**: ${lead.mobile}\n`;
+                        if (lead.nationality) replyMsg += `🌍 **الجنسية**: ${lead.nationality}\n`;
+                        if (lead.emirate) replyMsg += `📍 **الإمارة**: ${lead.emirate}\n`;
+                        if (lead.interestedDiploma) replyMsg += `🎓 **الدبلوم المهتم به**: ${lead.interestedDiploma}\n`;
+                        if (lead.levelOfInterest) replyMsg += `🔥 **درجة الاهتمام**: ${lead.levelOfInterest}/10\n`;
+                        if (lead.platform) replyMsg += `📢 **المصدر**: ${lead.platform}\n`;
+                        
+                        if (lead.duplicateCount > 0) {
+                            replyMsg += `🔄 **التكرار**: مكرر ${lead.duplicateCount} مرة\n`;
+                        }
+
+                        if (lead.notes && lead.notes.length > 0) {
+                            replyMsg += `\n📝 **آخر الملاحظات والأنشطة:**\n`;
+                            lead.notes.forEach((note: any) => {
+                                const dateStr = new Date(note.createdAt).toLocaleDateString('ar-AE', { day: 'numeric', month: 'numeric' });
+                                replyMsg += `• [${dateStr}] ${note.content.substring(0, 150)}${note.content.length > 150 ? '...' : ''}\n`;
+                            });
+                        }
+                        replyMsg += `\n──────────────────\n`;
+                    });
+                    ctx.reply(replyMsg);
+                }
+            } catch (err: any) {
+                console.error('Telegram Search Error:', err.message);
+                ctx.reply('⚠️ عذراً، حدث خطأ أثناء البحث عن الهاتف.');
+            }
         } else if (text === '/start') {
             ctx.reply('مرحباً بك في بوت CRM السلام. أرسل تقرير العميل هنا ليتم تسجيله تلقائياً.');
         }
