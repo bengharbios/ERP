@@ -112,25 +112,25 @@ export class GoogleSheetsService {
         headers.forEach((header, index) => {
             const h = clean(header);
             
-            if (['الاسم', 'اسم', 'اسمالعميل', 'name', 'fullname', 'clientname'].includes(h)) {
+            if (['الاسم', 'اسم', 'اسمالعميل', 'name', 'fullname', 'clientname', 'اسمالعميلcustomername'].includes(h)) {
                 mapping['name'] = index;
-            } else if (['الهاتف', 'رقمالهاتف', 'الهاتفالموبايل', 'رقم', 'phone', 'phonenumber', 'telephone'].includes(h)) {
+            } else if (['الهاتف', 'رقمالهاتف', 'الهاتفالموبايل', 'رقم', 'phone', 'phonenumber', 'telephone', 'column4'].includes(h)) {
                 mapping['phone'] = index;
             } else if (['الموبايل', 'رقمالموبايل', 'موبايل', 'mobile', 'mobilenumber'].includes(h)) {
                 mapping['mobile'] = index;
-            } else if (['البريد', 'البريدالإلكتروني', 'البريدالالكتروني', 'email', 'emailaddress'].includes(h)) {
+            } else if (['البريد', 'البريدالإلكتروني', 'البريدالالكتروني', 'email', 'emailaddress', 'إيميلالعميلcustomeremail', 'customeremail'].includes(h)) {
                 mapping['emailFrom'] = index;
-            } else if (['الجنسية', 'جنسية', 'nationality', 'country'].includes(h)) {
+            } else if (['الجنسية', 'جنسية', 'nationality', 'country', 'الجنسية-'].includes(h)) {
                 mapping['nationality'] = index;
             } else if (['الإمارة', 'الامارة', 'المدينة', 'العنوان', 'emirate', 'city', 'address'].includes(h)) {
                 mapping['emirate'] = index;
-            } else if (['الدبلوم', 'التخصص', 'الدورة', 'البرنامجالمهتمبه', 'diploma', 'program', 'course', 'interesteddiploma'].includes(h)) {
+            } else if (['الدبلوم', 'التخصص', 'الدورة', 'البرنامجالمهتمبه', 'diploma', 'program', 'course', 'interesteddiploma', 'درجةالإهتمامlevelofinterest'].includes(h)) {
                 mapping['interestedDiploma'] = index;
-            } else if (['مستوىالاهتمام', 'الاهتمام', 'levelofinterest', 'interest', 'interestlevel'].includes(h)) {
+            } else if (['مستوىالاهتمام', 'الاهتمام', 'levelofinterest', 'interest', 'interestlevel', 'درجةالاهتمامlevelofinterest'].includes(h)) {
                 mapping['levelOfInterest'] = index;
-            } else if (['ملاحظات', 'ملاحظة', 'التفاصيل', 'notes', 'note', 'comments', 'comment'].includes(h)) {
+            } else if (['ملاحظات', 'ملاحظة', 'التفاصيل', 'notes', 'note', 'comments', 'comment', 'ملاحظاتnotes'].includes(h)) {
                 mapping['notes'] = index;
-            } else if (['المصدر', 'المنصة', 'source', 'platform', 'leadsource'].includes(h)) {
+            } else if (['المصدر', 'المنصة', 'source', 'platform', 'leadsource', 'المنصةplatform', 'platform'].includes(h)) {
                 mapping['source'] = index;
             }
         });
