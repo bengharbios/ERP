@@ -132,6 +132,8 @@ export class GoogleSheetsService {
                 mapping['notes'] = index;
             } else if (['المصدر', 'المنصة', 'source', 'platform', 'leadsource', 'المنصةplatform', 'platform'].includes(h)) {
                 mapping['source'] = index;
+            } else if (['تاريخالتسجيل', 'تاريخالإنشاء', 'تاريخالاضافه', 'تاريخ', 'التاريخ', 'date', 'createdat', 'timestamp', 'registrationdate'].includes(h)) {
+                mapping['createdAt'] = index;
             }
         });
 
@@ -273,6 +275,33 @@ export class GoogleSheetsService {
             const diplomaValue = mapping['interestedDiploma'] !== undefined ? row[mapping['interestedDiploma']]?.toString().trim() : undefined;
             const rawInterest = mapping['levelOfInterest'] !== undefined ? row[mapping['levelOfInterest']]?.toString().trim() : undefined;
             const sourceValue = mapping['source'] !== undefined ? row[mapping['source']]?.toString().trim() : 'Google Sheet';
+            const dateValue = mapping['createdAt'] !== undefined ? row[mapping['createdAt']]?.toString().trim() : undefined;
+
+            // Parse registration date safely
+            let parsedDate: Date | null = null;
+            if (dateValue) {
+                const cleanDateStr = dateValue.replace(/\n/g, ' ').trim();
+                const ts = Date.parse(cleanDateStr);
+                if (!isNaN(ts)) {
+                    parsedDate = new Date(ts);
+                } else {
+                    // Handle DD/MM/YYYY or DD.MM.YYYY
+                    const parts = cleanDateStr.split(/[\/\-\.\s]+/);
+                    if (parts.length >= 3) {
+                        const day = parseInt(parts[0]);
+                        const month = parseInt(parts[1]) - 1; // 0-indexed
+                        let year = parseInt(parts[2]);
+                        if (year < 100) year += 2000;
+
+                        if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                            const d1 = new Date(year, month, day);
+                            if (!isNaN(d1.getTime())) {
+                                parsedDate = d1;
+                            }
+                        }
+                    }
+                }
+            }
 
             // Parse level of interest to number safely
             let levelValue: number | null = null;
@@ -413,6 +442,7 @@ export class GoogleSheetsService {
                             isDuplicate: false,
                             duplicateCount: 0,
                             salespersonId: userId,
+                            createdAt: parsedDate || undefined,
                         }
                     });
 

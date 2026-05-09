@@ -914,10 +914,13 @@ export default function CRMLeads2026() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {filtered.map((lead: any) => (
+                                            {filtered.map((lead: any, index: number) => (
                                                 <tr key={lead.id} className={lead.isDuplicate ? 'crm-dup-row' : ''} onClick={() => openModal(lead)}>
                                                     <td>
                                                         <div className="crm-cell-name">
+                                                            <span style={{ fontSize: '0.82rem', color: 'var(--hz-text-muted)', fontWeight: 800, minWidth: 28, display: 'inline-block', textAlign: 'center', marginLeft: 6 }}>
+                                                                #{index + 1}
+                                                            </span>
                                                             <div className="crm-cell-avatar">{lead.name?.charAt(0)?.toUpperCase() || '؟'}</div>
                                                             <div>
                                                                 <div className="crm-cell-name-text">
@@ -950,11 +953,14 @@ export default function CRMLeads2026() {
                         ) : (
                             /* ── KANBAN ── */
                             <div className="crm-kanban">
-                                {filtered.map((lead: any) => {
+                                {filtered.map((lead: any, index: number) => {
                                     const srcNote = lead.notes?.find((n: any) => n.content?.startsWith('📌'));
                                     const src = srcNote?.content?.replace('📌 مصدر العميل: ', '') || '';
                                     return (
                                         <div key={lead.id} className="crm-card" onClick={() => openModal(lead)}>
+                                            <span style={{ position: 'absolute', top: 12, left: 12, fontSize: '0.72rem', color: 'var(--hz-text-muted)', fontWeight: 800 }}>
+                                                #{index + 1}
+                                            </span>
                                             {lead.isDuplicate && (
                                                 <div className="crm-card-dup-badge" style={{ background: '#FF6B00', color: '#fff', fontSize: '0.68rem', fontWeight: 'bold', padding: '3px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '3px' }}>
                                                     🔥 مكرر {lead.duplicateCount ? `${lead.duplicateCount} مرات` : ''}
