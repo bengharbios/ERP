@@ -18,20 +18,27 @@ export class GoogleSheetsService {
 
         // Fallback to local JSON file if environment variables are not set (local development)
         if (!clientEmail || !privateKey) {
-            const credentialsPath = path.join(process.cwd(), 'google-credentials.json');
+            let credentialsPath = path.join(__dirname, '../../../../google-credentials.json');
             
             if (!fs.existsSync(credentialsPath)) {
+                credentialsPath = path.join(process.cwd(), 'google-credentials.json');
+            }
+            if (!fs.existsSync(credentialsPath)) {
+                credentialsPath = path.join(process.cwd(), 'backend', 'google-credentials.json');
+            }
+
+            if (fs.existsSync(credentialsPath)) {
+                try {
+                    const credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
+                    clientEmail = credentials.client_email;
+                    privateKey = credentials.private_key;
+                } catch (err: any) {
+                    throw new Error(`فشل قراءة ملف المفتاح السري المحلي: ${err.message}`);
+                }
+            } else {
                 throw new Error(
                     'بيانات تسجيل الدخول لجوجل شيتس غير متوفرة. يرجى إضافة المتغيرات GOOGLE_SERVICE_ACCOUNT_EMAIL و GOOGLE_PRIVATE_KEY في لوحة تحكم Vercel، أو توفير ملف google-credentials.json محلياً.'
                 );
-            }
-
-            try {
-                const credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
-                clientEmail = credentials.client_email;
-                privateKey = credentials.private_key;
-            } catch (err: any) {
-                throw new Error(`فشل قراءة ملف المفتاح السري المحلي: ${err.message}`);
             }
         }
 
