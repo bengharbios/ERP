@@ -201,6 +201,7 @@ export default function CRMLeads2026() {
     const [sheetRange, setSheetRange] = useState(() => localStorage.getItem('crm_sync_sheet_range') || 'Sheet1!A:Z');
     const [syncing, setSyncing] = useState(false);
     const [syncSummary, setSyncSummary] = useState<any>(null);
+    const [syncProgress, setSyncProgress] = useState<string | null>(null);
 
     const handleSyncGoogleSheets = async () => {
         if (!sheetUrl.trim()) {
@@ -210,27 +211,63 @@ export default function CRMLeads2026() {
 
         setSyncing(true);
         setSyncSummary(null);
+        setSyncProgress(null);
         localStorage.setItem('crm_sync_sheet_url', sheetUrl.trim());
         localStorage.setItem('crm_sync_sheet_range', sheetRange.trim());
 
-        try {
-            const res = await leadApi.syncGoogleSheets({
-                spreadsheetUrl: sheetUrl.trim(),
-                range: sheetRange.trim()
-            });
+        let totalProcessed = 0;
+        let createdCount = 0;
+        let duplicateCount = 0;
+        let errors: string[] = [];
 
-            if (res.success) {
-                setSyncSummary(res.summary);
-                setToast({ type: 'success', message: '✅ اكتملت المزامنة بنجاح!' });
+        const runBatch = async () => {
+            try {
+                const res = await leadApi.syncGoogleSheets({
+                    spreadsheetUrl: sheetUrl.trim(),
+                    range: sheetRange.trim()
+                });
+
+                if (res.success) {
+                    const s = res.summary;
+                    totalProcessed = s.totalProcessed; // Cumulative as server always starts counting from row 1
+                    createdCount += s.createdCount;
+                    duplicateCount += s.duplicateCount;
+                    if (s.errors && s.errors.length > 0) {
+                        errors = [...errors, ...s.errors];
+                    }
+
+                    // Set cumulative summary
+                    setSyncSummary({
+                        totalProcessed,
+                        createdCount,
+                        duplicateCount,
+                        errors: errors.slice(0, 150)
+                    });
+
+                    if (res.reachedBatchLimit) {
+                        setSyncProgress(`📥 تم معالجة ${totalProcessed} سطر بنجاح. جاري استكمال بقية العملاء تلقائياً لمنع تعليق السيرفر...`);
+                        setTimeout(runBatch, 1000); // 1s cooldown between database batch writes
+                    } else {
+                        setSyncProgress(null);
+                        setToast({ type: 'success', message: '✅ اكتملت المزامنة لجميع العملاء والأسطر بنجاح!' });
+                        setSyncing(false);
+                        fetchAll();
+                    }
+                } else {
+                    setSyncProgress(null);
+                    setToast({ type: 'error', message: `❌ فشل: ${res.message}` });
+                    setSyncing(false);
+                    fetchAll();
+                }
+            } catch (err: any) {
+                setSyncProgress(null);
+                setToast({ type: 'error', message: `❌ فشل المزامنة: ${err?.response?.data?.error?.message || err.message}` });
+                setSyncing(false);
                 fetchAll();
-            } else {
-                setToast({ type: 'error', message: `❌ فشل: ${res.message}` });
             }
-        } catch (err: any) {
-            setToast({ type: 'error', message: `❌ فشل المزامنة: ${err?.response?.data?.error?.message || err.message}` });
-        } finally {
-            setSyncing(false);
-        }
+        };
+
+        await runBatch();
     };
 
     const dupTimerRef = useRef<any>(null);
@@ -1488,9 +1525,11 @@ export default function CRMLeads2026() {
 
                     {/* Loading State */}
                     {syncing && (
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '20px 0' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '20px 0', textAlign: 'center' }}>
                             <HzLoader size={40} color="var(--hz-green)" />
-                            <span style={{ fontSize: '0.9rem', color: 'var(--hz-text-secondary)', fontWeight: 'bold' }}>جاري سحب البيانات ومطابقة الأرقام... يرجى الانتظار</span>
+                            <span style={{ fontSize: '0.88rem', color: 'var(--hz-text-secondary)', fontWeight: 'bold', maxWidth: '500px', lineHeight: '1.5' }}>
+                                {syncProgress || 'جاري سحب البيانات ومطابقة الأرقام وحساب المكررات... يرجى الانتظار'}
+                            </span>
                         </div>
                     )}
 

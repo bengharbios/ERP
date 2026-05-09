@@ -495,6 +495,7 @@ export class GoogleSheetsService {
         return {
             success: true,
             message: customMessage,
+            reachedBatchLimit,
             summary
         };
     }
