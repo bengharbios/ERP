@@ -10,24 +10,42 @@ import { normalizePhone } from './lead.service';
 export class GoogleSheetsService {
     private static auth: any = null;
 
-    /**
-     * Get or initialize Google JWT authentication.
-     */
     private static getAuth(): any {
         if (this.auth) return this.auth;
 
-        const credentialsPath = path.join(process.cwd(), 'google-credentials.json');
-        
-        if (!fs.existsSync(credentialsPath)) {
-            throw new Error('الملف السري google-credentials.json غير موجود في مجلد السيرفر (backend). يرجى التأكد من رفعه بشكل صحيح.');
+        let clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+        let privateKey = process.env.GOOGLE_PRIVATE_KEY;
+
+        // Fallback to local JSON file if environment variables are not set (local development)
+        if (!clientEmail || !privateKey) {
+            const credentialsPath = path.join(process.cwd(), 'google-credentials.json');
+            
+            if (!fs.existsSync(credentialsPath)) {
+                throw new Error(
+                    'بيانات تسجيل الدخول لجوجل شيتس غير متوفرة. يرجى إضافة المتغيرات GOOGLE_SERVICE_ACCOUNT_EMAIL و GOOGLE_PRIVATE_KEY في لوحة تحكم Vercel، أو توفير ملف google-credentials.json محلياً.'
+                );
+            }
+
+            try {
+                const credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
+                clientEmail = credentials.client_email;
+                privateKey = credentials.private_key;
+            } catch (err: any) {
+                throw new Error(`فشل قراءة ملف المفتاح السري المحلي: ${err.message}`);
+            }
         }
 
-        const credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
+        if (!clientEmail || !privateKey) {
+            throw new Error('بيانات حساب الخدمة السحابي لجوجل ناقصة أو فارغة. يرجى التحقق من متغيرات البيئة.');
+        }
+
+        // Standardize newline characters in the private key (highly crucial for Vercel multiline keys)
+        const formattedPrivateKey = privateKey.replace(/\\n/g, '\n');
 
         this.auth = new google.auth.JWT(
-            credentials.client_email,
+            clientEmail,
             undefined,
-            credentials.private_key,
+            formattedPrivateKey,
             [
                 'https://www.googleapis.com/auth/spreadsheets',
                 'https://www.googleapis.com/auth/drive.readonly'
