@@ -240,7 +240,7 @@ export class GoogleSheetsService {
             if (lead.mobileNormalized) phoneMap.set(lead.mobileNormalized, lead);
         });
 
-        const MAX_WRITES = 150;
+        const MAX_WRITES = 800;
         let writesCount = 0;
         let reachedBatchLimit = false;
 
