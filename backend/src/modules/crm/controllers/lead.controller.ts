@@ -198,3 +198,27 @@ export async function deleteStage(req: Request, res: Response) {
         res.status(500).json({ success: false, error: { message: error.message } });
     }
 }
+
+export async function syncGoogleSheet(req: Request, res: Response) {
+    try {
+        const userId = (req as any).user.id;
+        const { spreadsheetUrl, range } = req.body;
+
+        if (!spreadsheetUrl) {
+            return res.status(400).json({ success: false, error: { message: 'رابط ملف Google Sheet مطلوب لإتمام المزامنة.' } });
+        }
+
+        const { GoogleSheetsService } = require('../services/google-sheets.service');
+        const result = await GoogleSheetsService.pullFromSheet({
+            spreadsheetUrlOrId: spreadsheetUrl,
+            range,
+            userId
+        });
+
+        res.json(result);
+    } catch (error: any) {
+        console.error('[CRM] syncGoogleSheet error:', error);
+        res.status(500).json({ success: false, error: { message: error.message } });
+    }
+}
+

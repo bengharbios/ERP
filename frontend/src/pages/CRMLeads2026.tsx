@@ -195,6 +195,43 @@ export default function CRMLeads2026() {
     const [partnerMode, setPartnerMode] = useState<'create' | 'link'>('create');
     const [selectedPartnerId, setSelectedPartnerId] = useState('');
 
+    // Google Sheets Sync States
+    const [showSyncModal, setShowSyncModal] = useState(false);
+    const [sheetUrl, setSheetUrl] = useState(() => localStorage.getItem('crm_sync_sheet_url') || '');
+    const [sheetRange, setSheetRange] = useState('Sheet1!A:Z');
+    const [syncing, setSyncing] = useState(false);
+    const [syncSummary, setSyncSummary] = useState<any>(null);
+
+    const handleSyncGoogleSheets = async () => {
+        if (!sheetUrl.trim()) {
+            setToast({ type: 'error', message: '⚠️ يرجى إدخال رابط ملف Google Sheet أولاً.' });
+            return;
+        }
+
+        setSyncing(true);
+        setSyncSummary(null);
+        localStorage.setItem('crm_sync_sheet_url', sheetUrl.trim());
+
+        try {
+            const res = await leadApi.syncGoogleSheets({
+                spreadsheetUrl: sheetUrl.trim(),
+                range: sheetRange.trim()
+            });
+
+            if (res.success) {
+                setSyncSummary(res.summary);
+                setToast({ type: 'success', message: '✅ اكتملت المزامنة بنجاح!' });
+                fetchAll();
+            } else {
+                setToast({ type: 'error', message: `❌ فشل: ${res.message}` });
+            }
+        } catch (err: any) {
+            setToast({ type: 'error', message: `❌ فشل المزامنة: ${err?.response?.data?.error?.message || err.message}` });
+        } finally {
+            setSyncing(false);
+        }
+    };
+
     const dupTimerRef = useRef<any>(null);
 
     useEffect(() => { fetchAll(); }, []);
@@ -621,6 +658,9 @@ export default function CRMLeads2026() {
                     </h1>
 
                     <div className="crm-toolbar-actions-mobile-top">
+                        <button className="crm-icon-btn" onClick={() => { setSyncSummary(null); setShowSyncModal(true); }} title="مزامنة Google Sheets" style={{ background: 'rgba(15, 157, 88, 0.15)', color: '#0F9D58', marginLeft: 6 }}>
+                            <Download size={18} />
+                        </button>
                         <button className="crm-add-btn mini" onClick={() => openModal()} title="إضافة عميل">
                             <Plus size={18} />
                         </button>
@@ -634,19 +674,38 @@ export default function CRMLeads2026() {
                         {stats.dups > 0 && <div className="crm-stat-pill" style={{ color: '#FF6B6B' }}>مكرر <b>{stats.dups}</b></div>}
                     </div>
 
-                    <div className="crm-toolbar-end">
-                        {/* Desktop Actions */}
-                        <div className="crm-toolbar-actions-desktop">
-                            <ToolbarActions />
-                            <button className={`crm-icon-btn ${showSidebar ? 'active' : ''}`} onClick={() => setShowSidebar(!showSidebar)} title="الفلاتر">
-                                <SlidersHorizontal size={15} />
+                        <div className="crm-toolbar-end">
+                            {/* Desktop Actions */}
+                            <div className="crm-toolbar-actions-desktop">
+                                <ToolbarActions />
+                                <button className={`crm-icon-btn ${showSidebar ? 'active' : ''}`} onClick={() => setShowSidebar(!showSidebar)} title="الفلاتر">
+                                    <SlidersHorizontal size={15} />
+                                </button>
+                            </div>
+
+                            <button className="crm-sync-sheets-btn" onClick={() => { setSyncSummary(null); setShowSyncModal(true); }} style={{
+                                background: 'linear-gradient(135deg, #0F9D58, #0B8043)',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: 10,
+                                padding: '8px 16px',
+                                fontWeight: 800,
+                                fontSize: '0.85rem',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                marginRight: 8,
+                                boxShadow: '0 4px 12px rgba(15, 157, 88, 0.2)',
+                                transition: 'all 0.2s ease-in-out'
+                            }}>
+                                <Download size={15} /> مزامنة Google Sheets
+                            </button>
+
+                            <button className="crm-add-btn" onClick={() => openModal()}>
+                                <Plus size={16} /> عميل جديد
                             </button>
                         </div>
-
-                        <button className="crm-add-btn" onClick={() => openModal()}>
-                            <Plus size={16} /> عميل جديد
-                        </button>
-                    </div>
                 </div>
 
                 {/* ── MOBILE TOOLBAR ── */}
@@ -1334,6 +1393,181 @@ export default function CRMLeads2026() {
                         </div>
                     </div>
                 )}
+            </HzModal>
+
+            {/* ── GOOGLE SHEETS SYNC MODAL ── */}
+            <HzModal
+                open={showSyncModal}
+                title="مزامنة واستيراد العملاء من Google Sheet"
+                onClose={() => { if (!syncing) setShowSyncModal(false); }}
+                icon={<Download size={22} color="var(--hz-green)" />}
+                width={650}
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                    {/* Instructions */}
+                    <div style={{
+                        background: 'rgba(15, 157, 88, 0.05)',
+                        border: '1px solid rgba(15, 157, 88, 0.15)',
+                        borderRadius: 14,
+                        padding: '15px 20px',
+                        fontSize: '0.85rem',
+                        color: 'var(--hz-text-secondary)',
+                        lineHeight: 1.6
+                    }}>
+                        <strong style={{ color: '#0F9D58', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                            <CheckCircle size={16} /> تفعيل الربط في 3 ثوانٍ:
+                        </strong>
+                        1. قم بمشاركة ملف الـ Google Sheet الخاص بك مع هذا البريد الإلكتروني (بصلاحية عارض <b>Viewer</b>):
+                        <div style={{
+                            background: 'var(--hz-surface-3)',
+                            padding: '8px 12px',
+                            borderRadius: 8,
+                            fontFamily: 'monospace',
+                            fontSize: '0.85rem',
+                            color: 'var(--hz-text-bright)',
+                            margin: '8px 0',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            border: '1px solid var(--hz-border-soft)'
+                        }}>
+                            <span>kader-sync@kader-erp-sync.iam.gserviceaccount.com</span>
+                            <button 
+                                onClick={() => {
+                                    navigator.clipboard.writeText('kader-sync@kader-erp-sync.iam.gserviceaccount.com');
+                                    setToast({ type: 'success', message: '📋 تم نسخ البريد بنجاح!' });
+                                }}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#0F9D58',
+                                    cursor: 'pointer',
+                                    fontWeight: 'bold',
+                                    fontSize: '0.75rem',
+                                    padding: 0
+                                }}
+                            >
+                                نسخ البريد
+                            </button>
+                        </div>
+                        2. ضع رابط الشيت بالأسفل واضغط <b>مزامنة</b>. سيقوم النظام بسحب العملاء ومطابقتهم وحظر التكرار تلقائياً!
+                    </div>
+
+                    {/* Inputs */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        <div className="hz-form-group">
+                            <label className="hz-label" style={{ fontWeight: 800 }}>رابط ملف الـ Google Sheet (أو معرف الجدول ID)</label>
+                            <input 
+                                className="hz-input" 
+                                style={{ direction: 'ltr', fontSize: '0.9rem' }}
+                                placeholder="https://docs.google.com/spreadsheets/d/..." 
+                                value={sheetUrl} 
+                                onChange={e => setSheetUrl(e.target.value)}
+                                disabled={syncing}
+                            />
+                        </div>
+                        <div className="hz-form-group">
+                            <label className="hz-label" style={{ fontWeight: 800 }}>نطاق البحث (Range)</label>
+                            <input 
+                                className="hz-input" 
+                                style={{ direction: 'ltr', fontSize: '0.9rem', width: '200px' }}
+                                placeholder="Sheet1!A:Z" 
+                                value={sheetRange} 
+                                onChange={e => setSheetRange(e.target.value)}
+                                disabled={syncing}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Loading State */}
+                    {syncing && (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '20px 0' }}>
+                            <HzLoader size={40} color="var(--hz-green)" />
+                            <span style={{ fontSize: '0.9rem', color: 'var(--hz-text-secondary)', fontWeight: 'bold' }}>جاري سحب البيانات ومطابقة الأرقام... يرجى الانتظار</span>
+                        </div>
+                    )}
+
+                    {/* Summary Result */}
+                    {syncSummary && (
+                        <div style={{
+                            background: 'var(--hz-surface-2)',
+                            border: '1px solid var(--hz-border-soft)',
+                            borderRadius: 14,
+                            padding: '20px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 15
+                        }}>
+                            <h3 style={{ margin: 0, fontSize: '1rem', color: 'var(--hz-text-bright)', borderBottom: '1px solid var(--hz-border-soft)', paddingBottom: 10 }}>📊 ملخص عملية المزامنة:</h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+                                <div style={{ background: 'var(--hz-surface-3)', padding: 12, borderRadius: 10, textAlign: 'center' }}>
+                                    <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--hz-text-muted)', marginBottom: 4 }}>إجمالي الأسطر</span>
+                                    <strong style={{ fontSize: '1.4rem', color: 'var(--hz-cyan)' }}>{syncSummary.totalProcessed}</strong>
+                                </div>
+                                <div style={{ background: 'var(--hz-surface-3)', padding: 12, borderRadius: 10, textAlign: 'center' }}>
+                                    <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--hz-text-muted)', marginBottom: 4 }}>عملاء جدد</span>
+                                    <strong style={{ fontSize: '1.4rem', color: 'var(--hz-green)' }}>{syncSummary.createdCount}</strong>
+                                </div>
+                                <div style={{ background: 'var(--hz-surface-3)', padding: 12, borderRadius: 10, textAlign: 'center' }}>
+                                    <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--hz-text-muted)', marginBottom: 4 }}>مكررات تم رصدها</span>
+                                    <strong style={{ fontSize: '1.4rem', color: 'var(--hz-orange)' }}>{syncSummary.duplicateCount}</strong>
+                                </div>
+                            </div>
+
+                            {syncSummary.errors && syncSummary.errors.length > 0 && (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                    <span style={{ fontSize: '0.8rem', color: 'var(--hz-coral)', fontWeight: 'bold' }}>⚠️ ملاحظات وتنبيهات:</span>
+                                    <div style={{
+                                        maxHeight: '120px',
+                                        overflowY: 'auto',
+                                        background: 'var(--hz-surface-3)',
+                                        padding: '10px 15px',
+                                        borderRadius: 8,
+                                        fontSize: '0.78rem',
+                                        color: 'var(--hz-text-secondary)',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 4,
+                                        border: '1px solid var(--hz-border-soft)'
+                                    }}>
+                                        {syncSummary.errors.map((err: string, idx: number) => (
+                                            <div key={idx}>• {err}</div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Footer Buttons */}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, borderTop: '1px solid var(--hz-border-soft)', paddingTop: 15 }}>
+                        <HzBtn variant="secondary" onClick={() => setShowSyncModal(false)} disabled={syncing}>
+                            إغلاق
+                        </HzBtn>
+                        <button
+                            onClick={handleSyncGoogleSheets}
+                            disabled={syncing}
+                            style={{
+                                background: syncing ? 'var(--hz-surface-3)' : 'linear-gradient(135deg, #0F9D58, #0B8043)',
+                                color: syncing ? 'var(--hz-text-muted)' : '#fff',
+                                border: 'none',
+                                borderRadius: 10,
+                                padding: '10px 24px',
+                                fontWeight: 800,
+                                fontSize: '0.9rem',
+                                cursor: syncing ? 'not-allowed' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                boxShadow: syncing ? 'none' : '0 4px 12px rgba(15, 157, 88, 0.25)',
+                                transition: 'all 0.2s ease-in-out'
+                            }}
+                        >
+                            <RefreshCw size={16} className={syncing ? 'hz-spin' : ''} />
+                            {syncing ? 'جاري المزامنة...' : 'مزامنة سريعة الآن'}
+                        </button>
+                    </div>
+                </div>
             </HzModal>
 
             {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}

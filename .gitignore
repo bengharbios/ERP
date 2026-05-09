@@ -37,3 +37,8 @@ coverage/
 *.pem
 *.key
 .cache/
+
+# Google API Credentials
+google-credentials.json
+*credentials.json
+

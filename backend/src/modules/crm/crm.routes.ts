@@ -25,6 +25,8 @@ router.get('/leads/:id/duplicates', leadController.checkDuplicates);
 router.post('/leads/merge', leadController.mergeLeads);
 router.post('/leads/:id/convert', leadController.convertToOpportunity);
 router.post('/leads/:id/convert-customer', leadController.convertToCustomer);
+router.post('/google-sheets/sync', leadController.syncGoogleSheet);
+
 
 // --- Stage Routes ---
 router.get('/stages', leadController.getStages);

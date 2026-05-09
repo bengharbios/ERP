@@ -12,7 +12,9 @@ export const leadApi = {
     convertToOpportunity: (id: string, data: any) =>
         api.post(`/crm/leads/${id}/convert`, data),
     convertToCustomer: (id: string, data: any) =>
-        api.post(`/crm/leads/${id}/convert-customer`, data)
+        api.post(`/crm/leads/${id}/convert-customer`, data),
+    syncGoogleSheets: (data: { spreadsheetUrl: string; range?: string }) =>
+        api.post('/crm/google-sheets/sync', data)
 };
 
 // Activity API

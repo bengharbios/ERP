@@ -187,6 +187,21 @@ export const crmService = {
             }
         }
 
+        // Live Append to Google Sheet asynchronously (non-blocking)
+        const googleSheetUrl = process.env.GOOGLE_SHEET_URL || process.env.GOOGLE_SHEET_ID;
+        if (googleSheetUrl) {
+            try {
+                const { GoogleSheetsService } = require('./services/google-sheets.service');
+                GoogleSheetsService.appendLeadToSheet({
+                    spreadsheetUrlOrId: googleSheetUrl,
+                    lead,
+                    noteContent: parsedData.notes
+                }).catch((err: any) => console.error('[Google Sheets Sync] Telegram live export failed:', err));
+            } catch (err) {
+                console.error('[Google Sheets Sync] Failed to load GoogleSheetsService:', err);
+            }
+        }
+
         return {
             lead,
             isDuplicate,
