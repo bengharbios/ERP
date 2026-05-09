@@ -46,8 +46,38 @@ export class GoogleSheetsService {
             throw new Error('بيانات حساب الخدمة السحابي لجوجل ناقصة أو فارغة. يرجى التحقق من متغيرات البيئة.');
         }
 
-        // Standardize newline characters in the private key (highly crucial for Vercel multiline keys)
-        const formattedPrivateKey = privateKey.replace(/\\n/g, '\n');
+        // Reconstruct the PEM private key cleanly in case Vercel stripped newlines or added spaces
+        let cleanKey = privateKey.trim();
+        
+        // Remove surrounding quotes if they exist
+        if (cleanKey.startsWith('"') && cleanKey.endsWith('"')) {
+            cleanKey = cleanKey.substring(1, cleanKey.length - 1);
+        }
+
+        const header = '-----BEGIN PRIVATE KEY-----';
+        const footer = '-----END PRIVATE KEY-----';
+        
+        let base64Body = cleanKey;
+        if (base64Body.includes(header)) {
+            base64Body = base64Body.replace(header, '');
+        }
+        if (base64Body.includes(footer)) {
+            base64Body = base64Body.replace(footer, '');
+        }
+
+        // Remove all whitespaces, newlines, escaped \n, \r and backslashes
+        base64Body = base64Body
+            .replace(/\\n/g, '')
+            .replace(/\\r/g, '')
+            .replace(/\s+/g, '');
+
+        // Reconstruct PEM by splitting base64 body into 64-character lines
+        const lines: string[] = [];
+        for (let i = 0; i < base64Body.length; i += 64) {
+            lines.push(base64Body.slice(i, i + 64));
+        }
+
+        const formattedPrivateKey = `${header}\n${lines.join('\n')}\n${footer}\n`;
 
         this.auth = new google.auth.JWT(
             clientEmail,
