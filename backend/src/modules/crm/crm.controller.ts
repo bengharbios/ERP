@@ -96,43 +96,95 @@ async function getDynamicBot() {
                 if (results.length === 0) {
                     ctx.reply(`🔍 لم يتم العثور على أي عميل مسجل بالرقم: ${searchPhone}`);
                 } else {
-                    let replyMsg = `🔍 **نتائج البحث للرقم (${searchPhone}):**\n\n`;
+                    let replyMsg = `🔍 <b>نتائج البحث للرقم (${searchPhone}):</b>\n\n`;
                     results.forEach((lead, index) => {
-                        replyMsg += `👤 **الاسم**: ${lead.name}\n`;
-                        if (lead.phone) replyMsg += `📞 **الهاتف**: ${lead.phone}\n`;
-                        if (lead.mobile) replyMsg += `📱 **الموبايل**: ${lead.mobile}\n`;
-                        if (lead.nationality) replyMsg += `🌍 **الجنسية**: ${lead.nationality}\n`;
-                        if (lead.emirate) replyMsg += `📍 **الإمارة**: ${lead.emirate}\n`;
-                        if (lead.interestedDiploma) replyMsg += `🎓 **الدبلوم**: ${lead.interestedDiploma}\n`;
-                        if (lead.levelOfInterest) replyMsg += `🔥 **درجة الاهتمام**: ${lead.levelOfInterest}/10\n`;
-                        if (lead.platform) replyMsg += `📢 **المصدر**: ${lead.platform}\n`;
+                        // Extract profile fields from notes if they are empty
+                        let emirate = lead.emirate;
+                        let nationality = lead.nationality;
+                        let interestedDiploma = lead.interestedDiploma;
+                        let levelOfInterest = lead.levelOfInterest;
+
+                        if (lead.notes && lead.notes.length > 0) {
+                            lead.notes.forEach((note: any) => {
+                                const text = note.content;
+                                if (!emirate) {
+                                    const m = text.match(/الإمارة:\s*([^\n\r\-]+)/);
+                                    if (m) emirate = m[1].trim();
+                                }
+                                if (!nationality) {
+                                    const m = text.match(/الجنسية:\s*([^\n\r\-]+)/);
+                                    if (m) nationality = m[1].trim();
+                                }
+                                if (!interestedDiploma) {
+                                    const m = text.match(/(الدبلوم المهتم به|الدبلوم):\s*([^\n\r\-]+)/);
+                                    if (m) interestedDiploma = m[2].trim();
+                                }
+                                if (!levelOfInterest) {
+                                    const m = text.match(/(درجة الاهتمام|درجة الإهتمام):\s*([^\n\r\-]+)/);
+                                    if (m) {
+                                        const num = parseInt(m[2].replace(/\D/g, ''));
+                                        if (!isNaN(num)) levelOfInterest = num;
+                                    }
+                                }
+                            });
+                        }
+
+                        replyMsg += `👤 <b>الاسم</b>: ${lead.name}\n`;
+                        if (lead.phone) replyMsg += `📞 <b>الهاتف</b>: ${lead.phone}\n`;
+                        if (lead.mobile) replyMsg += `📱 <b>الموبايل</b>: ${lead.mobile}\n`;
+                        if (nationality) replyMsg += `🌍 <b>الجنسية</b>: ${nationality}\n`;
+                        if (emirate) replyMsg += `📍 <b>الإمارة</b>: ${emirate}\n`;
+                        if (interestedDiploma) replyMsg += `🎓 <b>الدبلوم</b>: ${interestedDiploma}\n`;
+                        if (levelOfInterest) replyMsg += `🔥 <b>درجة الاهتمام</b>: ${levelOfInterest}/10\n`;
+                        if (lead.platform) replyMsg += `📢 <b>المصدر</b>: ${lead.platform}\n`;
                         
                         if (lead.duplicateCount > 0) {
-                            replyMsg += `⚠️ **هذا العميل مكرر واستفسر سابقاً!**\n`;
-                            replyMsg += `🔄 **عدد مرات التكرار**: ${lead.duplicateCount} مرات\n`;
+                            replyMsg += `\n⚠️ <b>هذا العميل مكرر واستفسر سابقاً!</b>\n`;
+                            replyMsg += `🔄 <b>عدد مرات التكرار</b>: ${lead.duplicateCount} مرة\n`;
                         }
 
                         if (lead.notes && lead.notes.length > 0) {
-                            replyMsg += `\n📜 **آخر الملاحظات والأنشطة:**\n`;
+                            replyMsg += `\n📜 <b>آخر الملاحظات والأنشطة:</b>\n`;
+                            
+                            // Track printed notes to avoid showing identical/repetitive info
+                            const seenNotes = new Set<string>();
+
                             lead.notes.forEach((note: any) => {
                                 const noteDate = new Date(note.createdAt);
                                 const dateStr = noteDate.toLocaleDateString('ar-AE', { day: 'numeric', month: 'numeric', year: 'numeric' });
                                 
                                 let cleanContent = note.content;
-                                // Smart clean up of Google Sheet import headers for sleek Telegram formatting
+                                
+                                // Smart cleanup of Google Sheet import headers
                                 if (cleanContent.includes('📝 **بيانات وملاحظات الشيت المستوردة:**')) {
                                     cleanContent = cleanContent.split('📝 **بيانات وملاحظات الشيت المستوردة:**')[1].trim();
                                 }
                                 cleanContent = cleanContent.replace(/📥 تم الاستيراد بنجاح من Google Sheet \(السطر رقم \d+\)\n?/g, '');
+                                cleanContent = cleanContent.replace(/🔄 تكرار تواصل من Google Sheet \(السطر رقم \d+\):\n?/g, '');
                                 cleanContent = cleanContent.replace(/📌 مصدر القناة: .*\n?/g, '');
-                                cleanContent = cleanContent.trim();
+                                cleanContent = cleanContent.replace(/📌 \*\*ملاحظات [^*]+\*\*:\n?/g, '');
+                                cleanContent = cleanContent.replace(/📌 \*\*[^*]+\*\*:\n?/g, '');
+                                
+                                // Strip redundant profile info
+                                if (cleanContent.includes('📝 الملاحظات:')) {
+                                    cleanContent = cleanContent.split('📝 الملاحظات:')[1].trim();
+                                } else if (cleanContent.includes('-----------------------')) {
+                                    const parts = cleanContent.split('-----------------------');
+                                    cleanContent = parts[parts.length - 1].trim();
+                                }
 
-                                replyMsg += `• [${dateStr}] ${cleanContent.substring(0, 400)}${cleanContent.length > 400 ? '...' : ''}\n`;
+                                cleanContent = cleanContent.replace(/\*\*/g, '').trim();
+
+                                // Skip if empty or already printed
+                                if (!cleanContent || seenNotes.has(cleanContent)) return;
+                                seenNotes.add(cleanContent);
+
+                                replyMsg += `• [${dateStr}] ${cleanContent}\n`;
                             });
                         }
                         replyMsg += `\n──────────────────\n`;
                     });
-                    ctx.reply(replyMsg);
+                    ctx.replyWithHTML(replyMsg);
                 }
             } catch (err: any) {
                 console.error('Telegram Search Error:', err.message);
