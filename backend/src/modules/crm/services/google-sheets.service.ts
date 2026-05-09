@@ -189,7 +189,7 @@ export class GoogleSheetsService {
 
         const orderedMapping: { label: string; index: number }[] = [];
         orderedNoteKeys.forEach(keyObj => {
-            const foundIdx = headers.findIndex((h, idx) => {
+            headers.forEach((h, idx) => {
                 if (
                     idx === mapping['name'] || 
                     idx === mapping['phone'] || 
@@ -198,15 +198,16 @@ export class GoogleSheetsService {
                     idx === mapping['nationality'] || 
                     idx === mapping['emirate']
                 ) {
-                    return false;
+                    return;
                 }
                 const cleanH = h.trim().toLowerCase().replace(/[^a-zA-Z0-9\u0621-\u064A]/g, '');
-                return keyObj.keywords.some(kw => cleanH.includes(kw));
+                if (keyObj.keywords.some(kw => cleanH.includes(kw))) {
+                    // Prevent duplicate entries for the exact same column index
+                    if (!orderedMapping.some(m => m.index === idx)) {
+                        orderedMapping.push({ label: keyObj.label, index: idx });
+                    }
+                }
             });
-            
-            if (foundIdx !== -1) {
-                orderedMapping.push({ label: keyObj.label, index: foundIdx });
-            }
         });
 
         // Fetch default stage for NEW leads
@@ -215,6 +216,32 @@ export class GoogleSheetsService {
             orderBy: { sequence: 'asc' }
         });
         const defaultStageId = defaultStage?.id || null;
+
+        // Load all existing CRM leads into memory for ultra-fast lookup (bypassing slow per-row DB queries)
+        const allLeads = await prisma.crmLead.findMany({
+            select: {
+                id: true,
+                phoneNormalized: true,
+                mobileNormalized: true,
+                duplicateCount: true,
+                nationality: true,
+                emirate: true,
+                interestedDiploma: true,
+                levelOfInterest: true,
+                notes: {
+                    select: {
+                        content: true
+                    }
+                }
+            }
+        });
+
+        // Map phone numbers to leads in memory for O(1) checks
+        const phoneMap = new Map<string, typeof allLeads[0]>();
+        allLeads.forEach(lead => {
+            if (lead.phoneNormalized) phoneMap.set(lead.phoneNormalized, lead);
+            if (lead.mobileNormalized) phoneMap.set(lead.mobileNormalized, lead);
+        });
 
         const summary = {
             totalProcessed: 0,
@@ -242,7 +269,6 @@ export class GoogleSheetsService {
             const emirateValue = mapping['emirate'] !== undefined ? row[mapping['emirate']]?.toString().trim() : undefined;
             const diplomaValue = mapping['interestedDiploma'] !== undefined ? row[mapping['interestedDiploma']]?.toString().trim() : undefined;
             const rawInterest = mapping['levelOfInterest'] !== undefined ? row[mapping['levelOfInterest']]?.toString().trim() : undefined;
-            const noteValue = mapping['notes'] !== undefined ? row[mapping['notes']]?.toString().trim() : undefined;
             const sourceValue = mapping['source'] !== undefined ? row[mapping['source']]?.toString().trim() : 'Google Sheet';
 
             // Parse level of interest to number safely
@@ -280,21 +306,23 @@ export class GoogleSheetsService {
                     }
                 });
 
-                // Check if lead already exists in ERP
-                const existingLeads = await prisma.crmLead.findMany({
-                    where: {
-                        OR: [
-                            { phoneNormalized },
-                            { mobileNormalized: phoneNormalized },
-                            ...(mobileNormalized ? [{ phoneNormalized: mobileNormalized }, { mobileNormalized }] : [])
-                        ]
-                    },
-                    include: { notes: true }
-                });
+                // Check in-memory Map if lead exists (hyper-fast lookup!)
+                let existing: typeof allLeads[0] | undefined = undefined;
+                if (phoneNormalized) existing = phoneMap.get(phoneNormalized);
+                if (!existing && mobileNormalized) existing = phoneMap.get(mobileNormalized);
 
-                if (existingLeads.length > 0) {
-                    // العميل موجود مسبقاً ➡️ تكرار دمج ذكي!
-                    const existing = existingLeads[0];
+                if (existing) {
+                    // Check if this specific row has already been logged as a note for this lead
+                    const isAlreadySynced = existing.notes.some(n => 
+                        n.content.includes(`السطر رقم ${i + 1}`) ||
+                        n.content.includes(`(السطر رقم ${i + 1})`)
+                    );
+
+                    if (isAlreadySynced) {
+                        // Already synced! Skip any database writes for this duplicate row!
+                        continue;
+                    }
+
                     summary.duplicateCount++;
 
                     // Update duplicate stats on existing record
@@ -310,6 +338,13 @@ export class GoogleSheetsService {
                             levelOfInterest: existing.levelOfInterest || levelValue || null,
                         }
                     });
+
+                    // Update in-memory record so we don't write it again in this run
+                    existing.duplicateCount++;
+                    if (!existing.nationality) existing.nationality = nationalityValue || null;
+                    if (!existing.emirate) existing.emirate = emirateValue || null;
+                    if (!existing.interestedDiploma) existing.interestedDiploma = diplomaValue || null;
+                    if (!existing.levelOfInterest) existing.levelOfInterest = levelValue || null;
 
                     // Append the spreadsheet row comment as a new timeline note
                     let formattedNote = `🔄 تكرار تواصل من Google Sheet (السطر رقم ${i + 1})`;
@@ -327,6 +362,9 @@ export class GoogleSheetsService {
                             type: 'note'
                         }
                     });
+
+                    // Keep track of this note in memory
+                    existing.notes.push({ content: formattedNote });
 
                 } else {
                     // العميل غير موجود ➡️ تسجيل عميل جديد بالكامل!
@@ -353,7 +391,7 @@ export class GoogleSheetsService {
                         }
                     });
 
-                    // Create the initial note if we have comments in the spreadsheet
+                    // Create the initial note with consolidated unhidden note columns
                     const noteParts: string[] = [];
                     noteParts.push(`📥 تم الاستيراد بنجاح من Google Sheet (السطر رقم ${i + 1})`);
                     if (sourceValue) noteParts.push(`📌 مصدر القناة: ${sourceValue}`);
@@ -362,14 +400,31 @@ export class GoogleSheetsService {
                         noteParts.push(`\n📝 **بيانات وملاحظات الشيت المستوردة:**\n${extraNotes.join('\n')}`);
                     }
 
+                    const initialNoteContent = noteParts.join('\n');
                     await prisma.crmNote.create({
                         data: {
                             leadId: newLead.id,
                             userId,
-                            content: noteParts.join('\n'),
+                            content: initialNoteContent,
                             type: 'note'
                         }
                     });
+
+                    // Add new lead with its notes to the in-memory Map for O(1) detection of subsequent rows in the same sheet
+                    const inMemoryNewLead = {
+                        id: newLead.id,
+                        phoneNormalized,
+                        mobileNormalized: mobileNormalized || null,
+                        duplicateCount: 0,
+                        nationality: nationalityValue || null,
+                        emirate: emirateValue || null,
+                        interestedDiploma: diplomaValue || null,
+                        levelOfInterest: levelValue,
+                        notes: [{ content: initialNoteContent }]
+                    };
+
+                    if (phoneNormalized) phoneMap.set(phoneNormalized, inMemoryNewLead);
+                    if (mobileNormalized) phoneMap.set(mobileNormalized, inMemoryNewLead);
                 }
             } catch (err: any) {
                 console.error(`Error processing Google Sheet row ${i + 1}:`, err);
