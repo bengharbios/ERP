@@ -79,15 +79,16 @@ export class GoogleSheetsService {
 
         const formattedPrivateKey = `${header}\n${lines.join('\n')}\n${footer}\n`;
 
-        this.auth = new google.auth.JWT(
-            clientEmail,
-            undefined,
-            formattedPrivateKey,
-            [
+        this.auth = new google.auth.GoogleAuth({
+            credentials: {
+                client_email: clientEmail,
+                private_key: formattedPrivateKey
+            },
+            scopes: [
                 'https://www.googleapis.com/auth/spreadsheets',
                 'https://www.googleapis.com/auth/drive.readonly'
             ]
-        );
+        });
 
         return this.auth;
     }
