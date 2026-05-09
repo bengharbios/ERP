@@ -98,24 +98,36 @@ async function getDynamicBot() {
                 } else {
                     let replyMsg = `🔍 **نتائج البحث للرقم (${searchPhone}):**\n\n`;
                     results.forEach((lead, index) => {
-                        replyMsg += `${index + 1}. 👤 **الاسم**: ${lead.name}\n`;
-                        replyMsg += `📞 **الهاتف**: ${lead.phone || 'غير متوفر'}\n`;
+                        replyMsg += `👤 **الاسم**: ${lead.name}\n`;
+                        if (lead.phone) replyMsg += `📞 **الهاتف**: ${lead.phone}\n`;
                         if (lead.mobile) replyMsg += `📱 **الموبايل**: ${lead.mobile}\n`;
                         if (lead.nationality) replyMsg += `🌍 **الجنسية**: ${lead.nationality}\n`;
                         if (lead.emirate) replyMsg += `📍 **الإمارة**: ${lead.emirate}\n`;
-                        if (lead.interestedDiploma) replyMsg += `🎓 **الدبلوم المهتم به**: ${lead.interestedDiploma}\n`;
+                        if (lead.interestedDiploma) replyMsg += `🎓 **الدبلوم**: ${lead.interestedDiploma}\n`;
                         if (lead.levelOfInterest) replyMsg += `🔥 **درجة الاهتمام**: ${lead.levelOfInterest}/10\n`;
                         if (lead.platform) replyMsg += `📢 **المصدر**: ${lead.platform}\n`;
                         
                         if (lead.duplicateCount > 0) {
-                            replyMsg += `🔄 **التكرار**: مكرر ${lead.duplicateCount} مرة\n`;
+                            replyMsg += `⚠️ **هذا العميل مكرر واستفسر سابقاً!**\n`;
+                            replyMsg += `🔄 **عدد مرات التكرار**: ${lead.duplicateCount} مرات\n`;
                         }
 
                         if (lead.notes && lead.notes.length > 0) {
-                            replyMsg += `\n📝 **آخر الملاحظات والأنشطة:**\n`;
+                            replyMsg += `\n📜 **آخر الملاحظات والأنشطة:**\n`;
                             lead.notes.forEach((note: any) => {
-                                const dateStr = new Date(note.createdAt).toLocaleDateString('ar-AE', { day: 'numeric', month: 'numeric' });
-                                replyMsg += `• [${dateStr}] ${note.content.substring(0, 150)}${note.content.length > 150 ? '...' : ''}\n`;
+                                const noteDate = new Date(note.createdAt);
+                                const dateStr = noteDate.toLocaleDateString('ar-AE', { day: 'numeric', month: 'numeric', year: 'numeric' });
+                                
+                                let cleanContent = note.content;
+                                // Smart clean up of Google Sheet import headers for sleek Telegram formatting
+                                if (cleanContent.includes('📝 **بيانات وملاحظات الشيت المستوردة:**')) {
+                                    cleanContent = cleanContent.split('📝 **بيانات وملاحظات الشيت المستوردة:**')[1].trim();
+                                }
+                                cleanContent = cleanContent.replace(/📥 تم الاستيراد بنجاح من Google Sheet \(السطر رقم \d+\)\n?/g, '');
+                                cleanContent = cleanContent.replace(/📌 مصدر القناة: .*\n?/g, '');
+                                cleanContent = cleanContent.trim();
+
+                                replyMsg += `• [${dateStr}] ${cleanContent.substring(0, 400)}${cleanContent.length > 400 ? '...' : ''}\n`;
                             });
                         }
                         replyMsg += `\n──────────────────\n`;

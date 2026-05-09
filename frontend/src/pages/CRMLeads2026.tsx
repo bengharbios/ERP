@@ -198,7 +198,7 @@ export default function CRMLeads2026() {
     // Google Sheets Sync States
     const [showSyncModal, setShowSyncModal] = useState(false);
     const [sheetUrl, setSheetUrl] = useState(() => localStorage.getItem('crm_sync_sheet_url') || '');
-    const [sheetRange, setSheetRange] = useState('Sheet1!A:Z');
+    const [sheetRange, setSheetRange] = useState(() => localStorage.getItem('crm_sync_sheet_range') || 'Sheet1!A:Z');
     const [syncing, setSyncing] = useState(false);
     const [syncSummary, setSyncSummary] = useState<any>(null);
 
@@ -211,6 +211,7 @@ export default function CRMLeads2026() {
         setSyncing(true);
         setSyncSummary(null);
         localStorage.setItem('crm_sync_sheet_url', sheetUrl.trim());
+        localStorage.setItem('crm_sync_sheet_range', sheetRange.trim());
 
         try {
             const res = await leadApi.syncGoogleSheets({
