@@ -243,6 +243,10 @@ export class GoogleSheetsService {
             if (lead.mobileNormalized) phoneMap.set(lead.mobileNormalized, lead);
         });
 
+        const MAX_WRITES = 150;
+        let writesCount = 0;
+        let reachedBatchLimit = false;
+
         const summary = {
             totalProcessed: 0,
             createdCount: 0,
@@ -323,6 +327,13 @@ export class GoogleSheetsService {
                         continue;
                     }
 
+                    // Enforce write batch limit to respect Vercel's 10-second timeout limits
+                    if (writesCount >= MAX_WRITES) {
+                        reachedBatchLimit = true;
+                        break;
+                    }
+                    writesCount++;
+
                     summary.duplicateCount++;
 
                     // Update duplicate stats on existing record
@@ -367,6 +378,13 @@ export class GoogleSheetsService {
                     existing.notes.push({ content: formattedNote });
 
                 } else {
+                    // Enforce write batch limit to respect Vercel's 10-second timeout limits
+                    if (writesCount >= MAX_WRITES) {
+                        reachedBatchLimit = true;
+                        break;
+                    }
+                    writesCount++;
+
                     // العميل غير موجود ➡️ تسجيل عميل جديد بالكامل!
                     summary.createdCount++;
 
@@ -432,9 +450,14 @@ export class GoogleSheetsService {
             }
         }
 
+        let customMessage = `اكتملت المزامنة بنجاح! تم معالجة ${summary.totalProcessed} سطر.`;
+        if (reachedBatchLimit) {
+            customMessage = `📥 تم استيراد دفعة من ${writesCount} عميل بنجاح لتجنب ضغط السيرفر! يرجى الضغط على زر المزامنة مجدداً لاستكمال سحب بقية العملاء تلقائياً.`;
+        }
+
         return {
             success: true,
-            message: `اكتملت المزامنة بنجاح! تم معالجة ${summary.totalProcessed} سطر.`,
+            message: customMessage,
             summary
         };
     }
