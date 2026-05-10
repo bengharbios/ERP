@@ -260,8 +260,7 @@ async function getDynamicBot() {
                 if (cleanPhone) {
                     const digits = cleanPhone.replace(/\D/g, '');
                     inline_keyboard.push([
-                        { text: '💬 فتح واتساب', url: `https://wa.me/${digits}` },
-                        { text: '📞 اتصال هاتف', url: `tel:${cleanPhone}` }
+                        { text: '💬 فتح واتساب', url: `https://wa.me/${digits}` }
                     ]);
                 }
                 inline_keyboard.push([
@@ -407,8 +406,7 @@ async function getDynamicBot() {
                         if (cleanPhone) {
                             const digits = cleanPhone.replace(/\D/g, '');
                             inline_keyboard.push([
-                                { text: '💬 فتح واتساب', url: `https://wa.me/${digits}` },
-                                { text: '📞 اتصال هاتف', url: `tel:${cleanPhone}` }
+                                { text: '💬 فتح واتساب', url: `https://wa.me/${digits}` }
                             ]);
                         }
                         inline_keyboard.push([
