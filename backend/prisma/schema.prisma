@@ -22,6 +22,8 @@ model User {
   lastLogin          DateTime?           @map("last_login")
   createdAt          DateTime            @default(now()) @map("created_at")
   updatedAt          DateTime            @updatedAt @map("updated_at")
+  telegramUserId     String?             @unique @map("telegram_user_id")
+  telegramUsername   String?             @map("telegram_username")
   auditLogs          AuditLog[]
   oldCrmActivities   CRMActivity[]       @relation("ActivityUser")
   crmActivities      CrmActivity[]       @relation("CrmUserActivities")

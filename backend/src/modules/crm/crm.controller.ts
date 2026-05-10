@@ -4,10 +4,18 @@ import prisma from '../../common/db/prisma';
 import { normalizePhone } from './services/lead.service';
 import { GoogleSheetsService } from './services/google-sheets.service';
 import { Telegraf, Markup } from 'telegraf';
+import { comparePassword } from '../../common/utils/password';
 
 // Cache bots by token to avoid re-initializing on every request
 const botsCache: Record<string, any> = {};
 const userStates: Record<string, { action: string; leadId: string }> = {};
+
+async function getAuthenticatedUser(telegramUserId: number) {
+    const userIdStr = String(telegramUserId);
+    return await prisma.user.findFirst({
+        where: { telegramUserId: userIdStr }
+    });
+}
 
 async function getDynamicBot() {
     // 1. Load settings to check if custom Telegram bot is configured and enabled
@@ -35,6 +43,59 @@ async function getDynamicBot() {
         try {
             const data = ctx.callbackQuery.data;
             const userId = ctx.from.id;
+
+            // 1. Check authentication
+            const currentUser = await getAuthenticatedUser(userId);
+            if (!currentUser) {
+                await ctx.answerCbQuery();
+                await ctx.replyWithHTML(
+                    `⚠️ <b>عذراً، يجب عليك تسجيل الدخول للبوت أولاً للقيام بهذا الإجراء!</b>\n` +
+                    `يرجى كتابة:\n<code>/login [اسم المستخدم] [كلمة المرور]</code>`
+                );
+                return;
+            }
+
+            // 2. Check Lead Ownership if we are performing an edit action
+            let checkLeadId: string | null = null;
+            if (data.startsWith('add_note:')) {
+                checkLeadId = data.split(':')[1];
+            } else if (data.startsWith('change_interest:')) {
+                checkLeadId = data.split(':')[1];
+            } else if (data.startsWith('set_interest:')) {
+                checkLeadId = data.split(':')[1];
+            } else if (data.startsWith('change_stage:')) {
+                checkLeadId = data.split(':')[1];
+            } else if (data.startsWith('set_stage:')) {
+                checkLeadId = data.split(':')[1];
+            }
+
+            if (checkLeadId) {
+                const lead = await prisma.crmLead.findUnique({
+                    where: { id: checkLeadId },
+                    include: { salesperson: true }
+                });
+
+                if (lead) {
+                    // Check if lead has an owner, and owner is not the current user, and current user is not admin
+                    if (lead.salespersonId && lead.salespersonId !== currentUser.id && currentUser.username !== 'admin') {
+                        // Strict Block: CANNOT change interest/stage
+                        if (data.startsWith('change_interest:') || data.startsWith('set_interest:') || data.startsWith('change_stage:') || data.startsWith('set_stage:')) {
+                            await ctx.answerCbQuery();
+                            await ctx.replyWithHTML(
+                                `⚠️ <b>عذراً، هذا العميل مخصص للموظف المسؤول (${lead.salesperson?.firstName || ''} ${lead.salesperson?.lastName || 'أحد الزملاء'}).</b>\n` +
+                                `لا تملك صلاحية تغيير مرحلته أو درجة اهتمامه.`
+                            );
+                            return;
+                        }
+                    } else if (!lead.salespersonId && (data.startsWith('set_interest:') || data.startsWith('set_stage:') || data.startsWith('add_note:'))) {
+                        // Collaborative auto-assignment: If lead is unassigned, assign it to the current user on active interaction!
+                        await prisma.crmLead.update({
+                            where: { id: lead.id },
+                            data: { salespersonId: currentUser.id }
+                        });
+                    }
+                }
+            }
 
             if (data.startsWith('add_note:')) {
                 const leadId = data.split(':')[1];
@@ -126,6 +187,76 @@ async function getDynamicBot() {
         const text = ctx.message.text.trim();
         const userId = ctx.from.id;
 
+        // Allow /start, /menu, /login, /auth commands to run without authentication
+        const isAuthCommand = text.startsWith('/start') || text.startsWith('/login') || text.startsWith('/auth') || text === 'قائمة' || text === '/menu';
+
+        if (!isAuthCommand) {
+            const currentUser = await getAuthenticatedUser(userId);
+            if (!currentUser) {
+                await ctx.replyWithHTML(
+                    `🔒 <b>عذراً، هذا النظام آمن ومخصص لموظفي شركة السلام فقط!</b>\n\n` +
+                    `يرجى تسجيل الدخول أولاً لربط حساب التليجرام الخاص بك وتفعيل الصلاحيات:\n` +
+                    `<code>/login [اسم المستخدم] [كلمة المرور]</code>\n\n` +
+                    `<i>مثال:</i>\n<code>/login mohamed.saleh Pass1234</code>`
+                );
+                return;
+            }
+        }
+
+        // Handle Login Command
+        if (text.startsWith('/login') || text.startsWith('/auth')) {
+            const parts = text.split(/\s+/);
+            if (parts.length < 3) {
+                await ctx.replyWithHTML(
+                    `🔑 <b>لتسجيل الدخول وربط حسابك بالنظام، يرجى إرسال الأمر بالتنسيق التالي:</b>\n` +
+                    `<code>/login [اسم_المستخدم] [كلمة_المرور]</code>\n\n` +
+                    `<i>مثال:</i>\n<code>/login mohamed.saleh MyPass123</code>`
+                );
+                return;
+            }
+
+            const usernameInput = parts[1].trim();
+            const passwordInput = parts[2].trim();
+
+            try {
+                const user = await prisma.user.findFirst({
+                    where: { username: { equals: usernameInput, mode: 'insensitive' } }
+                });
+
+                if (!user) {
+                    await ctx.reply('❌ عذراً، اسم المستخدم غير موجود بالنظام.');
+                    return;
+                }
+
+                const passwordValid = await comparePassword(passwordInput, user.passwordHash);
+                if (!passwordValid) {
+                    await ctx.reply('❌ عذراً، كلمة المرور غير صحيحة.');
+                    return;
+                }
+
+                // Save Telegram ID in user profile
+                await prisma.user.update({
+                    where: { id: user.id },
+                    data: {
+                        telegramUserId: String(userId),
+                        telegramUsername: ctx.from.username || null
+                    }
+                });
+
+                await ctx.replyWithHTML(
+                    `🎉 <b>تم تسجيل دخولك بنجاح وربط حساب التليجرام!</b>\n\n` +
+                    `👤 <b>الموظف</b>: ${user.firstName || ''} ${user.lastName || ''}\n` +
+                    `📧 <b>البريد</b>: ${user.email}\n` +
+                    `🟢 <b>حالة الربط</b>: معتمد وآمن تماماً ✅\n\n` +
+                    `يمكنك الآن استخدام كافة أزرار البحث وإضافة الملاحظات ونقل المراحل لعملائك بكل خصوصية وأمان!`
+                );
+            } catch (err: any) {
+                console.error('Telegram Login Error:', err.message);
+                await ctx.reply(`⚠️ حدث خطأ أثناء عملية تسجيل الدخول: ${err.message}`);
+            }
+            return;
+        }
+
         // Check active in-memory user states (e.g. typing a note)
         if (userStates[userId] && userStates[userId].action === 'expecting_note') {
             const { leadId } = userStates[userId];
@@ -138,10 +269,13 @@ async function getDynamicBot() {
                     return;
                 }
 
+                const currentUser = await getAuthenticatedUser(userId);
+                const noteAuthorId = currentUser ? currentUser.id : (lead.salespersonId || 'system');
+
                 await prisma.crmNote.create({
                     data: {
                         leadId,
-                        userId: lead.salespersonId || 'system',
+                        userId: noteAuthorId,
                         content: text,
                         type: 'note'
                     }
@@ -231,6 +365,13 @@ async function getDynamicBot() {
         if (text.includes('الاسم:') && text.includes('رقم الهاتف:')) {
             try {
                 const parsedData = crmService.parseTelegramMessage(text);
+                const currentUser = await getAuthenticatedUser(userId);
+                
+                // If the user hasn't specified an employee, automatically assign the logged-in user's name!
+                if (currentUser && !parsedData.employee) {
+                    parsedData.employee = `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim();
+                }
+
                 const result = await crmService.updateLeadFromMessage(parsedData);
                 const lead = result.lead;
 
