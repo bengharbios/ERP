@@ -285,7 +285,7 @@ async function getDynamicBot() {
                 }
             } catch (error: any) {
                 console.error('Telegram Parse Error:', error.message);
-                ctx.reply('⚠️ عذراً، حدث خطأ أثناء قراءة التقرير. تأكد من التنسيق الصحيح.');
+                await ctx.reply(`⚠️ عذراً، حدث خطأ أثناء قراءة التقرير: ${error.message}`);
             }
         } else if (text.startsWith('/search') || text.startsWith('/find') || text.startsWith('/بحث') || /^\+?[0-9\s\-]{8,18}$/.test(text)) {
             try {
@@ -434,7 +434,7 @@ async function getDynamicBot() {
                 }
             } catch (err: any) {
                 console.error('Telegram Search Error:', err.message);
-                await ctx.reply('⚠️ عذراً، حدث خطأ أثناء البحث عن الهاتف.');
+                await ctx.reply(`⚠️ عذراً، حدث خطأ أثناء البحث عن الهاتف: ${err.message}`);
             }
         } else if (text === '/start' || text === '/menu' || text === 'قائمة') {
             await ctx.reply(
