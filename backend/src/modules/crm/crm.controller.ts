@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import { crmService } from './crm.service';
 import prisma from '../../common/db/prisma';
+import { normalizePhone } from './services/lead.service';
+import { GoogleSheetsService } from './services/google-sheets.service';
+import { Telegraf, Markup } from 'telegraf';
 
 // Cache bots by token to avoid re-initializing on every request
 const botsCache: Record<string, any> = {};
@@ -25,7 +28,6 @@ async function getDynamicBot() {
         return botsCache[token];
     }
 
-    const { Telegraf, Markup } = require('telegraf');
     const botInstance = new Telegraf(token);
 
     // Register Callback Query handler (for inline action buttons)
@@ -63,7 +65,6 @@ async function getDynamicBot() {
 
                 // Push update to Google Sheet asynchronously if available
                 try {
-                    const { GoogleSheetsService } = require('./services/google-sheets.service');
                     const googleSheetUrl = process.env.GOOGLE_SHEET_URL || process.env.GOOGLE_SHEET_ID;
                     if (googleSheetUrl) {
                         GoogleSheetsService.appendLeadToSheet({
@@ -103,7 +104,6 @@ async function getDynamicBot() {
 
                 // Push update to Google Sheet asynchronously if available
                 try {
-                    const { GoogleSheetsService } = require('./services/google-sheets.service');
                     const googleSheetUrl = process.env.GOOGLE_SHEET_URL || process.env.GOOGLE_SHEET_ID;
                     if (googleSheetUrl) {
                         GoogleSheetsService.appendLeadToSheet({
@@ -149,7 +149,6 @@ async function getDynamicBot() {
 
                 // Push update to Google Sheet live
                 try {
-                    const { GoogleSheetsService } = require('./services/google-sheets.service');
                     const googleSheetUrl = process.env.GOOGLE_SHEET_URL || process.env.GOOGLE_SHEET_ID;
                     if (googleSheetUrl) {
                         GoogleSheetsService.appendLeadToSheet({
@@ -300,7 +299,6 @@ async function getDynamicBot() {
                     return;
                 }
 
-                const { normalizePhone } = require('./services/lead.service');
                 const normalized = normalizePhone(searchPhone);
 
                 const results = await prisma.crmLead.findMany({
