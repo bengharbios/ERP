@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User } from '../services/auth.service';
+import { User, authService } from '../services/auth.service';
 
 interface AuthState {
     user: User | null;
@@ -12,6 +12,7 @@ interface AuthState {
     clearAuth: () => void;
     logout: () => void;
     updateUser: (user: User) => void;
+    loadCurrentUserProfile: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -64,6 +65,17 @@ export const useAuthStore = create<AuthState>()(
 
             updateUser: (user) => {
                 set({ user });
+            },
+
+            loadCurrentUserProfile: async () => {
+                try {
+                    const res = await authService.getMe();
+                    if (res.success && res.data?.user) {
+                        set({ user: res.data.user });
+                    }
+                } catch (err) {
+                    console.error('Error loading current user profile:', err);
+                }
             },
         }),
         {

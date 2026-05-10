@@ -221,6 +221,7 @@ function CRMDashboardSwitcher() {
 
 function App() {
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+    const loadCurrentUserProfile = useAuthStore((state) => state.loadCurrentUserProfile);
     const fetchSettings = useSettingsStore((state) => state.fetchSettings);
     const theme = useSettingsStore((state) => state.theme);
 
@@ -237,8 +238,9 @@ function App() {
                 return;
             }
             fetchSettings();
+            loadCurrentUserProfile();
         }
-    }, [isAuthenticated, fetchSettings, theme]);
+    }, [isAuthenticated, fetchSettings, theme, loadCurrentUserProfile]);
 
     return (
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>

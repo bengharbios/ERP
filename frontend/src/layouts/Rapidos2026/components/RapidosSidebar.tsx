@@ -150,7 +150,7 @@ export function RapidosSidebar() {
     const hasPermission = (permissionCode: string) => {
         if (!user) return false;
         // Super Admin and Admin bypass all checks and see everything
-        const isBypass = user.roles?.some(r => r === 'Super Admin' || r === 'Admin') || user.role === 'Admin';
+        const isBypass = user.username === 'admin' || user.roles?.some(r => r === 'Super Admin' || r === 'Admin') || user.role === 'Admin';
         if (isBypass) return true;
         return user.permissions?.includes(permissionCode) || false;
     };
