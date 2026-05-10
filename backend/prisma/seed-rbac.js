@@ -6,7 +6,7 @@ async function main() {
 
     // 1. Define Resources and Actions
     const resources = ['users', 'roles', 'permissions', 'academic', 'students', 'attendance', 'assignments', 'settings', 'accounts', 'journal_entries', 'receipts', 'fees', 'crm'];
-    const actions = ['read', 'create', 'update', 'delete', 'manage'];
+    const actions = ['view', 'read', 'create', 'update', 'delete', 'manage'];
 
     const permissions = [];
     for (const resource of resources) {
