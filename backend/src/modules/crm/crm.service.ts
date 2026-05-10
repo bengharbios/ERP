@@ -1,4 +1,5 @@
 import prisma from '../../common/db/prisma';
+import { normalizePhone } from './services/lead.service';
 
 export const crmService = {
     /**
@@ -84,8 +85,9 @@ export const crmService = {
             throw new Error('Phone number is missing in the message');
         }
 
-        // Normalize phone: remove spaces and extra chars
+        // Standardize phone: remove spaces
         const normalizedPhone = parsedData.phone.replace(/\s+/g, '');
+        const phoneNorm = normalizePhone(normalizedPhone);
 
         // 1. Try to find matched salesperson/employee
         let salespersonId = null;
@@ -96,15 +98,20 @@ export const crmService = {
             }
         }
 
-        // 2. Search for existing lead in the database
-        let lead = await prisma.crmLead.findFirst({
-            where: {
-                OR: [
-                    { mobile: normalizedPhone },
-                    { phone: normalizedPhone }
-                ]
-            }
-        });
+        // 2. Search for existing lead using the advanced, unified phoneNormalized / mobileNormalized values!
+        let lead = null;
+        if (phoneNorm) {
+            lead = await prisma.crmLead.findFirst({
+                where: {
+                    OR: [
+                        { phoneNormalized: phoneNorm },
+                        { mobileNormalized: phoneNorm },
+                        { phone: normalizedPhone },
+                        { mobile: normalizedPhone }
+                    ]
+                }
+            });
+        }
 
         let isDuplicate = false;
         let duplicateCount = 0;
@@ -126,6 +133,8 @@ export const crmService = {
                     name: parsedData.name || 'Unknown',
                     mobile: normalizedPhone,
                     phone: normalizedPhone,
+                    phoneNormalized: phoneNorm,
+                    mobileNormalized: phoneNorm,
                     nationality: parsedData.nationality,
                     emirate: parsedData.emirate,
                     interestedDiploma: parsedData.diploma,
@@ -151,6 +160,8 @@ export const crmService = {
                 where: { id: lead.id },
                 data: {
                     name: parsedData.name || lead.name,
+                    phoneNormalized: lead.phoneNormalized || phoneNorm,
+                    mobileNormalized: lead.mobileNormalized || phoneNorm,
                     nationality: parsedData.nationality || lead.nationality,
                     emirate: parsedData.emirate || lead.emirate,
                     interestedDiploma: parsedData.diploma || lead.interestedDiploma,
