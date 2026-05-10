@@ -589,6 +589,8 @@ model Settings {
   telegramBotToken              String?  @map("telegram_bot_token")
   telegramBotUsername           String?  @map("telegram_bot_username")
   telegramBotEnabled            Boolean  @default(false) @map("telegram_bot_enabled")
+  telegramAuthMessage           String?  @map("telegram_auth_message")
+  telegramAuthExample           String?  @map("telegram_auth_example")
   country                       String   @default("SA")
   studentNumberLength           Int      @default(6) @map("student_number_length")
   bankAccountName               String?  @map("bank_account_name")

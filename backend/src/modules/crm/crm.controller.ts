@@ -193,11 +193,21 @@ async function getDynamicBot() {
         if (!isAuthCommand) {
             const currentUser = await getAuthenticatedUser(userId);
             if (!currentUser) {
-                await ctx.replyWithHTML(
-                    `🔒 <b>عذراً، هذا النظام آمن ومخصص لموظفي شركة السلام فقط!</b>\n\n` +
+                const settings = await prisma.settings.findFirst({
+                    where: { id: 'singleton' }
+                });
+
+                const customMessage = settings?.telegramAuthMessage ||
+                    `🔒 <b>عذراً، هذا النظام آمن ومخصص لموظفي معهد السلام الثقافي فقط!</b>\n\n` +
                     `يرجى تسجيل الدخول أولاً لربط حساب التليجرام الخاص بك وتفعيل الصلاحيات:\n` +
-                    `<code>/login [اسم المستخدم] [كلمة المرور]</code>\n\n` +
-                    `<i>مثال:</i>\n<code>/login mohamed.saleh Pass1234</code>`
+                    `<code>/login [اسم المستخدم] [كلمة المرور]</code>`;
+
+                const customExample = settings?.telegramAuthExample ||
+                    `<code>/login Abdelkader Pass1234</code>`;
+
+                await ctx.replyWithHTML(
+                    `${customMessage}\n\n` +
+                    `<i>مثال:</i>\n${customExample}`
                 );
                 return;
             }
@@ -207,10 +217,15 @@ async function getDynamicBot() {
         if (text.startsWith('/login') || text.startsWith('/auth')) {
             const parts = text.split(/\s+/);
             if (parts.length < 3) {
+                const settings = await prisma.settings.findFirst({
+                    where: { id: 'singleton' }
+                });
+                const customExample = settings?.telegramAuthExample || `<code>/login Abdelkader MyPass123</code>`;
+
                 await ctx.replyWithHTML(
                     `🔑 <b>لتسجيل الدخول وربط حسابك بالنظام، يرجى إرسال الأمر بالتنسيق التالي:</b>\n` +
                     `<code>/login [اسم_المستخدم] [كلمة_المرور]</code>\n\n` +
-                    `<i>مثال:</i>\n<code>/login mohamed.saleh MyPass123</code>`
+                    `<i>مثال:</i>\n${customExample}`
                 );
                 return;
             }
@@ -591,7 +606,19 @@ async function getDynamicBot() {
         }
     });
 
+    const alreadyCached = !!botsCache[token];
     botsCache[token] = botInstance;
+
+    // If running locally, enable polling auto-start
+    if (process.env.VERCEL !== '1' && !alreadyCached) {
+        botInstance.telegram.deleteWebhook()
+            .then(() => {
+                botInstance.launch().catch((err: any) => console.error('Error starting Telegraf polling:', err.message));
+                console.log('🤖 Telegram Bot launched in POLLING mode for local testing!');
+            })
+            .catch((err: any) => console.error('Error deleting webhook for local polling:', err.message));
+    }
+
     return botInstance;
 }
 
@@ -626,3 +653,10 @@ export const crmController = {
         }
     }
 };
+
+// Auto-initialize bot in local polling mode when the module is loaded (if running locally)
+if (process.env.VERCEL !== '1') {
+    getDynamicBot()
+        .then(() => console.log('🤖 Telegram Bot auto-started in local environment successfully!'))
+        .catch((err: any) => console.error('❌ Failed to auto-start Telegram Bot locally:', err.message));
+}
