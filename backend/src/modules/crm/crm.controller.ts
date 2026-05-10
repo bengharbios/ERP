@@ -235,7 +235,7 @@ async function getDynamicBot() {
 
             try {
                 const user = await prisma.user.findFirst({
-                    where: { username: { equals: usernameInput, mode: 'insensitive' } }
+                    where: { username: usernameInput }
                 });
 
                 if (!user) {
