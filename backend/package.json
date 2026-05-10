@@ -12,6 +12,7 @@
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio",
     "seed": "tsx prisma/seed.ts",
+    "seed:rbac": "node prisma/seed-rbac.js",
     "seed:students": "tsx prisma/seed-students.ts",
     "seed:programs": "tsx prisma/seed-programs-units.ts",
     "test": "jest",
