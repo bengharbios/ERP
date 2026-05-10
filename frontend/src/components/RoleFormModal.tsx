@@ -13,19 +13,53 @@ interface RoleFormModalProps {
 }
 
 const resourceTranslations: Record<string, string> = {
-    users: 'الموظفين والمستخدمين 👥',
-    roles: 'الأدوار والوظائف 🔑',
-    permissions: 'الصلاحيات الأمنية 🛡️',
-    academic: 'البرامج الأكاديمية 🎓',
-    students: 'شؤون الطلاب والجيل 👨‍🎓',
-    attendance: 'دفتر الحضور والغياب 📅',
-    assignments: 'الواجبات والمهام 📝',
-    settings: 'إعدادات النظام العامة ⚙️',
-    accounts: 'دليل الحسابات والميزانية 💰',
-    journal_entries: 'القيود اليومية 📊',
-    receipts: 'سندات الصرف والقبض 💳',
-    fees: 'الرسوم والاشتراكات 💵',
-    crm: 'إدارة العملاء والمبيعات CRM 📈',
+    // 1. الأكاديمي والطلاب
+    academic_programs: 'البرامج والدورات الدراسية 🎓',
+    academic_units: 'المواد والوحدات التعليمية 📚',
+    academic_classes: 'الصفوف والمجموعات 🏫',
+    students: 'إدارة شؤون الطلاب 👨‍🎓',
+    attendance_lectures: 'حضور وغياب المحاضرات 📅',
+    assignments: 'الواجبات والمهام التعليمية 📝',
+    academic_reports: 'التقارير الأكاديمية والشهادات 🏆',
+
+    // 2. المالية والمحاسبة
+    finance_fees: 'الرسوم الدراسية والاشتراكات 💵',
+    finance_receipts: 'سندات الصرف والقبض 💳',
+    finance_expenses: 'المصاريف والنفقات العامة 💸',
+    finance_invoices: 'الفواتير والمطالبات 📄',
+    chart_of_accounts: 'دليل الحسابات والميزانية 🏦',
+    journal_entries: 'القيود اليومية والتسويات 📊',
+    financial_settings: 'إعدادات النظام المالي ⚙️',
+    financial_reports: 'التقارير المالية والربحية 📈',
+
+    // 3. إدارة العملاء والمبيعات CRM
+    crm_dashboard: 'لوحة إحصائيات المبيعات 📊',
+    crm_leads: 'العملاء المحتملين (Leads) 👤',
+    crm_pipeline: 'مسار الصفقات (Pipeline) 🛣️',
+    crm_activities: 'الأنشطة والاتصالات اليومية 📞',
+    crm_teams: 'فرق عمل التسويق والمبيعات 👥',
+    crm_stages: 'تهيئة مراحل المبيعات ⚙️',
+    crm_customers: 'العملاء الدائمين والمعتمدين 🤝',
+
+    // 4. الموارد البشرية HR
+    hr_employees: 'ملفات وسجلات الموظفين 👥',
+    hr_departments: 'الهيكل والأقسام الإدارية 🏢',
+    hr_shifts: 'فترات العمل والورديات ⏰',
+    hr_staff_attendance: 'دفتر حضور وانصراف الموظفين 📅',
+    hr_attendance_reports: 'تقارير الحضور والإنتاجية 📊',
+    hr_payroll: 'مسيرات الرواتب والأجور 💰',
+    hr_leaves: 'طلبات الإجازات والمغادرات ✈️',
+    hr_recruitment: 'طلبات التوظيف والمقابلات 💼',
+    hr_employee_actions: 'القرارات الإدارية والعقود 📄',
+    hr_settings: 'إعدادات الموارد البشرية ⚙️',
+    biometric_devices: 'ربط أجهزة البصمة الحيوية 📟',
+
+    // 5. إدارة النظام والتقنية
+    sys_users: 'حسابات مستخدمي النظام 🔑',
+    sys_roles: 'الأدوار وصلاحيات النظام 🛡️',
+    sys_settings: 'إعدادات النظام العامة ⚙️',
+    sys_whatsapp: 'متابعة حملات واتساب الذكية 💬',
+    sys_marketing: 'إدارة الحملات التسويقية 📣',
 };
 
 // Sort permissions to display in a fixed logical order: view, read, create, update, delete, manage
@@ -68,10 +102,10 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
                                 WebkitTextFillColor: 'transparent', 
                                 margin: 0 
                             }}>
-                                {isEditing ? '✨ تعديل بيانات الدور المالي والأكاديمي' : '✨ إنشاء دور وظيفي جديد'}
+                                {isEditing ? '✨ تعديل بيانات الدور وتفاصيل الأقسام والصفحات' : '✨ إنشاء دور وظيفي جديد مخصص'}
                             </h2>
                             <p style={{ color: '#A0AEC0', margin: '6px 0 0 0', fontSize: '0.88rem' }}>
-                                {isEditing ? 'تحديث مسمى الدور الوظيفي والموارد والتحكم في صلاحيات العرض والإجراءات' : 'قم بتعريف مسمى وظيفي جديد وتخصيص صلاحياته العملياتية للمعهد'}
+                                {isEditing ? 'تحديد صلاحيات العرض والعمليات لجميع صفحات المعهد بالتفصيل' : 'قم بتعريف مسمى وظيفي جديد وتخصيص صلاحياته لجميع الأقسام'}
                             </p>
                         </div>
                         <button className="btn-close-2026-custom" onClick={onClose}>✕</button>
@@ -114,7 +148,7 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
                         {/* Permission Matrix */}
                         <div className="form-group-custom" style={{ display: 'flex', flexDirection: 'column' }}>
                             <label className="custom-label" style={{ marginBottom: '1rem', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                🛡️ مصفوفة توزيع صلاحيات العرض والعمليات (Permission Matrix)
+                                🛡️ مصفوفة توزيع صلاحيات العرض والعمليات لجميع الصفحات (Permission Matrix)
                             </label>
 
                             <div className="permissions-matrix-container-custom">
@@ -268,7 +302,7 @@ export const RoleFormModal: React.FC<RoleFormModalProps> = ({
                     }
 
                     .resource-label-custom {
-                        width: 210px;
+                        width: 250px;
                         font-weight: 800;
                         color: #E2E8F0;
                         font-size: 0.85rem;
