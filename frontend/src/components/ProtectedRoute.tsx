@@ -18,7 +18,9 @@ export default function ProtectedRoute({ children, requiredPermission }: Protect
         // Super Admin and Admin bypass all checks and have full access
         const isBypass = user.username === 'admin' || user.roles?.some(r => r === 'Super Admin' || r === 'Admin') || user.role === 'Admin';
         if (!isBypass) {
-            const hasPermission = user.permissions?.includes(requiredPermission);
+            // Support multi-permission check separated by '|' (OR logic)
+            const requiredList = requiredPermission.split('|');
+            const hasPermission = requiredList.some(reqPerm => user.permissions?.includes(reqPerm));
             if (!hasPermission) {
                 // If unauthorized, redirect securely to main dashboard
                 return <Navigate to="/dashboard" replace />;

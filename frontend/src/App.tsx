@@ -514,7 +514,7 @@ function App() {
                 <Route
                     path="/crm/*"
                     element={
-                        <ProtectedRoute requiredPermission="view_crm_dashboard">
+                        <ProtectedRoute requiredPermission="view_crm_dashboard|view_crm_leads|view_crm_pipeline|view_crm_activities|view_crm_teams|view_crm_stages|view_crm_customers">
                             <LayoutProvider>
                                 <CRMDashboardSwitcher />
                             </LayoutProvider>
@@ -535,7 +535,7 @@ function App() {
                 <Route
                     path="/departments"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_hr_departments">
                             <LayoutProvider>
                                 <DepartmentsSwitcher />
                             </LayoutProvider>
@@ -546,7 +546,7 @@ function App() {
                 <Route
                     path="/employees"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_hr_employees">
                             <LayoutProvider>
                                 <EmployeesSwitcher />
                             </LayoutProvider>
@@ -557,7 +557,7 @@ function App() {
                 <Route
                     path="/employees/:id"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_hr_employees">
                             <LayoutProvider>
                                 <EmployeeProfile />
                             </LayoutProvider>
@@ -568,7 +568,7 @@ function App() {
                 <Route
                     path="/hr-dashboard"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_hr_employees">
                             <LayoutProvider>
                                 <HRDashboard />
                             </LayoutProvider>
@@ -579,7 +579,7 @@ function App() {
                 <Route
                     path="/recruitment"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_hr_recruitment">
                             <LayoutProvider>
                                 <RecruitmentSwitcher />
                             </LayoutProvider>
@@ -590,7 +590,7 @@ function App() {
                 <Route
                     path="/employee-actions"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_hr_employee_actions">
                             <LayoutProvider>
                                 <EmployeeActionsSwitcher />
                             </LayoutProvider>
@@ -601,7 +601,7 @@ function App() {
                 <Route
                     path="/communication"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_sys_settings">
                             <LayoutProvider>
                                 <Communication />
                             </LayoutProvider>
@@ -612,7 +612,7 @@ function App() {
                 <Route
                     path="/shifts"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_hr_shifts">
                             <LayoutProvider>
                                 <ShiftsSwitcher />
                             </LayoutProvider>
@@ -623,7 +623,7 @@ function App() {
                 <Route
                     path="/biometric-devices"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_biometric_devices">
                             <LayoutProvider>
                                 <BiometricDevices />
                             </LayoutProvider>
@@ -634,7 +634,7 @@ function App() {
                 <Route
                     path="/staff-attendance"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_hr_staff_attendance">
                             <LayoutProvider>
                                 <AttendanceSwitcher />
                             </LayoutProvider>
@@ -645,7 +645,7 @@ function App() {
                 <Route
                     path="/attendance-reports"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_hr_attendance_reports">
                             <LayoutProvider>
                                 <AttendanceReports />
                             </LayoutProvider>
@@ -656,7 +656,7 @@ function App() {
                 <Route
                     path="/hr-settings"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_hr_settings">
                             <LayoutProvider>
                                 <HRSettingsSwitcher />
                             </LayoutProvider>
@@ -667,7 +667,7 @@ function App() {
                 <Route
                     path="/payroll"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_hr_payroll">
                             <LayoutProvider>
                                 <PayrollSwitcher />
                             </LayoutProvider>
@@ -678,7 +678,7 @@ function App() {
                 <Route
                     path="/leaves"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_hr_leaves">
                             <LayoutProvider>
                                 <LeaveRequestsSwitcher />
                             </LayoutProvider>
@@ -689,7 +689,7 @@ function App() {
                 <Route
                     path="/attendance"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_attendance_lectures">
                             <LayoutProvider>
                                 <Attendance />
                             </LayoutProvider>
@@ -700,7 +700,7 @@ function App() {
                 <Route
                     path="/assignments"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_assignments">
                             <LayoutProvider>
                                 <Assignments />
                             </LayoutProvider>
@@ -711,7 +711,7 @@ function App() {
                 <Route
                     path="/reports"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_academic_reports">
                             <LayoutProvider>
                                 <Reports />
                             </LayoutProvider>
@@ -721,7 +721,7 @@ function App() {
                 <Route
                     path="/settings"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_sys_settings">
                             <LayoutProvider>
                                 <Settings />
                             </LayoutProvider>
@@ -731,7 +731,7 @@ function App() {
                 <Route
                     path="/users"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_sys_users">
                             <LayoutProvider>
                                 <Users />
                             </LayoutProvider>
@@ -741,7 +741,7 @@ function App() {
                 <Route
                     path="/roles"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_sys_roles">
                             <LayoutProvider>
                                 <Roles />
                             </LayoutProvider>
@@ -751,7 +751,7 @@ function App() {
                 <Route
                     path="/permissions"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_sys_roles">
                             <LayoutProvider>
                                 <Permissions />
                             </LayoutProvider>

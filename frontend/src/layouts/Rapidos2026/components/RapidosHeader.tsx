@@ -14,6 +14,7 @@ import {
     ArrowRightLeft, BrainCircuit
 } from 'lucide-react';
 import { useSettingsStore } from '../../../store/settingsStore';
+import { useAuthStore } from '../../../store/authStore';
 
 /* ══════════════════════════════════════════
    NAVIGATION STRUCTURE — بنية التنقل الكاملة
@@ -162,24 +163,31 @@ function SectionDropdown({ section, onClose }: { section: typeof NAV_SECTIONS[0]
 export function HorizonTopbar() {
     const { pathname } = useLocation();
     const { settings, theme, toggleTheme } = useSettingsStore();
+    const user = useAuthStore((state) => state.user);
+    const logout = useAuthStore((state) => state.logout);
     const instituteName = settings?.instituteName || 'معهد سلام';
     const [openSection, setOpenSection] = useState<string | null>(null);
     const [searchVal, setSearchVal] = useState('');
     const [mobileOpen, setMobileOpen] = useState(false);
     const [tickerClosed, setTickerClosed] = useState(false);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
     const navRef = useRef<HTMLDivElement>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handler = (e: MouseEvent) => {
             if (navRef.current && !navRef.current.contains(e.target as Node)) {
                 setOpenSection(null);
             }
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+                setDropdownOpen(false);
+            }
         };
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
     }, []);
 
-    useEffect(() => { setOpenSection(null); setMobileOpen(false); }, [pathname]);
+    useEffect(() => { setOpenSection(null); setMobileOpen(false); setDropdownOpen(false); }, [pathname]);
 
     const crumbSection = NAV_SECTIONS.find(s => s.pages.some(p => pathname.startsWith(p.path)));
     const crumbPage = crumbSection?.pages.find(p => pathname.startsWith(p.path));
@@ -240,9 +248,85 @@ export function HorizonTopbar() {
                         <Bell size={18} strokeWidth={2} />
                         <span className="hz-notif-dot" />
                     </button>
-                    <div className="hz-user-chip">
-                        <div className="hz-user-avatar">م</div>
-                        <span className="hz-user-name">الإدارة</span>
+                    <div className="hz-user-chip-wrapper" ref={dropdownRef} style={{ position: 'relative' }}>
+                        <div className="hz-user-chip" onClick={() => setDropdownOpen(!dropdownOpen)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div className="hz-user-avatar">
+                                {user ? `${user.firstName || ''} ${user.lastName || ''}`.trim().charAt(0).toUpperCase() || user.username.charAt(0).toUpperCase() : 'م'}
+                            </div>
+                            <span className="hz-user-name">
+                                {user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username : 'الإدارة'}
+                            </span>
+                            <ChevronDown size={14} style={{ opacity: 0.6, transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }} />
+                        </div>
+
+                        {dropdownOpen && (
+                            <div className="hz-user-dropdown-panel" style={{
+                                position: 'absolute',
+                                top: '120%',
+                                left: '0',
+                                width: '220px',
+                                background: '#111827',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                borderRadius: '12px',
+                                padding: '8px',
+                                boxShadow: '0 12px 30px rgba(0,0,0,0.6)',
+                                zIndex: 9999,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '4px'
+                            }}>
+                                <div style={{
+                                    padding: '8px 12px',
+                                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                                    marginBottom: '4px'
+                                }}>
+                                    <div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: '#FFFFFF' }}>
+                                        {user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username : 'الإدارة'}
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: '#9CA3AF', marginTop: '2px' }}>
+                                        {user?.email || 'admin@سلام.com'}
+                                    </div>
+                                </div>
+                                <NavLink to="/settings" onClick={() => setDropdownOpen(false)} style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '10px',
+                                    padding: '10px 12px',
+                                    color: '#F3F4F6',
+                                    textDecoration: 'none',
+                                    fontSize: '0.85rem',
+                                    borderRadius: '8px',
+                                    transition: 'background 0.2s'
+                                }} 
+                                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+                                >
+                                    <Settings size={14} />
+                                    <span>إعدادات النظام</span>
+                                </NavLink>
+                                <button onClick={() => { setDropdownOpen(false); logout(); }} style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '10px',
+                                    padding: '10px 12px',
+                                    color: '#EF4444',
+                                    background: 'none',
+                                    border: 'none',
+                                    width: '100%',
+                                    textAlign: 'right',
+                                    fontSize: '0.85rem',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    transition: 'background 0.2s'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+                                >
+                                    <X size={14} />
+                                    <span>تسجيل الخروج</span>
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </header>
