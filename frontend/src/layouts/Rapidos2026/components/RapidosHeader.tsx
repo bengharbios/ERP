@@ -29,14 +29,14 @@ export const NAV_SECTIONS = [
         glow: 'var(--hz-cyan-glow)',
         pages: [
             { label: 'الرئيسية (Dashboard)', icon: LayoutDashboard, path: '/dashboard' },
-            { label: 'البرامج الأكاديمية', icon: BookOpen, path: '/programs' },
-            { label: 'الوحدات والمواد', icon: Layers, path: '/units' },
-            { label: 'الفصول الدراسية', icon: CalendarDays, path: '/classes' },
-            { label: 'الطلاب المسجلين', icon: Users, path: '/students' },
-            { label: 'جدول المحاضرات', icon: CalendarRange, path: '/schedule' },
-            { label: 'سجلات الحضور', icon: Clock, path: '/attendance' },
-            { label: 'الواجبات والمهام', icon: PenTool, path: '/assignments' },
-            { label: 'المقيّم الأكاديمي الذكي', icon: BrainCircuit, path: '/academic-assessor-ai' },
+            { label: 'البرامج الأكاديمية', icon: BookOpen, path: '/programs', permission: 'view_academic_programs' },
+            { label: 'الوحدات والمواد', icon: Layers, path: '/units', permission: 'view_academic_units' },
+            { label: 'الفصول الدراسية', icon: CalendarDays, path: '/classes', permission: 'view_academic_classes' },
+            { label: 'الطلاب المسجلين', icon: Users, path: '/students', permission: 'view_students' },
+            { label: 'جدول المحاضرات', icon: CalendarRange, path: '/schedule', permission: 'view_academic_classes' },
+            { label: 'سجلات الحضور', icon: Clock, path: '/attendance', permission: 'view_attendance_lectures' },
+            { label: 'الواجبات والمهام', icon: PenTool, path: '/assignments', permission: 'view_assignments' },
+            { label: 'المقيّم الأكاديمي الذكي', icon: BrainCircuit, path: '/academic-assessor-ai', permission: 'view_academic_programs' },
         ],
     },
     {
@@ -47,13 +47,13 @@ export const NAV_SECTIONS = [
         color: 'var(--hz-gold)', // Gold/Orange
         glow: 'var(--hz-gold-glow)',
         pages: [
-            { label: 'الرسوم الدراسية', icon: CreditCard, path: '/fees' },
-            { label: 'سندات القبض', icon: ReceiptText, path: '/receipt-vouchers' },
-            { label: 'سندات الصرف', icon: FileText, path: '/expenses' },
-            { label: 'فواتير المبيعات', icon: FileStack, path: '/finance/invoices' },
-            { label: 'دليل الحسابات', icon: Landmark, path: '/chart-of-accounts' },
-            { label: 'القيود اليدوية', icon: FileJson, path: '/journal-entries' },
-            { label: 'التقارير المالية', icon: BarChart3, path: '/financial-reports' },
+            { label: 'الرسوم الدراسية', icon: CreditCard, path: '/fees', permission: 'view_finance_fees' },
+            { label: 'سندات القبض', icon: ReceiptText, path: '/receipt-vouchers', permission: 'view_finance_receipts' },
+            { label: 'سندات الصرف', icon: FileText, path: '/expenses', permission: 'view_finance_expenses' },
+            { label: 'فواتير المبيعات', icon: FileStack, path: '/finance/invoices', permission: 'view_finance_invoices' },
+            { label: 'دليل الحسابات', icon: Landmark, path: '/chart-of-accounts', permission: 'view_chart_of_accounts' },
+            { label: 'القيود اليدوية', icon: FileJson, path: '/journal-entries', permission: 'view_journal_entries' },
+            { label: 'التقارير المالية', icon: BarChart3, path: '/financial-reports', permission: 'view_financial_reports' },
         ],
     },
     {
@@ -64,15 +64,15 @@ export const NAV_SECTIONS = [
         color: 'var(--hz-plasma)', // Plasma/Purple
         glow: 'var(--hz-plasma-glow)',
         pages: [
-            { label: 'لوحة تحكم HR', icon: TrendingUp, path: '/hr-dashboard' },
-            { label: 'ملفات الموظفين', icon: UserCircle, path: '/employees' },
-            { label: 'الأقسام والهيكل', icon: Building2, path: '/departments' },
-            { label: 'الحضور الذكي', icon: UserCheck, path: '/staff-attendance' },
-            { label: 'إدارة المناوبات', icon: Clock, path: '/shifts' },
-            { label: 'كشوف المرتبات', icon: FileSpreadsheet, path: '/payroll' },
-            { label: 'طلبات الإجازة', icon: MessageSquare, path: '/leaves' },
-            { label: 'التوظيف', icon: UserPlus, path: '/recruitment' },
-            { label: 'الجزاءات والمكافآت', icon: ShieldAlert, path: '/employee-actions' },
+            { label: 'لوحة تحكم HR', icon: TrendingUp, path: '/hr-dashboard', permission: 'view_hr_employees' },
+            { label: 'ملفات الموظفين', icon: UserCircle, path: '/employees', permission: 'view_hr_employees' },
+            { label: 'الأقسام والهيكل', icon: Building2, path: '/departments', permission: 'view_hr_departments' },
+            { label: 'الحضور الذكي', icon: UserCheck, path: '/staff-attendance', permission: 'view_hr_staff_attendance' },
+            { label: 'إدارة المناوبات', icon: Clock, path: '/shifts', permission: 'view_hr_shifts' },
+            { label: 'كشوف المرتبات', icon: FileSpreadsheet, path: '/payroll', permission: 'view_hr_payroll' },
+            { label: 'طلبات الإجازة', icon: MessageSquare, path: '/leaves', permission: 'view_hr_leaves' },
+            { label: 'التوظيف', icon: UserPlus, path: '/recruitment', permission: 'view_hr_recruitment' },
+            { label: 'الجزاءات والمكافآت', icon: ShieldAlert, path: '/employee-actions', permission: 'view_hr_employee_actions' },
         ],
     },
     {
@@ -83,16 +83,16 @@ export const NAV_SECTIONS = [
         color: 'var(--hz-neon)', // Neon/Green
         glow: 'var(--hz-neon-glow)',
         pages: [
-            { label: 'لوحة تحكم CRM', icon: LayoutDashboard, path: '/crm/dashboard' },
-            { label: 'العملاء (Customers)', icon: Users, path: '/crm-customers' },
-            { label: 'العملاء المحتملون', icon: UserPlus, path: '/crm-leads' },
-            { label: 'أنابيب المبيعات (Pipeline)', icon: ArrowRightLeft, path: '/crm-pipeline' },
-            { label: 'إعدادات المراحل', icon: Settings, path: '/crm-stages' },
-            { label: 'الأنشطة والمتابعة', icon: CalendarRange, path: '/crm-activities' },
-            { label: 'فرق المبيعات', icon: Users, path: '/crm-teams' },
-            { label: 'تتبع واتساب', icon: MessageSquare, path: '/whatsapp-tracker' },
-            { label: 'الحملات التسويقية', icon: Megaphone, path: '/marketing' },
-            { label: 'مركز الاتصالات', icon: Headphones, path: '/communication' },
+            { label: 'لوحة تحكم CRM', icon: LayoutDashboard, path: '/crm/dashboard', permission: 'view_crm_dashboard' },
+            { label: 'العملاء (Customers)', icon: Users, path: '/crm-customers', permission: 'view_crm_customers' },
+            { label: 'العملاء المحتملون', icon: UserPlus, path: '/crm-leads', permission: 'view_crm_leads' },
+            { label: 'أنابيب المبيعات (Pipeline)', icon: ArrowRightLeft, path: '/crm-pipeline', permission: 'view_crm_pipeline' },
+            { label: 'إعدادات المراحل', icon: Settings, path: '/crm-stages', permission: 'view_crm_stages' },
+            { label: 'الأنشطة والمتابعة', icon: CalendarRange, path: '/crm-activities', permission: 'view_crm_activities' },
+            { label: 'فرق المبيعات', icon: Users, path: '/crm-teams', permission: 'view_crm_teams' },
+            { label: 'تتبع واتساب', icon: MessageSquare, path: '/whatsapp-tracker', permission: 'view_crm_leads' },
+            { label: 'الحملات التسويقية', icon: Megaphone, path: '/marketing', permission: 'view_sys_marketing' },
+            { label: 'مركز الاتصالات', icon: Headphones, path: '/communication', permission: 'view_sys_settings' },
         ],
     },
     {
@@ -103,13 +103,13 @@ export const NAV_SECTIONS = [
         color: 'var(--hz-coral)', // Coral/Pink
         glow: 'var(--hz-coral-glow)',
         pages: [
-            { label: 'إعدادات المؤسسة', icon: Building2, path: '/settings' },
-            { label: 'إدارة المستخدمين', icon: Users, path: '/users' },
-            { label: 'الأدوار والصلاحيات', icon: BadgeCheck, path: '/roles' },
-            { label: 'إعدادات النظام المالية', icon: Calculator, path: '/financial-settings' },
-            { label: 'إعدادات الموارد البشرية', icon: UserCircle, path: '/hr-settings' },
-            { label: 'أجهزة البصمة', icon: Hash, path: '/biometric-devices' },
-            { label: 'التقارير الإحصائية', icon: FileText, path: '/reports' },
+            { label: 'إعدادات المؤسسة', icon: Building2, path: '/settings', permission: 'view_sys_settings' },
+            { label: 'إدارة المستخدمين', icon: Users, path: '/users', permission: 'view_sys_users' },
+            { label: 'الأدوار والصلاحيات', icon: BadgeCheck, path: '/roles', permission: 'view_sys_roles' },
+            { label: 'إعدادات النظام المالية', icon: Calculator, path: '/financial-settings', permission: 'view_financial_settings' },
+            { label: 'إعدادات الموارد البشرية', icon: UserCircle, path: '/hr-settings', permission: 'view_hr_settings' },
+            { label: 'أجهزة البصمة', icon: Hash, path: '/biometric-devices', permission: 'view_biometric_devices' },
+            { label: 'التقارير الإحصائية', icon: FileText, path: '/reports', permission: 'view_academic_reports' },
         ],
     },
 ];
@@ -127,6 +127,19 @@ const MOBILE_SECTIONS = NAV_SECTIONS.map(s => ({
 ══════════════════════════════════════════ */
 function SectionDropdown({ section, onClose }: { section: typeof NAV_SECTIONS[0]; onClose: () => void }) {
     const { pathname } = useLocation();
+    const user = useAuthStore((s) => s.user);
+
+    const hasPermission = (permissionCode?: string) => {
+        if (!permissionCode) return true;
+        if (!user) return false;
+        const isBypass = user.username === 'admin' || user.roles?.some(r => r === 'Super Admin' || r === 'Admin') || user.role === 'Admin';
+        if (isBypass) return true;
+        return user.permissions?.includes(permissionCode) || false;
+    };
+
+    const filteredPages = section.pages.filter(page => hasPermission(page.permission));
+
+    if (filteredPages.length === 0) return null;
 
     return (
         <div className="hz-dropdown-panel" style={{ '--hz-drop-color': section.color, '--hz-drop-glow': section.glow } as any}>
@@ -135,7 +148,7 @@ function SectionDropdown({ section, onClose }: { section: typeof NAV_SECTIONS[0]
                 <span>{section.label}</span>
             </div>
             <div className="hz-dropdown-grid">
-                {section.pages.map(page => {
+                {filteredPages.map(page => {
                     const active = pathname === page.path || pathname.startsWith(page.path + '/');
                     return (
                         <NavLink
@@ -211,6 +224,17 @@ export function HorizonTopbar() {
 
                 <nav className="hz-topnav" ref={navRef}>
                     {NAV_SECTIONS.map(section => {
+                        const hasPermission = (permissionCode?: string) => {
+                            if (!permissionCode) return true;
+                            if (!user) return false;
+                            const isBypass = user.username === 'admin' || user.roles?.some(r => r === 'Super Admin' || r === 'Admin') || user.role === 'Admin';
+                            if (isBypass) return true;
+                            return user.permissions?.includes(permissionCode) || false;
+                        };
+
+                        const filteredPages = section.pages.filter(p => hasPermission(p.permission));
+                        if (filteredPages.length === 0) return null;
+
                         const sectionActive = section.pages.some(p =>
                             pathname === p.path || (p.path !== '/' && pathname.startsWith(p.path + '/'))
                         );
