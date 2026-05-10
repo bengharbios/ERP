@@ -5,7 +5,7 @@ async function main() {
     console.log('🌱 Seeding RBAC data...');
 
     // 1. Define Resources and Actions
-    const resources = ['users', 'roles', 'permissions', 'academic', 'students', 'attendance', 'assignments', 'settings', 'accounts', 'journal_entries', 'receipts', 'fees'];
+    const resources = ['users', 'roles', 'permissions', 'academic', 'students', 'attendance', 'assignments', 'settings', 'accounts', 'journal_entries', 'receipts', 'fees', 'crm'];
     const actions = ['read', 'create', 'update', 'delete', 'manage'];
 
     const permissions = [];
