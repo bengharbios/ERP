@@ -26,6 +26,12 @@ export default function Users() {
     });
     const [showMobileFilters, setShowMobileFilters] = useState(false);
 
+    // Password Reset States
+    const [showResetModal, setShowResetModal] = useState(false);
+    const [resetUserId, setResetUserId] = useState<string | null>(null);
+    const [resetUsername, setResetUsername] = useState<string>('');
+    const [newPassword, setNewPassword] = useState('');
+
     const [toast, setToast] = useState<{ msg: string, type: ToastType } | null>(null);
     const [confirmId, setConfirmId] = useState<string | null>(null);
 
@@ -135,6 +141,28 @@ export default function Users() {
         }
     };
 
+    const handleResetPasswordClick = (user: User) => {
+        setResetUserId(user.id);
+        setResetUsername(user.username);
+        setNewPassword('');
+        setShowResetModal(true);
+    };
+
+    const handleResetPasswordSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!resetUserId || !newPassword.trim()) return;
+        try {
+            await usersService.updateUser(resetUserId, { password: newPassword });
+            setToast({ msg: `🔑 تم تعيين كلمة مرور جديدة بنجاح للمستخدم @${resetUsername}`, type: 'success' });
+            setShowResetModal(false);
+            setResetUserId(null);
+            setResetUsername('');
+            setNewPassword('');
+        } catch (err: any) {
+            setToast({ msg: err.response?.data?.error?.message || '❌ فشل تعيين كلمة المرور الجديدة', type: 'error' });
+        }
+    };
+
     if (loading && users.length === 0) {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#F8FAFC' }}>
@@ -220,12 +248,13 @@ export default function Users() {
                                             {user.username.substring(0, 2).toUpperCase()}
                                         </div>
                                         <div className="card-actions-mini">
+                                            <button onClick={() => handleResetPasswordClick(user)} title="إعادة تعيين كلمة المرور" style={{ fontSize: '1.2rem' }}>🔑</button>
                                             <button onClick={() => handleEdit(user)}>✎</button>
                                             <button onClick={() => handleDeleteClick(user.id)} className="danger">×</button>
                                         </div>
                                     </div>
                                     <div className="card-info">
-                                        <h3 className="card-title">{user.firstName} {user.lastName}</h3>
+                                        <h3 className="card-title">{user.firstName || user.lastName ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : user.username}</h3>
                                         <p className="card-subtitle">@{user.username}</p>
                                         <div className="card-tags">
                                             {user.userRoles.map(ur => (
@@ -287,7 +316,7 @@ export default function Users() {
                                                         {user.username.substring(0, 2).toUpperCase()}
                                                     </div>
                                                     <div>
-                                                        <div className="table-primary-text">{user.firstName} {user.lastName}</div>
+                                                        <div className="table-primary-text">{user.firstName || user.lastName ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : user.username}</div>
                                                         <div className="table-secondary-text">@{user.username}</div>
                                                     </div>
                                                 </div>
@@ -306,6 +335,7 @@ export default function Users() {
                                             </td>
                                             <td className="text-center w-150">
                                                 <div className="table-row-actions">
+                                                    <button onClick={() => handleResetPasswordClick(user)} className="edit-btn" style={{ background: '#FEFCBF', color: '#B7791F' }}>🔑 كلمة السر</button>
                                                     <button onClick={() => handleEdit(user)} className="edit-btn">تعديل</button>
                                                     <button onClick={() => handleDeleteClick(user.id)} className="delete-btn">حذف</button>
                                                 </div>
@@ -330,6 +360,64 @@ export default function Users() {
                     onSubmit={handleSubmit}
                     onChange={(f, v) => setFormData({ ...formData, [f]: v })}
                 />
+            )}
+
+            {showResetModal && (
+                <div className="premium-modal-overlay" onClick={() => setShowResetModal(false)} dir="rtl">
+                    <div className="premium-modal-content fade-in" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+                        <div style={{ padding: '2.5rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                                <div>
+                                    <h2 style={{ fontSize: '1.5rem', fontWeight: '900', color: '#1A202C', margin: 0 }}>
+                                        🔑 إعادة تعيين كلمة المرور
+                                    </h2>
+                                    <p style={{ color: '#718096', margin: '6px 0 0 0', fontSize: '0.875rem' }}>
+                                        تعيين كلمة مرور جديدة للمستخدم: <b style={{ color: '#DD6B20' }}>@{resetUsername}</b>
+                                    </p>
+                                </div>
+                                <button className="btn-close-2026" onClick={() => setShowResetModal(false)}>✕</button>
+                            </div>
+
+                            <form onSubmit={handleResetPasswordSubmit}>
+                                <div style={{ marginBottom: '1.5rem' }}>
+                                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '800', color: '#4A5568', marginBottom: '0.8rem' }}>كلمة المرور الجديدة</label>
+                                    <input
+                                        type="password"
+                                        style={{
+                                            width: '100%',
+                                            padding: '1rem 1.2rem',
+                                            borderRadius: '14px',
+                                            border: '1.5px solid #E2E8F0',
+                                            fontSize: '1rem',
+                                            color: '#2D3748',
+                                            outline: 'none',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        placeholder="••••••••"
+                                        required
+                                        autoFocus
+                                    />
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '1rem', marginTop: '2.5rem', borderTop: '1px solid #EDF2F7', paddingTop: '1.5rem' }}>
+                                    <button type="button" className="btn-secondary-large" onClick={() => setShowResetModal(false)}>إلغاء</button>
+                                    <button type="submit" className="btn-primary-large orange" style={{
+                                        background: 'linear-gradient(135deg, #DD6B20 0%, #ED8936 100%)',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '16px',
+                                        fontWeight: '900',
+                                        cursor: 'pointer'
+                                    }}>
+                                        تأكيد تعيين كلمة السر
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {showMobileFilters && (
@@ -431,11 +519,15 @@ export default function Users() {
                     display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.5rem;
                     border-radius: 14px; font-weight: 800; border: none; cursor: pointer; transition: all 0.2s;
                 }
-                .btn-primary-gradient.orange {
+                .btn-primary-gradient.orange, .btn-orange-gradient {
                     background: linear-gradient(135deg, #DD6B20 0%, #ED8936 100%); color: white;
                     box-shadow: 0 10px 15px -3px rgba(221, 107, 32, 0.3);
                 }
-                .btn-primary-gradient:hover { transform: translateY(-2px); filter: brightness(1.1); }
+                .btn-primary-gradient:hover, .btn-orange-gradient:hover { 
+                    transform: translateY(-2px); 
+                    filter: brightness(1.1); 
+                    box-shadow: 0 12px 20px -3px rgba(221, 107, 32, 0.45);
+                }
                 
                 /* TOOLBAR */
                 .container-wide { max-width: 1400px; margin: 0 auto; width: 100%; }

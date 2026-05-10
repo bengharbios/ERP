@@ -93,11 +93,23 @@ export class UsersService {
             firstName: data.firstName,
             lastName: data.lastName,
             isActive: data.isActive,
-            // other fields
+            email: data.email,
         };
 
         if (data.password) {
             updateData.passwordHash = await bcrypt.hash(data.password, 10);
+        }
+
+        // If a roleId is specified, update user role mapping
+        if (data.roleId) {
+            updateData.userRoles = {
+                deleteMany: {}, // Clear existing roles
+                create: {
+                    role: { connect: { id: data.roleId } },
+                    scopeType: data.scopeType || 'global',
+                    scopeId: data.scopeId || null
+                }
+            };
         }
 
         return usersRepository.update(id, updateData);
