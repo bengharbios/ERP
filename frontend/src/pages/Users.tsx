@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import usersService, { User, Role } from '../services/users.service';
 import { UserFormModal } from '../components/UserFormModal';
 import { Toast, ToastType } from '../components/Toast';
@@ -349,8 +350,8 @@ export default function Users() {
                 </div>
             </main>
 
-            {/* --- Modals --- */}
-            {showModal && (
+            {/* --- Modals Rendered via React Portals strictly to document.body to bypass transformed relative container flows --- */}
+            {showModal && createPortal(
                 <UserFormModal
                     show={showModal}
                     isEditing={isEditing}
@@ -359,10 +360,11 @@ export default function Users() {
                     onClose={() => setShowModal(false)}
                     onSubmit={handleSubmit}
                     onChange={(f, v) => setFormData({ ...formData, [f]: v })}
-                />
+                />,
+                document.body
             )}
 
-            {showResetModal && (
+            {showResetModal && createPortal(
                 <div className="premium-modal-overlay" onClick={() => setShowResetModal(false)} dir="rtl">
                     <div className="premium-modal-content fade-in" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
                         <div style={{ padding: '2.5rem' }}>
@@ -417,7 +419,8 @@ export default function Users() {
                             </form>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {showMobileFilters && (
@@ -452,15 +455,19 @@ export default function Users() {
                 </div>
             )}
 
-            {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+            {toast && createPortal(
+                <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />,
+                document.body
+            )}
 
-            {confirmId && (
+            {confirmId && createPortal(
                 <ConfirmDialog
                     title="حذف المستخدم"
                     message="هل أنت متأكد؟ سيتم فقدان جميع بيانات المستخدم نهائياً."
                     onConfirm={confirmDelete}
                     onCancel={() => setConfirmId(null)}
-                />
+                />,
+                document.body
             )}
 
             <style dangerouslySetInnerHTML={{
