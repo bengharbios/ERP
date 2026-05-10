@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import usersService, { Role, Permission } from '../services/users.service';
 import { RoleFormModal } from '../components/RoleFormModal';
 import { Toast, ToastType } from '../components/Toast';
@@ -350,8 +351,8 @@ export default function Roles() {
                 </div>
             </main>
 
-            {/* --- Modals --- */}
-            {showModal && (
+            {/* --- Modals Rendered via React Portals strictly to document.body to bypass transformed relative container flows --- */}
+            {showModal && createPortal(
                 <RoleFormModal
                     show={showModal}
                     isEditing={isEditing}
@@ -361,7 +362,8 @@ export default function Roles() {
                     onSubmit={handleSubmit}
                     onChange={(f, v) => setFormData({ ...formData, [f]: v })}
                     onTogglePermission={togglePermission}
-                />
+                />,
+                document.body
             )}
 
             {showMobileFilters && (
@@ -389,15 +391,19 @@ export default function Roles() {
                 </div>
             )}
 
-            {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+            {toast && createPortal(
+                <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />,
+                document.body
+            )}
 
-            {confirmDialog && (
+            {confirmDialog && createPortal(
                 <ConfirmDialog
                     title={confirmDialog.title}
                     message={confirmDialog.message}
                     onConfirm={confirmDelete}
                     onCancel={() => setConfirmDialog(null)}
-                />
+                />,
+                document.body
             )}
 
             <style dangerouslySetInnerHTML={{

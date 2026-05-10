@@ -68,7 +68,10 @@ export class UsersService {
             passwordHash,
             firstName: data.firstName,
             lastName: data.lastName,
-            isActive: true,
+            isActive: data.isActive !== undefined ? data.isActive : true,
+            phone: data.phone || null,
+            telegramUserId: data.telegramUserId || null,
+            telegramUsername: data.telegramUsername || null,
         };
 
         // If roles provided
@@ -92,8 +95,11 @@ export class UsersService {
         const updateData: Prisma.UserUpdateInput = {
             firstName: data.firstName,
             lastName: data.lastName,
-            isActive: data.isActive,
+            isActive: data.isActive !== undefined ? data.isActive : user.isActive,
             email: data.email,
+            phone: data.phone !== undefined ? data.phone : user.phone,
+            telegramUserId: data.telegramUserId !== undefined ? data.telegramUserId : user.telegramUserId,
+            telegramUsername: data.telegramUsername !== undefined ? data.telegramUsername : user.telegramUsername,
         };
 
         if (data.password) {

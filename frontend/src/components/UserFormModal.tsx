@@ -96,6 +96,47 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
                                 />
                             </div>
 
+                            <div className="form-group">
+                                <label>رقم الهاتف</label>
+                                <input
+                                    type="text"
+                                    value={formData.phone || ''}
+                                    onChange={(e) => onChange('phone', e.target.value)}
+                                    placeholder="+971 50 123 4567"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label>حالة الحساب</label>
+                                <select
+                                    value={formData.isActive !== undefined ? (formData.isActive ? 'true' : 'false') : 'true'}
+                                    onChange={(e) => onChange('isActive', e.target.value === 'true')}
+                                >
+                                    <option value="true">نشط (Active) ✅</option>
+                                    <option value="false">غير نشط (Inactive) ❌</option>
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label>معرف حساب التليجرام (Telegram User ID)</label>
+                                <input
+                                    type="text"
+                                    value={formData.telegramUserId || ''}
+                                    onChange={(e) => onChange('telegramUserId', e.target.value)}
+                                    placeholder="مثال: 12345678"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label>اسم مستخدم التليجرام (Telegram @Username)</label>
+                                <input
+                                    type="text"
+                                    value={formData.telegramUsername || ''}
+                                    onChange={(e) => onChange('telegramUsername', e.target.value)}
+                                    placeholder="مثال: mohamed_saleh"
+                                />
+                            </div>
+
                             <div className="form-group full-width">
                                 <label>تعيين دور أساسي (اختياري)</label>
                                 <div className="role-assignment-box">

@@ -29,6 +29,9 @@ export interface User {
     isActive: boolean;
     emailVerified?: boolean;
     createdAt: string;
+    phone?: string;
+    telegramUserId?: string;
+    telegramUsername?: string;
     userRoles: { role: Role; scopeType?: string; scopeId?: string }[];
 }
 
@@ -40,6 +43,9 @@ export interface CreateUserDTO {
     lastName?: string;
     roleId?: string;
     isActive?: boolean;
+    phone?: string;
+    telegramUserId?: string;
+    telegramUsername?: string;
 }
 
 export interface CreateRoleDTO {

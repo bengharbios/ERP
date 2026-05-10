@@ -23,7 +23,7 @@ export default function Users() {
     const [isEditing, setIsEditing] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [formData, setFormData] = useState<any>({
-        username: '', email: '', password: '', firstName: '', lastName: '', roleId: '', isActive: true
+        username: '', email: '', password: '', firstName: '', lastName: '', roleId: '', isActive: true, phone: '', telegramUserId: '', telegramUsername: ''
     });
     const [showMobileFilters, setShowMobileFilters] = useState(false);
 
@@ -53,10 +53,9 @@ export default function Users() {
         if (filterRole) {
             filtered = filtered.filter(u => u.userRoles.some(ur => ur.role.id === filterRole));
         }
-        if (filterStatus === 'active') {
-            filtered = filtered.filter(u => u.isActive);
-        } else if (filterStatus === 'inactive') {
-            filtered = filtered.filter(u => !u.isActive);
+        if (filterStatus !== 'all') {
+            const isAct = filterStatus === 'active';
+            filtered = filtered.filter(u => u.isActive === isAct);
         }
         setFilteredUsers(filtered);
     }, [users, searchTerm, filterRole, filterStatus]);
@@ -81,7 +80,7 @@ export default function Users() {
     const handleCreate = () => {
         setIsEditing(false);
         setSelectedUser(null);
-        setFormData({ username: '', email: '', password: '', firstName: '', lastName: '', roleId: '', isActive: true });
+        setFormData({ username: '', email: '', password: '', firstName: '', lastName: '', roleId: '', isActive: true, phone: '', telegramUserId: '', telegramUsername: '' });
         setShowModal(true);
     };
 
@@ -95,7 +94,12 @@ export default function Users() {
             firstName: user.firstName || '',
             lastName: user.lastName || '',
             isActive: user.isActive,
-            roleId: firstRole?.role.id || ''
+            phone: user.phone || '',
+            telegramUserId: user.telegramUserId || '',
+            telegramUsername: user.telegramUsername || '',
+            roleId: firstRole?.role.id || '',
+            scopeType: firstRole?.scopeType || 'global',
+            scopeId: firstRole?.scopeId || ''
         });
         setShowModal(true);
     };

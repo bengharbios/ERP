@@ -11,6 +11,8 @@ export const createUserSchema = z.object({
     firstName: z.string().min(2).optional(),
     lastName: z.string().min(2).optional(),
     phone: z.string().optional(),
+    telegramUserId: z.string().optional().nullable(),
+    telegramUsername: z.string().optional().nullable(),
     profilePicture: z.string().url().optional(),
     isActive: z.boolean().optional().default(true),
     roles: z.array(z.object({
@@ -27,6 +29,8 @@ export const updateUserSchema = z.object({
     firstName: z.string().min(2).optional(),
     lastName: z.string().min(2).optional(),
     phone: z.string().optional(),
+    telegramUserId: z.string().optional().nullable(),
+    telegramUsername: z.string().optional().nullable(),
     profilePicture: z.string().url().optional(),
     isActive: z.boolean().optional(),
 });
