@@ -23,7 +23,7 @@ export const requirePermission = (permissionCode: string) => {
                         include: {
                             role: {
                                 include: {
-                                    permissions: {
+                                    rolePermissions: {
                                         include: {
                                             permission: true
                                         }
@@ -54,7 +54,7 @@ export const requirePermission = (permissionCode: string) => {
             // Permission code is constructed as "{action}_{resource}"
             // e.g. resource='financial_receipts', action='view' => 'view_financial_receipts'
             const userPermissions = user.userRoles.flatMap((ur: any) =>
-                ur.role.permissions.map((rp: any) => {
+                ur.role.rolePermissions.map((rp: any) => {
                     const p = rp.permission;
                     // Support both: a 'code' field (if exists) OR construct from action+resource
                     return p.code || `${p.action}_${p.resource}`;
