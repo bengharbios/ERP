@@ -134,10 +134,43 @@ export const createEmployee = async (req: Request, res: Response) => {
             shiftId
         } = req.body;
 
-        // Ensure user exists and isn't already an employee
-        const existing = await prisma.employee.findUnique({ where: { userId } });
-        if (existing) {
-            return res.status(400).json({ success: false, error: { message: 'User is already an employee' } });
+        let finalUserId = userId;
+
+        if (userId === 'CREATE_NEW_USER') {
+            const { firstName, lastName, phone, email } = req.body;
+            if (!firstName || !lastName || !phone) {
+                return res.status(400).json({ success: false, error: { message: 'الاسم الأول، الاسم الأخير، ورقم الهاتف مطلوبة لإنشاء موظف جديد.' } });
+            }
+
+            // Create a brand new inactive shadow User
+            const generatedUsername = `emp_${employeeCode.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${Math.floor(1000 + Math.random() * 9000)}`;
+            const generatedEmail = email && email.trim() !== '' ? email : `${generatedUsername}@alsalam-erp.com`;
+
+            // Check if email already exists
+            const emailCheck = await prisma.user.findFirst({ where: { email: generatedEmail } });
+            if (emailCheck) {
+                return res.status(400).json({ success: false, error: { message: `البريد الإلكتروني ${generatedEmail} مستخدم بالفعل في النظام.` } });
+            }
+
+            const newUser = await prisma.user.create({
+                data: {
+                    username: generatedUsername,
+                    email: generatedEmail,
+                    passwordHash: 'shadow_user_disabled_password_hash',
+                    firstName,
+                    lastName,
+                    phone,
+                    isActive: false
+                }
+            });
+
+            finalUserId = newUser.id;
+        } else {
+            // Ensure user exists and isn't already an employee
+            const existing = await prisma.employee.findUnique({ where: { userId } });
+            if (existing) {
+                return res.status(400).json({ success: false, error: { message: 'هذا المستخدم مرتبط بملف موظف آخر بالفعل.' } });
+            }
         }
 
         // Helper for safe decimal
@@ -149,7 +182,7 @@ export const createEmployee = async (req: Request, res: Response) => {
 
         const employee = await prisma.employee.create({
             data: {
-                userId,
+                userId: finalUserId,
                 departmentId: departmentId || null,
                 employeeCode,
                 jobTitleAr,

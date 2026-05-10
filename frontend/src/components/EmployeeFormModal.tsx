@@ -135,10 +135,24 @@ export default function EmployeeFormModal({
                                             required
                                             disabled={isEditing}
                                             value={formData.userId}
-                                            onChange={e => updateField('userId', e.target.value)}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                updateField('userId', val);
+                                                if (val === 'CREATE_NEW_USER') {
+                                                    setFormData((prev: any) => ({
+                                                        ...prev,
+                                                        userId: val,
+                                                        firstName: prev.firstName || '',
+                                                        lastName: prev.lastName || '',
+                                                        email: prev.email || '',
+                                                        phone: prev.phone || ''
+                                                    }));
+                                                }
+                                            }}
                                             className="input-premium"
                                         >
                                             <option value="">-- اختر المستخدم --</option>
+                                            <option value="CREATE_NEW_USER">⚡ -- إنشاء مستخدم افتراضي جديد للموظف --</option>
                                             {users.map(u => (
                                                 <option key={u.id} value={u.id}>{u.firstName} {u.lastName} ({u.email})</option>
                                             ))}
@@ -147,6 +161,51 @@ export default function EmployeeFormModal({
                                             )}
                                         </select>
                                     </div>
+
+                                    {formData.userId === 'CREATE_NEW_USER' && (
+                                        <>
+                                            <div className="form-group">
+                                                <label>الاسم الأول للموظف *</label>
+                                                <input
+                                                    required
+                                                    value={formData.firstName || ''}
+                                                    onChange={e => updateField('firstName', e.target.value)}
+                                                    className="input-premium"
+                                                    placeholder="مثلاً: محمد"
+                                                />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>الاسم الأخير للموظف *</label>
+                                                <input
+                                                    required
+                                                    value={formData.lastName || ''}
+                                                    onChange={e => updateField('lastName', e.target.value)}
+                                                    className="input-premium"
+                                                    placeholder="مثلاً: العتيبي"
+                                                />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>رقم هاتف الموظف *</label>
+                                                <input
+                                                    required
+                                                    value={formData.phone || ''}
+                                                    onChange={e => updateField('phone', e.target.value)}
+                                                    className="input-premium"
+                                                    placeholder="مثلاً: 05XXXXXXXX"
+                                                />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>البريد الإلكتروني (اختياري)</label>
+                                                <input
+                                                    type="email"
+                                                    value={formData.email || ''}
+                                                    onChange={e => updateField('email', e.target.value)}
+                                                    className="input-premium"
+                                                    placeholder="اتركه فارغاً للتوليد التلقائي"
+                                                />
+                                            </div>
+                                        </>
+                                    )}
                                     <div className="form-group">
                                         <label>كود الموظف *</label>
                                         <input
