@@ -201,6 +201,31 @@ export const login = async (req: Request, res: Response): Promise<void> => {
             },
         });
 
+        // Load roles and permissions
+        const userWithRoles = await prisma.user.findUnique({
+            where: { id: user.id },
+            include: {
+                userRoles: {
+                    include: {
+                        role: {
+                            include: {
+                                rolePermissions: {
+                                    include: {
+                                        permission: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        const roles = userWithRoles?.userRoles.map((ur) => ur.role.name) || [];
+        const permissions = userWithRoles?.userRoles.flatMap((ur) =>
+            ur.role.rolePermissions.map((rp) => `${rp.permission.action}_${rp.permission.resource}`)
+        ) || [];
+
         res.json({
             success: true,
             data: {
@@ -210,6 +235,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
                     email: user.email,
                     firstName: user.firstName,
                     lastName: user.lastName,
+                    roles,
+                    permissions,
                 },
                 accessToken,
                 refreshToken,
@@ -319,9 +346,40 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
             return;
         }
 
+        // Fetch user roles and permissions
+        const userWithRoles = await prisma.user.findUnique({
+            where: { id: user.id },
+            include: {
+                userRoles: {
+                    include: {
+                        role: {
+                            include: {
+                                rolePermissions: {
+                                    include: {
+                                        permission: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        const roles = userWithRoles?.userRoles.map((ur) => ur.role.name) || [];
+        const permissions = userWithRoles?.userRoles.flatMap((ur) =>
+            ur.role.rolePermissions.map((rp) => `${rp.permission.action}_${rp.permission.resource}`)
+        ) || [];
+
         res.json({
             success: true,
-            data: { user },
+            data: { 
+                user: {
+                    ...user,
+                    roles,
+                    permissions
+                }
+            },
         });
     } catch (error) {
         console.error('Get me error:', error);

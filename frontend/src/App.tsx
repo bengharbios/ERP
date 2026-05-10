@@ -299,7 +299,7 @@ function App() {
                 <Route
                     path="/programs"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_academic_programs">
                             <LayoutProvider>
                                 <ProgramsSwitcher />
                             </LayoutProvider>
@@ -310,7 +310,7 @@ function App() {
                 <Route
                     path="/units"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_academic_units">
                             <LayoutProvider>
                                 <Units />
                             </LayoutProvider>
@@ -321,7 +321,7 @@ function App() {
                 <Route
                     path="/classes"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_academic_classes">
                             <LayoutProvider>
                                 <Classes />
                             </LayoutProvider>
@@ -332,7 +332,7 @@ function App() {
                 <Route
                     path="/students"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_students">
                             <LayoutProvider>
                                 <StudentsSwitcher />
                             </LayoutProvider>
@@ -342,7 +342,7 @@ function App() {
                 <Route
                     path="/fees"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_finance_fees">
                             <LayoutProvider>
                                 <FeesSwitcher />
                             </LayoutProvider>
@@ -352,7 +352,7 @@ function App() {
                 <Route
                     path="/expenses"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_finance_expenses">
                             <LayoutProvider>
                                 <ExpensesSwitcher />
                             </LayoutProvider>
@@ -362,7 +362,7 @@ function App() {
                 <Route
                     path="/receipt-vouchers"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_finance_receipts">
                             <LayoutProvider>
                                 <ReceiptVouchersSwitcher />
                             </LayoutProvider>
@@ -372,7 +372,7 @@ function App() {
                 <Route
                     path="/financial-reports"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_financial_reports">
                             <LayoutProvider>
                                 <FinancialReportsSwitcher />
                             </LayoutProvider>
@@ -382,7 +382,7 @@ function App() {
                 <Route
                     path="/chart-of-accounts"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_chart_of_accounts">
                             <LayoutProvider>
                                 <ChartOfAccountsSwitcher />
                             </LayoutProvider>
@@ -392,7 +392,7 @@ function App() {
                 <Route
                     path="/journal-entries"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_journal_entries">
                             <LayoutProvider>
                                 <JournalEntriesSwitcher />
                             </LayoutProvider>
@@ -402,7 +402,7 @@ function App() {
                 <Route
                     path="/financial-settings"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_financial_settings">
                             <LayoutProvider>
                                 <FinancialSettings />
                             </LayoutProvider>
@@ -412,7 +412,7 @@ function App() {
                 <Route
                     path="/finance/invoices"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_finance_invoices">
                             <LayoutProvider>
                                 <InvoicesSwitcher />
                             </LayoutProvider>
@@ -422,7 +422,7 @@ function App() {
                 <Route
                     path="/accounting-guide"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_chart_of_accounts">
                             <LayoutProvider>
                                 <AccountingGuide />
                             </LayoutProvider>
@@ -432,7 +432,7 @@ function App() {
                 <Route
                     path="/whatsapp-tracker"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_sys_whatsapp">
                             <LayoutProvider>
                                 <WhatsAppTracker />
                             </LayoutProvider>
@@ -442,7 +442,7 @@ function App() {
                 <Route
                     path="/marketing"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_sys_marketing">
                             <LayoutProvider>
                                 <Marketing />
                             </LayoutProvider>
@@ -452,7 +452,7 @@ function App() {
                 <Route
                     path="/crm-customers"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_crm_customers">
                             <LayoutProvider>
                                 <CRMCustomers2026 />
                             </LayoutProvider>
@@ -462,7 +462,7 @@ function App() {
                 <Route
                     path="/crm-leads"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_crm_leads">
                             <LayoutProvider>
                                 <CRMLeads2026 />
                             </LayoutProvider>
@@ -472,7 +472,7 @@ function App() {
                 <Route
                     path="/crm-pipeline"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_crm_pipeline">
                             <LayoutProvider>
                                 <CRMPipeline2026 />
                             </LayoutProvider>
@@ -482,7 +482,7 @@ function App() {
                 <Route
                     path="/crm-activities"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_crm_activities">
                             <LayoutProvider>
                                 <CRMActivities2026 />
                             </LayoutProvider>
@@ -492,7 +492,7 @@ function App() {
                 <Route
                     path="/crm-teams"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_crm_teams">
                             <LayoutProvider>
                                 <CRMTeams2026 />
                             </LayoutProvider>
@@ -502,7 +502,7 @@ function App() {
                 <Route
                     path="/crm-stages"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_crm_stages">
                             <LayoutProvider>
                                 <CRMStages2026 />
                             </LayoutProvider>
@@ -512,7 +512,7 @@ function App() {
                 <Route
                     path="/crm/*"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_crm_dashboard">
                             <LayoutProvider>
                                 <CRMDashboardSwitcher />
                             </LayoutProvider>
@@ -522,7 +522,7 @@ function App() {
                 <Route
                     path="/schedule"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredPermission="view_academic_classes">
                             <LayoutProvider>
                                 <Schedule />
                             </LayoutProvider>

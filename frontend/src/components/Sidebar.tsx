@@ -35,8 +35,6 @@ import {
     Repeat,
     Scale,
     Fingerprint,
-    // Briefcase removed
-    // MarketingIcon removed
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -54,7 +52,7 @@ export default function Sidebar({ isCollapsed, onToggle, isMobileOpen, onMobileC
     const navigate = useNavigate();
     const logout = useAuthStore((state) => state.logout);
     const user = useAuthStore((state) => state.user);
-    const [expandedSections, setExpandedSections] = useState<string[]>(['academic']);
+    const [expandedSections, setExpandedSections] = useState<string[]>(['academic', 'crm']);
     const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
@@ -77,6 +75,14 @@ export default function Sidebar({ isCollapsed, onToggle, isMobileOpen, onMobileC
         );
     };
 
+    const hasPermission = (permissionCode: string) => {
+        if (!user) return false;
+        // Super Admin and Admin bypass all checks and see everything
+        const isBypass = user.roles?.some(r => r === 'Super Admin' || r === 'Admin') || user.role === 'Admin';
+        if (isBypass) return true;
+        return user.permissions?.includes(permissionCode) || false;
+    };
+
     const menuSections = [
         {
             id: 'main',
@@ -88,15 +94,14 @@ export default function Sidebar({ isCollapsed, onToggle, isMobileOpen, onMobileC
             label: 'الأكاديمية',
             icon: GraduationCap,
             items: [
-                { path: '/programs', icon: BookOpen, label: 'البرامج' },
-                { path: '/units', icon: Library, label: 'الوحدات' },
-                { path: '/classes', icon: School, label: 'الفصول' },
-                { path: '/students', icon: Users, label: 'الطلاب' },
-                { path: '/schedule', icon: Calendar, label: 'الجدول' },
-                { path: '/achievement', icon: Trophy, label: 'الإنجاز' },
-                { path: '/attendance', icon: CheckCircle, label: 'الحضور' },
-                { path: '/assignments', icon: FileText, label: 'الواجبات' },
-                { path: '/reports', icon: BarChart3, label: 'التقارير' }
+                { path: '/programs', icon: BookOpen, label: 'البرامج', permission: 'view_academic_programs' },
+                { path: '/units', icon: Library, label: 'الوحدات', permission: 'view_academic_units' },
+                { path: '/classes', icon: School, label: 'الفصول', permission: 'view_academic_classes' },
+                { path: '/students', icon: Users, label: 'الطلاب', permission: 'view_students' },
+                { path: '/schedule', icon: Calendar, label: 'الجدول', permission: 'view_academic_classes' },
+                { path: '/attendance', icon: CheckCircle, label: 'الحضور', permission: 'view_attendance_lectures' },
+                { path: '/assignments', icon: FileText, label: 'الواجبات', permission: 'view_assignments' },
+                { path: '/reports', icon: BarChart3, label: 'التقارير', permission: 'view_academic_reports' }
             ]
         },
         {
@@ -104,15 +109,14 @@ export default function Sidebar({ isCollapsed, onToggle, isMobileOpen, onMobileC
             label: 'المالية',
             icon: Wallet,
             items: [
-                { path: '/fees', icon: CreditCard, label: 'الرسوم الدراسية' },
-                { path: '/finance/invoices', icon: FileText, label: 'الفواتير الضريبية' },
-                { path: '/chart-of-accounts', icon: FileText, label: 'دليل الحسابات' },
-                { path: '/journal-entries', icon: FileText, label: 'قيود اليومية' },
-                { path: '/receipt-vouchers', icon: FileText, label: 'سندات القبض' },
-                { path: '/expenses', icon: TrendingDown, label: 'المصاريف' },
-                { path: '/financial-reports', icon: BarChart3, label: 'التقارير المالية' },
-                { path: '/financial-settings', icon: Settings, label: 'الإعدادات المالية' },
-                { path: '/accounting-guide', icon: BookOpen, label: 'الدليل المالي' }
+                { path: '/fees', icon: CreditCard, label: 'الرسوم الدراسية', permission: 'view_finance_fees' },
+                { path: '/finance/invoices', icon: FileText, label: 'الفواتير الضريبية', permission: 'view_finance_invoices' },
+                { path: '/chart-of-accounts', icon: FileText, label: 'دليل الحسابات', permission: 'view_chart_of_accounts' },
+                { path: '/journal-entries', icon: FileText, label: 'قيود اليومية', permission: 'view_journal_entries' },
+                { path: '/receipt-vouchers', icon: FileText, label: 'سندات القبض', permission: 'view_finance_receipts' },
+                { path: '/expenses', icon: TrendingDown, label: 'المصاريف', permission: 'view_finance_expenses' },
+                { path: '/financial-reports', icon: BarChart3, label: 'التقارير المالية', permission: 'view_financial_reports' },
+                { path: '/financial-settings', icon: Settings, label: 'الإعدادات المالية', permission: 'view_financial_settings' }
             ]
         },
         {
@@ -120,11 +124,11 @@ export default function Sidebar({ isCollapsed, onToggle, isMobileOpen, onMobileC
             label: 'العملاء (CRM)',
             icon: Target,
             items: [
-                { path: '/crm/dashboard', icon: LayoutDashboard, label: 'نظرة عامة' },
-                { path: '/crm/leads', icon: Users, label: 'العملاء' },
-                { path: '/crm/pipeline', icon: BarChart3, label: 'المبيعات' },
-                { path: '/crm/activities', icon: Calendar, label: 'الأنشطة' },
-                { path: '/crm/teams', icon: Trophy, label: 'الفرق' }
+                { path: '/crm/dashboard', icon: LayoutDashboard, label: 'نظرة عامة', permission: 'view_crm_dashboard' },
+                { path: '/crm/leads', icon: Users, label: 'العملاء', permission: 'view_crm_leads' },
+                { path: '/crm/pipeline', icon: BarChart3, label: 'المبيعات', permission: 'view_crm_pipeline' },
+                { path: '/crm/activities', icon: Calendar, label: 'الأنشطة', permission: 'view_crm_activities' },
+                { path: '/crm/teams', icon: Trophy, label: 'الفرق', permission: 'view_crm_teams' }
             ]
         },
         {
@@ -132,8 +136,8 @@ export default function Sidebar({ isCollapsed, onToggle, isMobileOpen, onMobileC
             label: 'التسويق',
             icon: Rocket,
             items: [
-                { path: '/marketing', icon: Megaphone, label: 'الحملات' },
-                { path: '/whatsapp-tracker', icon: MessageCircle, label: 'واتساب' }
+                { path: '/marketing', icon: Megaphone, label: 'الحملات', permission: 'view_sys_marketing' },
+                { path: '/whatsapp-tracker', icon: MessageCircle, label: 'واتساب', permission: 'view_sys_whatsapp' }
             ]
         },
         {
@@ -141,18 +145,17 @@ export default function Sidebar({ isCollapsed, onToggle, isMobileOpen, onMobileC
             label: 'الموارد البشرية',
             icon: Building2,
             items: [
-                { path: '/hr-dashboard', icon: LayoutDashboard, label: 'نظرة عامة' },
-                { path: '/employees', icon: User, label: 'الموظفين' },
-                { path: '/leaves', icon: Calendar, label: 'الإجازات' },
-                { path: '/recruitment', icon: UserPlus, label: 'التوظيف' },
-                { path: '/employee-actions', icon: Scale, label: 'الإجراءات' },
-                { path: '/shifts', icon: Repeat, label: 'المناوبات' },
-                { path: '/communication', icon: Bell, label: 'التواصل' },
-                { path: '/biometric-devices', icon: Fingerprint, label: 'أجهزة البصمة' },
-                { path: '/staff-attendance', icon: Clock, label: 'الحضور' },
-                { path: '/attendance-reports', icon: BarChart3, label: 'تقارير الحضور' },
-                { path: '/hr-settings', icon: Settings, label: 'إعدادات الدوام' },
-                { path: '/payroll', icon: DollarSign, label: 'الرواتب' }
+                { path: '/hr-dashboard', icon: LayoutDashboard, label: 'نظرة عامة', permission: 'view_hr_employees' },
+                { path: '/employees', icon: User, label: 'الموظفين', permission: 'view_hr_employees' },
+                { path: '/leaves', icon: Calendar, label: 'الإجازات', permission: 'view_hr_leaves' },
+                { path: '/recruitment', icon: UserPlus, label: 'التوظيف', permission: 'view_hr_recruitment' },
+                { path: '/employee-actions', icon: Scale, label: 'الإجراءات', permission: 'view_hr_employee_actions' },
+                { path: '/shifts', icon: Repeat, label: 'المناوبات', permission: 'view_hr_shifts' },
+                { path: '/biometric-devices', icon: Fingerprint, label: 'أجهزة البصمة', permission: 'view_biometric_devices' },
+                { path: '/staff-attendance', icon: Clock, label: 'الحضور', permission: 'view_hr_staff_attendance' },
+                { path: '/attendance-reports', icon: BarChart3, label: 'تقارير الحضور', permission: 'view_hr_attendance_reports' },
+                { path: '/hr-settings', icon: Settings, label: 'إعدادات الدوام', permission: 'view_hr_settings' },
+                { path: '/payroll', icon: DollarSign, label: 'الرواتب', permission: 'view_hr_payroll' }
             ]
         },
         {
@@ -160,13 +163,15 @@ export default function Sidebar({ isCollapsed, onToggle, isMobileOpen, onMobileC
             label: 'النظام',
             icon: Settings,
             items: [
-                { path: '/users', icon: Users, label: 'المستخدمين' },
-                { path: '/roles', icon: Key, label: 'الأدوار' },
-                { path: '/permissions', icon: Shield, label: 'الصلاحيات' },
-                { path: '/settings', icon: Settings, label: 'الإعدادات' }
+                { path: '/users', icon: Users, label: 'المستخدمين', permission: 'view_sys_users' },
+                { path: '/roles', icon: Key, label: 'الأدوار', permission: 'view_sys_roles' },
+                { path: '/settings', icon: Settings, label: 'الإعدادات', permission: 'view_sys_settings' }
             ]
         }
     ];
+
+    const displayName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username : 'الإدارة';
+    const displayRole = user?.roles?.[0] || user?.role || 'مسؤول';
 
     return (
         <>
@@ -190,50 +195,58 @@ export default function Sidebar({ isCollapsed, onToggle, isMobileOpen, onMobileC
                 </div>
 
                 <nav className="sidebar-nav custom-scrollbar">
-                    {menuSections.map((section) => (
-                        <div key={section.id} className="nav-section">
-                            {section.id === 'main' ? (
-                                section.items.map((item) => (
-                                    <NavLink
-                                        key={item.path}
-                                        to={item.path}
-                                        onClick={() => isMobile && onMobileClose()}
-                                        className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                                    >
-                                        <div className="item-icon-wrap"><Icon icon={item.icon} /></div>
-                                        {!isCollapsed && <span className="item-label">{item.label}</span>}
-                                    </NavLink>
-                                ))
-                            ) : (
-                                <>
-                                    <button onClick={() => toggleSection(section.id)} className="section-header">
-                                        <div className="section-title">
-                                            {section.icon && <Icon icon={section.icon} />}
-                                            {!isCollapsed && <span>{section.label}</span>}
-                                        </div>
-                                        {!isCollapsed && (
-                                            <Icon icon={expandedSections.includes(section.id) ? ChevronDown : ChevronRight} size={14} />
+                    {menuSections.map((section) => {
+                        const filteredItems = section.items.filter(
+                            (item) => !item.permission || hasPermission(item.permission)
+                        );
+
+                        if (filteredItems.length === 0) return null;
+
+                        return (
+                            <div key={section.id} className="nav-section">
+                                {section.id === 'main' ? (
+                                    filteredItems.map((item) => (
+                                        <NavLink
+                                            key={item.path}
+                                            to={item.path}
+                                            onClick={() => isMobile && onMobileClose()}
+                                            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                                        >
+                                            <div className="item-icon-wrap"><Icon icon={item.icon} /></div>
+                                            {!isCollapsed && <span className="item-label">{item.label}</span>}
+                                        </NavLink>
+                                    ))
+                                ) : (
+                                    <>
+                                        <button onClick={() => toggleSection(section.id)} className="section-header">
+                                            <div className="section-title">
+                                                {section.icon && <Icon icon={section.icon} />}
+                                                {!isCollapsed && <span>{section.label}</span>}
+                                            </div>
+                                            {!isCollapsed && (
+                                                <Icon icon={expandedSections.includes(section.id) ? ChevronDown : ChevronRight} size={14} />
+                                            )}
+                                        </button>
+                                        {expandedSections.includes(section.id) && (
+                                            <div className="section-items">
+                                                {filteredItems.map((item) => (
+                                                    <NavLink
+                                                        key={item.path}
+                                                        to={item.path}
+                                                        onClick={() => isMobile && onMobileClose()}
+                                                        className={({ isActive }) => `sub-item ${isActive ? 'active' : ''}`}
+                                                    >
+                                                        <div className="item-icon-wrap thin"><Icon icon={item.icon} size={16} /></div>
+                                                        {!isCollapsed && <span className="item-label">{item.label}</span>}
+                                                    </NavLink>
+                                                ))}
+                                            </div>
                                         )}
-                                    </button>
-                                    {expandedSections.includes(section.id) && (
-                                        <div className="section-items">
-                                            {section.items.map((item) => (
-                                                <NavLink
-                                                    key={item.path}
-                                                    to={item.path}
-                                                    onClick={() => isMobile && onMobileClose()}
-                                                    className={({ isActive }) => `sub-item ${isActive ? 'active' : ''}`}
-                                                >
-                                                    <div className="item-icon-wrap thin"><Icon icon={item.icon} size={16} /></div>
-                                                    {!isCollapsed && <span className="item-label">{item.label}</span>}
-                                                </NavLink>
-                                            ))}
-                                        </div>
-                                    )}
-                                </>
-                            )}
-                        </div>
-                    ))}
+                                    </>
+                                )}
+                            </div>
+                        );
+                    })}
                 </nav>
 
                 <div className="sidebar-footer">
@@ -243,8 +256,8 @@ export default function Sidebar({ isCollapsed, onToggle, isMobileOpen, onMobileC
                                 <Icon icon={User} size={18} />
                             </div>
                             <div className="u-info">
-                                <span className="u-name">{user?.firstName || 'Admin'}</span>
-                                <span className="u-role">{user?.role || 'مسؤول'}</span>
+                                <span className="u-name">{displayName}</span>
+                                <span className="u-role">{displayRole}</span>
                             </div>
                         </div>
                     )}
