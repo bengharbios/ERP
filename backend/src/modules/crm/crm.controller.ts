@@ -45,11 +45,13 @@ async function getDynamicBot() {
                 const buttons = [];
                 for (let i = 1; i <= 10; i += 2) {
                     buttons.push([
-                        Markup.button.callback(`${i}/10 🔥`, `set_interest:${leadId}:${i}`),
-                        Markup.button.callback(`${i+1}/10 🔥`, `set_interest:${leadId}:${i+1}`)
+                        { text: `${i}/10 🔥`, callback_data: `set_interest:${leadId}:${i}` },
+                        { text: `${i+1}/10 🔥`, callback_data: `set_interest:${leadId}:${i+1}` }
                     ]);
                 }
-                await ctx.reply('🔥 يرجى اختيار درجة الاهتمام الجديدة للعميل:', Markup.inlineKeyboard(buttons));
+                await ctx.reply('🔥 يرجى اختيار درجة الاهتمام الجديدة للعميل:', {
+                    reply_markup: { inline_keyboard: buttons }
+                });
             } else if (data.startsWith('set_interest:')) {
                 const [_, leadId, level] = data.split(':');
                 await ctx.answerCbQuery();
@@ -80,13 +82,15 @@ async function getDynamicBot() {
                 const stages = await prisma.crmStage.findMany({ orderBy: { order: 'asc' } });
                 const stageButtons = [];
                 for (let i = 0; i < stages.length; i += 2) {
-                    const row = [Markup.button.callback(`📁 ${stages[i].name}`, `set_stage:${leadId}:${stages[i].id}`)];
+                    const row = [{ text: `📁 ${stages[i].name}`, callback_data: `set_stage:${leadId}:${stages[i].id}` }];
                     if (stages[i+1]) {
-                        row.push(Markup.button.callback(`📁 ${stages[i+1].name}`, `set_stage:${leadId}:${stages[i+1].id}`));
+                        row.push({ text: `📁 ${stages[i+1].name}`, callback_data: `set_stage:${leadId}:${stages[i+1].id}` });
                     }
                     stageButtons.push(row);
                 }
-                await ctx.reply('📁 يرجى اختيار المرحلة الجديدة للعميل:', Markup.inlineKeyboard(stageButtons));
+                await ctx.reply('📁 يرجى اختيار المرحلة الجديدة للعميل:', {
+                    reply_markup: { inline_keyboard: stageButtons }
+                });
             } else if (data.startsWith('set_stage:')) {
                 const [_, leadId, stageId] = data.split(':');
                 await ctx.answerCbQuery();
@@ -251,24 +255,35 @@ async function getDynamicBot() {
                     replyMsg += `📅 <b>آخر تفاعل</b>: اليوم ${lastDate}\n`;
                 }
 
-                // Add interactive action buttons
-                const inlineButtons = [];
+                // Add interactive action buttons (raw JSON format to ensure 100% platform compatibility)
+                const inline_keyboard: any[] = [];
                 const cleanPhone = lead.phoneNormalized || lead.phone || lead.mobileNormalized || lead.mobile;
                 if (cleanPhone) {
-                    inlineButtons.push([
-                        Markup.button.url('💬 فتح واتساب', `https://wa.me/${cleanPhone.replace(/\+/g, '')}`),
-                        Markup.button.url('📞 اتصال هاتف', `tel:${cleanPhone}`)
+                    const digits = cleanPhone.replace(/\D/g, '');
+                    inline_keyboard.push([
+                        { text: '💬 فتح واتساب', url: `https://wa.me/${digits}` },
+                        { text: '📞 اتصال هاتف', url: `tel:${cleanPhone}` }
                     ]);
                 }
-                inlineButtons.push([
-                    Markup.button.callback('➕ إضافة ملاحظة', `add_note:${lead.id}`),
-                    Markup.button.callback('🏷️ درجة الاهتمام', `change_interest:${lead.id}`)
+                inline_keyboard.push([
+                    { text: '➕ إضافة ملاحظة', callback_data: `add_note:${lead.id}` },
+                    { text: '🏷️ درجة الاهتمام', callback_data: `change_interest:${lead.id}` }
                 ]);
-                inlineButtons.push([
-                    Markup.button.callback('🔄 نقل المرحلة', `change_stage:${lead.id}`)
+                inline_keyboard.push([
+                    { text: '🔄 نقل المرحلة', callback_data: `change_stage:${lead.id}` }
                 ]);
 
-                ctx.replyWithHTML(replyMsg, Markup.inlineKeyboard(inlineButtons));
+                try {
+                    await ctx.replyWithHTML(replyMsg, {
+                        reply_markup: { inline_keyboard }
+                    });
+                } catch (sendErr: any) {
+                    console.error('Telegram HTML Send Error, falling back to plain text:', sendErr.message);
+                    const plainMsg = replyMsg.replace(/<[^>]+>/g, '');
+                    await ctx.reply(plainMsg, {
+                        reply_markup: { inline_keyboard }
+                    });
+                }
             } catch (error: any) {
                 console.error('Telegram Parse Error:', error.message);
                 ctx.reply('⚠️ عذراً، حدث خطأ أثناء قراءة التقرير. تأكد من التنسيق الصحيح.');
@@ -281,7 +296,7 @@ async function getDynamicBot() {
                 }
 
                 if (!searchPhone) {
-                    ctx.reply('⚠️ يرجى إدخال رقم الهاتف المراد البحث عنه. مثال:\n971501234567');
+                    await ctx.reply('⚠️ يرجى إدخال رقم الهاتف المراد البحث عنه. مثال:\n971501234567');
                     return;
                 }
 
@@ -306,9 +321,9 @@ async function getDynamicBot() {
                 });
 
                 if (results.length === 0) {
-                    ctx.reply(`🔍 لم يتم العثور على أي عميل مسجل بالرقم: ${searchPhone}`);
+                    await ctx.reply(`🔍 لم يتم العثور على أي عميل مسجل بالرقم: ${searchPhone}`);
                 } else {
-                    results.forEach((lead, index) => {
+                    for (const lead of results) {
                         let emirate = lead.emirate;
                         let nationality = lead.nationality;
                         let interestedDiploma = lead.interestedDiploma;
@@ -388,37 +403,53 @@ async function getDynamicBot() {
                         }
                         itemMsg += `\n──────────────────\n`;
 
-                        // Add interactive inline buttons for each result
-                        const inlineButtons = [];
+                        // Add interactive action buttons (raw JSON format to ensure 100% platform compatibility)
+                        const inline_keyboard = [];
                         const cleanPhone = lead.phoneNormalized || lead.phone || lead.mobileNormalized || lead.mobile;
                         if (cleanPhone) {
-                            inlineButtons.push([
-                                Markup.button.url('💬 فتح واتساب', `https://wa.me/${cleanPhone.replace(/\+/g, '')}`),
-                                Markup.button.url('📞 اتصال هاتف', `tel:${cleanPhone}`)
+                            const digits = cleanPhone.replace(/\D/g, '');
+                            inline_keyboard.push([
+                                { text: '💬 فتح واتساب', url: `https://wa.me/${digits}` },
+                                { text: '📞 اتصال هاتف', url: `tel:${cleanPhone}` }
                             ]);
                         }
-                        inlineButtons.push([
-                            Markup.button.callback('➕ إضافة ملاحظة', `add_note:${lead.id}`),
-                            Markup.button.callback('🏷️ درجة الاهتمام', `change_interest:${lead.id}`)
+                        inline_keyboard.push([
+                            { text: '➕ إضافة ملاحظة', callback_data: `add_note:${lead.id}` },
+                            { text: '🏷️ درجة الاهتمام', callback_data: `change_interest:${lead.id}` }
                         ]);
-                        inlineButtons.push([
-                            Markup.button.callback('🔄 نقل المرحلة', `change_stage:${lead.id}`)
+                        inline_keyboard.push([
+                            { text: '🔄 نقل المرحلة', callback_data: `change_stage:${lead.id}` }
                         ]);
 
-                        ctx.replyWithHTML(itemMsg, Markup.inlineKeyboard(inlineButtons));
-                    });
+                        try {
+                            await ctx.replyWithHTML(itemMsg, {
+                                reply_markup: { inline_keyboard }
+                            });
+                        } catch (sendErr: any) {
+                            console.error('Telegram search HTML send failure, falling back to plain text:', sendErr.message);
+                            const plainMsg = itemMsg.replace(/<[^>]+>/g, '');
+                            await ctx.reply(plainMsg, {
+                                reply_markup: { inline_keyboard }
+                            });
+                        }
+                    }
                 }
             } catch (err: any) {
                 console.error('Telegram Search Error:', err.message);
-                ctx.reply('⚠️ عذراً، حدث خطأ أثناء البحث عن الهاتف.');
+                await ctx.reply('⚠️ عذراً، حدث خطأ أثناء البحث عن الهاتف.');
             }
         } else if (text === '/start' || text === '/menu' || text === 'قائمة') {
-            ctx.reply(
+            await ctx.reply(
                 'مرحباً بك في نظام السلام CRM المتكامل الذكي! 📱💎\n\nيرجى اختيار الإجراء المطلوب من الأزرار بالأسفل:',
-                Markup.keyboard([
-                    ['🔍 بحث عن عميل', '📝 إضافة تقرير'],
-                    ['📊 ملخص اليوم', '⚙️ حالة الربط']
-                ]).resize()
+                {
+                    reply_markup: {
+                        keyboard: [
+                            [{ text: '🔍 بحث عن عميل' }, { text: '📝 إضافة تقرير' }],
+                            [{ text: '📊 ملخص اليوم' }, { text: '⚙️ حالة الربط' }]
+                        ],
+                        resize_keyboard: true
+                    }
+                }
             );
         }
     });
