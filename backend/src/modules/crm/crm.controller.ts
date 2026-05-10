@@ -187,8 +187,8 @@ async function getDynamicBot() {
         const text = ctx.message.text.trim();
         const userId = ctx.from.id;
 
-        // Allow /start, /menu, /login, /auth commands to run without authentication
-        const isAuthCommand = text.startsWith('/start') || text.startsWith('/login') || text.startsWith('/auth') || text === 'قائمة' || text === '/menu';
+        // Allow /start, /menu, /login, /auth, /logout commands to run without authentication
+        const isAuthCommand = text.startsWith('/start') || text.startsWith('/login') || text.startsWith('/auth') || text.startsWith('/logout') || text === 'قائمة' || text === '/menu' || text === 'تسجيل الخروج' || text === 'تسجيل خروج';
 
         if (!isAuthCommand) {
             const currentUser = await getAuthenticatedUser(userId);
@@ -268,6 +268,40 @@ async function getDynamicBot() {
             } catch (err: any) {
                 console.error('Telegram Login Error:', err.message);
                 await ctx.reply(`⚠️ حدث خطأ أثناء عملية تسجيل الدخول: ${err.message}`);
+            }
+            return;
+        }
+
+        // Handle Logout Command
+        if (text.startsWith('/logout') || text === 'تسجيل الخروج' || text === 'تسجيل خروج') {
+            try {
+                const user = await getAuthenticatedUser(userId);
+                if (!user) {
+                    await ctx.reply('❌ عذراً، أنت غير مسجل الدخول بالنظام بالأساس!');
+                    return;
+                }
+
+                // Clear Telegram mapping in user profile
+                await prisma.user.update({
+                    where: { id: user.id },
+                    data: {
+                        telegramUserId: null,
+                        telegramUsername: null
+                    }
+                });
+
+                // Clear any active conversational state
+                delete userStates[userId];
+
+                await ctx.replyWithHTML(
+                    `👋 <b>تم تسجيل خروجك بنجاح وإلغاء ربط حساب التليجرام!</b>\n\n` +
+                    `👤 <b>الموظف</b>: ${user.firstName || ''} ${user.lastName || ''}\n` +
+                    `🔴 <b>حالة الربط</b>: ملغية وغير نشطة ⚠️\n\n` +
+                    `تم حذف جلسة عملك بأمان تام وحماية خصوصية بيانات المعهد. يمكنك إعادة تسجيل الدخول في أي وقت باستخدام الأمر <code>/login</code>.`
+                );
+            } catch (err: any) {
+                console.error('Telegram Logout Error:', err.message);
+                await ctx.reply(`⚠️ حدث خطأ أثناء عملية تسجيل الخروج: ${err.message}`);
             }
             return;
         }
