@@ -225,6 +225,7 @@ export class GoogleSheetsService {
                 emirate: true,
                 interestedDiploma: true,
                 levelOfInterest: true,
+                createdAt: true,
                 notes: {
                     select: {
                         content: true
@@ -375,8 +376,19 @@ export class GoogleSheetsService {
                         return true; // No extra notes in sheet, and row marker matches, so it is fully synced
                     });
 
-                    if (isAlreadySynced) {
-                        // Already synced with identical notes! Skip database write!
+                    // Check if the registration date needs correction
+                    let needsDateCorrection = false;
+                    if (parsedDate && existing.createdAt) {
+                        const parsedTime = parsedDate.getTime();
+                        const existingTime = existing.createdAt.getTime();
+                        // If difference is more than 12 hours, we trigger update correction
+                        if (Math.abs(parsedTime - existingTime) > 12 * 60 * 60 * 1000) {
+                            needsDateCorrection = true;
+                        }
+                    }
+
+                    if (isAlreadySynced && !needsDateCorrection) {
+                        // Already synced with identical notes and date matches! Skip database write!
                         continue;
                     }
 
@@ -389,38 +401,43 @@ export class GoogleSheetsService {
 
                     summary.duplicateCount++;
 
-                    // Update duplicate stats on existing record
+                    // Update duplicate stats and date on existing record
                     await prisma.crmLead.update({
                         where: { id: existing.id },
                         data: {
                             isDuplicate: true,
-                            duplicateCount: existing.duplicateCount + 1,
+                            duplicateCount: existing.duplicateCount + (isAlreadySynced ? 0 : 1),
                             // Backfill empty details if available in the sheet
                             nationality: existing.nationality || nationalityValue || null,
                             emirate: existing.emirate || emirateValue || null,
                             interestedDiploma: existing.interestedDiploma || diplomaValue || null,
                             levelOfInterest: existing.levelOfInterest || levelValue || null,
+                            // Correct the registration date if it was set incorrectly or is earlier
+                            createdAt: parsedDate || undefined,
                         }
                     });
 
                     // Update in-memory record so we don't write it again in this run
-                    existing.duplicateCount++;
+                    existing.duplicateCount += (isAlreadySynced ? 0 : 1);
+                    if (parsedDate) existing.createdAt = parsedDate;
                     if (!existing.nationality) existing.nationality = nationalityValue || null;
                     if (!existing.emirate) existing.emirate = emirateValue || null;
                     if (!existing.interestedDiploma) existing.interestedDiploma = diplomaValue || null;
                     if (!existing.levelOfInterest) existing.levelOfInterest = levelValue || null;
 
-                    await prisma.crmNote.create({
-                        data: {
-                            leadId: existing.id,
-                            userId,
-                            content: formattedNote,
-                            type: 'note'
-                        }
-                    });
+                    if (!isAlreadySynced) {
+                        await prisma.crmNote.create({
+                            data: {
+                                leadId: existing.id,
+                                userId,
+                                content: formattedNote,
+                                type: 'note'
+                            }
+                        });
 
-                    // Keep track of this note in memory
-                    existing.notes.push({ content: formattedNote });
+                        // Keep track of this note in memory
+                        existing.notes.push({ content: formattedNote });
+                    }
 
                 } else {
                     // Enforce write batch limit to respect Vercel's 10-second timeout limits
