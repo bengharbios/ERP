@@ -162,6 +162,9 @@ export const crmService = {
                     firstMessageDate,
                     isDuplicate: false,
                     duplicateCount: 0
+                },
+                include: {
+                    salesperson: true
                 }
             });
         } else {
@@ -187,6 +190,9 @@ export const crmService = {
                     stageId: updatedType === 'opportunity' ? (lead.stageId || defaultStageId) : null, // Retain existing stage or reset back to active column NEW
                     isDuplicate: true,
                     duplicateCount
+                },
+                include: {
+                    salesperson: true
                 }
             });
         }

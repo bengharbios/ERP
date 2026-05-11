@@ -1258,6 +1258,9 @@ async function getDynamicBot() {
                 replyMsg += `👤 <b>الاسم</b>: ${lead.name}\n`;
                 replyMsg += `📞 <b>الهاتف</b>: ${lead.phone || lead.mobile}\n`;
                 
+                const salespersonName = lead.salesperson ? `${lead.salesperson.firstName || ''} ${lead.salesperson.lastName || ''}`.trim() : 'غير محدد';
+                replyMsg += `👤 <b>المسؤول</b>: ${salespersonName}\n`;
+                
                 if (lead.nationality) replyMsg += `🌍 <b>الجنسية</b>: ${lead.nationality}\n`;
                 if (lead.emirate) replyMsg += `📍 <b>الإمارة</b>: ${lead.emirate}\n`;
                 if (lead.interestedDiploma) replyMsg += `🎓 <b>الدبلوم</b>: ${lead.interestedDiploma}\n`;
@@ -1342,6 +1345,7 @@ async function getDynamicBot() {
                         ].filter(Boolean) as any
                     },
                     include: {
+                        salesperson: true,
                         notes: {
                             orderBy: { createdAt: 'desc' },
                             take: 5 // Expanded to show 5 recent notes (فتح ملاحظات الاستفسار)
@@ -1386,6 +1390,9 @@ async function getDynamicBot() {
                         let itemMsg = `👤 <b>الاسم</b>: ${lead.name}\n`;
                         if (lead.phone) itemMsg += `📞 <b>الهاتف</b>: ${lead.phone}\n`;
                         if (lead.mobile) itemMsg += `📱 <b>الموبايل</b>: ${lead.mobile}\n`;
+                        
+                        const salespersonName = lead.salesperson ? `${lead.salesperson.firstName || ''} ${lead.salesperson.lastName || ''}`.trim() : 'غير محدد';
+                        itemMsg += `👤 <b>المسؤول</b>: ${salespersonName}\n`;
                         if (nationality) itemMsg += `🌍 <b>الجنسية</b>: ${nationality}\n`;
                         if (emirate) itemMsg += `📍 <b>الإمارة</b>: ${emirate}\n`;
                         if (interestedDiploma) itemMsg += `🎓 <b>الدبلوم</b>: ${interestedDiploma}\n`;
