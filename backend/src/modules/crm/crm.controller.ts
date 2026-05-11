@@ -421,12 +421,16 @@ async function getDynamicBot() {
                 await setUserState(userId, `expecting_queue_note:${currentIndex}:${total}`, leadId);
                 await ctx.answerCbQuery();
                 await ctx.replyWithHTML(`📝 <b>يرجى إرسال التقرير والملخص الصوتي وملاحظات المكالمة للعميل الآن كرسالة مباشرة:</b>`);
-            } else if (data === 'queue_start_calling') {
+            } else if (data.startsWith('queue_start_calling')) {
                 await ctx.answerCbQuery();
                 try {
                     const crmConfig = await getTelegramCrmConfig();
                     const endOfToday = new Date();
                     endOfToday.setHours(23, 59, 59, 999);
+
+                    const parts = data.split(':');
+                    const parsedLimit = parts[1] ? parseInt(parts[1]) : null;
+                    const limit = (parsedLimit && !isNaN(parsedLimit)) ? parsedLimit : crmConfig.callQueueLimit;
 
                     const leads = await prisma.crmLead.findMany({
                         where: {
@@ -441,7 +445,7 @@ async function getDynamicBot() {
                             { priority: 'desc' },
                             { createdAt: 'asc' }
                         ],
-                        take: crmConfig.callQueueLimit,
+                        take: limit,
                         include: {
                             notes: {
                                 orderBy: { createdAt: 'desc' },
@@ -459,12 +463,16 @@ async function getDynamicBot() {
                 } catch (err: any) {
                     await ctx.reply(`⚠️ فشل بدء الاتصالات: ${err.message}`);
                 }
-            } else if (data === 'queue_view_list') {
+            } else if (data.startsWith('queue_view_list')) {
                 await ctx.answerCbQuery();
                 try {
                     const crmConfig = await getTelegramCrmConfig();
                     const endOfToday = new Date();
                     endOfToday.setHours(23, 59, 59, 999);
+
+                    const parts = data.split(':');
+                    const parsedLimit = parts[1] ? parseInt(parts[1]) : null;
+                    const limit = (parsedLimit && !isNaN(parsedLimit)) ? parsedLimit : crmConfig.callQueueLimit;
 
                     const leads = await prisma.crmLead.findMany({
                         where: {
@@ -479,7 +487,13 @@ async function getDynamicBot() {
                             { priority: 'desc' },
                             { createdAt: 'asc' }
                         ],
-                        take: crmConfig.callQueueLimit
+                        take: limit,
+                        include: {
+                            notes: {
+                                orderBy: { createdAt: 'desc' },
+                                take: 1
+                            }
+                        }
                     });
 
                     if (leads.length === 0) {
@@ -490,8 +504,19 @@ async function getDynamicBot() {
                     let msg = `📋 <b>قائمة عملاء اليوم المطلوب الاتصال بهم (${leads.length} عملاء):</b>\n\n`;
                     leads.forEach((lead, index) => {
                         const cleanPhone = lead.phone || lead.mobile || 'غير مسجل';
+                        
+                        let classification = '🆕 عميل جديد لم يتم التواصل معه بعد';
+                        if (lead.dateDeadline) {
+                            classification = '📅 مكالمة متابعة مجدولة تالياً';
+                        }
+                        const hasNoAnswer = lead.notes?.[0]?.content?.includes('لم يرد');
+                        if (hasNoAnswer) {
+                            classification = '📴 إعادة اتصال (لم يرد على المكالمة السابقة)';
+                        }
+
                         msg += `${index + 1}. 👤 <b>${lead.name}</b>\n`;
                         msg += `   📞 الهاتف: <code>${cleanPhone}</code>\n`;
+                        msg += `   🎯 التصنيف: <i>${classification}</i>\n`;
                         if (lead.levelOfInterest) {
                             msg += `   🔥 الاهتمام: <code>${lead.levelOfInterest}/10</code>\n`;
                         }
@@ -502,7 +527,16 @@ async function getDynamicBot() {
                     });
 
                     msg += `💡 <i>يمكنك الضغط على أي رقم هاتف للاتصال به ومراسلته مباشرة!</i>`;
-                    await ctx.replyWithHTML(msg);
+                    await ctx.replyWithHTML(msg, {
+                        reply_markup: {
+                            keyboard: [
+                                [{ text: '🔍 بحث عن عميل' }, { text: '📝 إضافة تقرير' }],
+                                [{ text: '📞 اتصالات اليوم' }],
+                                [{ text: '📊 ملخص اليوم' }, { text: '⚙️ حالة الربط' }]
+                            ],
+                            resize_keyboard: true
+                        }
+                    });
                 } catch (err: any) {
                     await ctx.reply(`⚠️ فشل عرض القائمة: ${err.message}`);
                 }
@@ -931,11 +965,21 @@ async function getDynamicBot() {
         }
 
         // Call Queue Trigger
-        if (text === '📞 اتصالات اليوم' || text === '/today') {
+        if (text === '📞 اتصالات اليوم' || text.startsWith('/today')) {
             try {
                 const crmConfig = await getTelegramCrmConfig();
                 const endOfToday = new Date();
                 endOfToday.setHours(23, 59, 59, 999);
+
+                // Parse custom limit if supplied
+                let limit = crmConfig.callQueueLimit;
+                const parts = text.split(/\s+/);
+                if (parts.length > 1) {
+                    const parsedLimit = parseInt(parts[1]);
+                    if (!isNaN(parsedLimit) && parsedLimit > 0) {
+                        limit = parsedLimit;
+                    }
+                }
 
                 // Fetch leads assigned to user that have followUpDate <= today or new uncontacted leads
                 const leads = await prisma.crmLead.findMany({
@@ -951,7 +995,7 @@ async function getDynamicBot() {
                         { priority: 'desc' },
                         { createdAt: 'asc' }
                     ],
-                    take: crmConfig.callQueueLimit
+                    take: limit
                 });
 
                 if (leads.length === 0) {
@@ -961,16 +1005,17 @@ async function getDynamicBot() {
 
                 await ctx.replyWithHTML(
                     `📞 <b>طابور اتصالات اليوم مجهز بنجاح!</b>\n` +
-                    `تم تجهيز <code>${leads.length}</code> عملاء للمتابعة والاتصال لليوم.\n\n` +
+                    `تم تجهيز <code>${leads.length}</code> عميل للمتابعة والاتصال لليوم.\n\n` +
+                    `💡 <i>يمكنك طلب عدد مخصص من العملاء بكتابة: <code>/today [العدد]</code> (مثال: <code>/today 15</code>)</i>\n\n` +
                     `يرجى اختيار طريقة العرض المفضلة للبدء:`,
                     {
                         reply_markup: {
                             inline_keyboard: [
                                 [
-                                    { text: '🚀 بدء الاتصال المتتابع (واحد تلو الآخر)', callback_data: 'queue_start_calling' }
+                                    { text: '🚀 بدء الاتصال المتتابع (واحد تلو الآخر)', callback_data: `queue_start_calling:${limit}` }
                                 ],
                                 [
-                                    { text: '📋 عرض قائمة الأسماء الكاملة لليوم', callback_data: 'queue_view_list' }
+                                    { text: '📋 عرض قائمة الأسماء الكاملة لليوم', callback_data: `queue_view_list:${limit}` }
                                 ]
                             ]
                         }

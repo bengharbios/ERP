@@ -132,7 +132,7 @@ export class GoogleSheetsService {
                 mapping['notes'] = index;
             } else if (['المصدر', 'المنصة', 'source', 'platform', 'leadsource', 'المنصةplatform', 'platform'].includes(h)) {
                 mapping['source'] = index;
-            } else if (['تاريخالتسجيل', 'تاريخالإنشاء', 'تاريخالاضافه', 'تاريخ', 'التاريخ', 'date', 'createdat', 'timestamp', 'registrationdate'].includes(h)) {
+            } else if (['تاريخالتسجيل', 'تاريخالإنشاء', 'تاريخالاضافه', 'تاريخ', 'التاريخ', 'date', 'createdat', 'timestamp', 'registrationdate', 'تاريخالتسليم', 'تاريخالاستلام', 'deliverydate', 'delivery_date'].includes(h)) {
                 mapping['createdAt'] = index;
             }
         });
@@ -251,6 +251,8 @@ export class GoogleSheetsService {
             errors: [] as string[]
         };
 
+        let lastValidDate: Date | null = null;
+
         // 2. Loop and process rows
         for (let i = 1; i < rows.length; i++) {
             const row = rows[i];
@@ -301,6 +303,13 @@ export class GoogleSheetsService {
                         }
                     }
                 }
+            }
+
+            // Fallback to previous row's date if blank (user's data-entry pattern)
+            if (parsedDate) {
+                lastValidDate = parsedDate;
+            } else if (lastValidDate) {
+                parsedDate = lastValidDate;
             }
 
             // Parse level of interest to number safely
