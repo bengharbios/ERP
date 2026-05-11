@@ -242,9 +242,21 @@ async function getDynamicBot() {
                 await ctx.answerCbQuery();
 
                 const stage = await prisma.crmStage.findUnique({ where: { id: stageId } });
+                
+                // If stage represents a final/completed/DND status, we clear dateDeadline
+                const isFinalStage = stage && (
+                    stage.name.includes('مسجل') || 
+                    stage.name.includes('ازعاج') || 
+                    stage.name.includes('عدم') || 
+                    stage.name.includes('ملغي')
+                );
+
                 const updatedLead = await prisma.crmLead.update({
                     where: { id: leadId },
-                    data: { stageId }
+                    data: { 
+                        stageId,
+                        dateDeadline: isFinalStage ? null : undefined
+                    }
                 });
 
                 // Push update to Google Sheet asynchronously if available
