@@ -10,6 +10,40 @@ import { comparePassword } from '../../common/utils/password';
 const botsCache: Record<string, any> = {};
 const userStates: Record<string, { action: string; leadId: string }> = {};
 
+export interface TelegramCrmConfig {
+    noAnswerButtonEnabled: boolean;
+    noAnswerNote: string;
+    noAnswerInterest: number;
+    followUpButtonEnabled: boolean;
+    callQueueEnabled: boolean;
+    callQueueLimit: number;
+    remindersEnabled: boolean;
+}
+
+const DEFAULT_TELEGRAM_CRM_CONFIG: TelegramCrmConfig = {
+    noAnswerButtonEnabled: true,
+    noAnswerNote: '🚨 تم الاتصال ولم يرد على المكالمة.',
+    noAnswerInterest: 0,
+    followUpButtonEnabled: true,
+    callQueueEnabled: true,
+    callQueueLimit: 5,
+    remindersEnabled: true
+};
+
+async function getTelegramCrmConfig(): Promise<TelegramCrmConfig> {
+    try {
+        const setting = await prisma.systemSetting.findUnique({
+            where: { key: 'telegram_crm_config' }
+        });
+        if (setting && setting.value) {
+            return { ...DEFAULT_TELEGRAM_CRM_CONFIG, ...JSON.parse(setting.value) };
+        }
+    } catch (e) {
+        console.error('Failed to parse telegram_crm_config, using defaults:', e);
+    }
+    return DEFAULT_TELEGRAM_CRM_CONFIG;
+}
+
 async function getAuthenticatedUser(telegramUserId: number) {
     const userIdStr = String(telegramUserId);
     return await prisma.user.findFirst({
@@ -67,6 +101,18 @@ async function getDynamicBot() {
                 checkLeadId = data.split(':')[1];
             } else if (data.startsWith('set_stage:')) {
                 checkLeadId = data.split(':')[1];
+            } else if (data.startsWith('no_answer:')) {
+                checkLeadId = data.split(':')[1];
+            } else if (data.startsWith('schedule_call:')) {
+                checkLeadId = data.split(':')[1];
+            } else if (data.startsWith('set_followup:')) {
+                checkLeadId = data.split(':')[1];
+            } else if (data.startsWith('set_followup_custom:')) {
+                checkLeadId = data.split(':')[1];
+            } else if (data.startsWith('queue_no_answer:')) {
+                checkLeadId = data.split(':')[1];
+            } else if (data.startsWith('queue_answered:')) {
+                checkLeadId = data.split(':')[1];
             }
 
             if (checkLeadId) {
@@ -79,15 +125,15 @@ async function getDynamicBot() {
                     // Check if lead has an owner, and owner is not the current user, and current user is not admin
                     if (lead.salespersonId && lead.salespersonId !== currentUser.id && currentUser.username !== 'admin') {
                         // Strict Block: CANNOT change interest/stage
-                        if (data.startsWith('change_interest:') || data.startsWith('set_interest:') || data.startsWith('change_stage:') || data.startsWith('set_stage:')) {
+                        if (data.startsWith('change_interest:') || data.startsWith('set_interest:') || data.startsWith('change_stage:') || data.startsWith('set_stage:') || data.startsWith('no_answer:') || data.startsWith('schedule_call:')) {
                             await ctx.answerCbQuery();
                             await ctx.replyWithHTML(
                                 `⚠️ <b>عذراً، هذا العميل مخصص للموظف المسؤول (${lead.salesperson?.firstName || ''} ${lead.salesperson?.lastName || 'أحد الزملاء'}).</b>\n` +
-                                `لا تملك صلاحية تغيير مرحلته أو درجة اهتمامه.`
+                                `لا تملك صلاحية تعديل بياناته.`
                             );
                             return;
                         }
-                    } else if (!lead.salespersonId && (data.startsWith('set_interest:') || data.startsWith('set_stage:') || data.startsWith('add_note:'))) {
+                    } else if (!lead.salespersonId && (data.startsWith('set_interest:') || data.startsWith('set_stage:') || data.startsWith('add_note:') || data.startsWith('no_answer:') || data.startsWith('set_followup:'))) {
                         // Collaborative auto-assignment: If lead is unassigned, assign it to the current user on active interaction!
                         await prisma.crmLead.update({
                             where: { id: lead.id },
@@ -101,7 +147,7 @@ async function getDynamicBot() {
                 const leadId = data.split(':')[1];
                 userStates[userId] = { action: 'expecting_note', leadId };
                 await ctx.answerCbQuery();
-                await ctx.replyWithHTML('✍️ <b>يرجى كتابة الملاحظة الجديدة للعميل وإرسالها الآن كرسالة نصية مباشرة:</b>');
+                await ctx.replyWithHTML('✍️ <b>يرجى كتابة המلاحظة الجديدة للعميل وإرسالها الآن كرسالة نصية مباشرة:</b>');
             } else if (data.startsWith('change_interest:')) {
                 const leadId = data.split(':')[1];
                 await ctx.answerCbQuery();
@@ -176,6 +222,178 @@ async function getDynamicBot() {
                 } catch (e) {}
 
                 await ctx.replyWithHTML(`✅ تم نقل العميل <b>${updatedLead.name}</b> بنجاح إلى مرحلة: <b>${stage?.name}</b>!`);
+            } else if (data.startsWith('no_answer:')) {
+                const leadId = data.split(':')[1];
+                try {
+                    const crmConfig = await getTelegramCrmConfig();
+                    const lead = await prisma.crmLead.findUnique({ where: { id: leadId } });
+                    if (!lead) {
+                        await ctx.answerCbQuery('⚠️ لم يتم العثور على العميل');
+                        return;
+                    }
+
+                    const updated = await prisma.crmLead.update({
+                        where: { id: leadId },
+                        data: {
+                            levelOfInterest: crmConfig.noAnswerInterest,
+                            dateDeadline: new Date(Date.now() + 24 * 60 * 60 * 1000) // Postpone next follow-up by 24h
+                        }
+                    });
+
+                    await prisma.crmNote.create({
+                        data: {
+                            leadId,
+                            userId: currentUser.id,
+                            content: crmConfig.noAnswerNote,
+                            type: 'note'
+                        }
+                    });
+
+                    // Google sheet sync
+                    try {
+                        const googleSheetUrl = process.env.GOOGLE_SHEET_URL || process.env.GOOGLE_SHEET_ID;
+                        if (googleSheetUrl) {
+                            GoogleSheetsService.appendLeadToSheet({
+                                spreadsheetUrlOrId: googleSheetUrl,
+                                lead: updated,
+                                noteContent: crmConfig.noAnswerNote
+                            }).catch((err: any) => console.error('[Google Sheets Sync] Live update failed:', err));
+                        }
+                    } catch (e) {}
+
+                    await ctx.answerCbQuery('✅ تم تسجيل عدم الرد');
+                    await ctx.replyWithHTML(`📴 تم تسجيل <b>عدم رد</b> للعميل <b>${lead.name}</b> بنجاح!\n\n📉 الاهتمام: <code>${crmConfig.noAnswerInterest}/10</code>\n📝 الملاحظة: <i>${crmConfig.noAnswerNote}</i>`);
+                } catch (err: any) {
+                    await ctx.answerCbQuery('❌ حدث خطأ');
+                }
+            } else if (data.startsWith('schedule_call:')) {
+                const leadId = data.split(':')[1];
+                const inline_keyboard = [
+                    [
+                        { text: '🌅 غداً', callback_data: `set_followup:${leadId}:1` },
+                        { text: '📅 بعد يومين', callback_data: `set_followup:${leadId}:2` }
+                    ],
+                    [
+                        { text: '📅 بعد 3 أيام', callback_data: `set_followup:${leadId}:3` },
+                        { text: '📅 بعد أسبوع', callback_data: `set_followup:${leadId}:7` }
+                    ],
+                    [
+                        { text: '✍️ إدخال مخصص', callback_data: `set_followup_custom:${leadId}` }
+                    ]
+                ];
+                await ctx.replyWithHTML(`📅 <b>جدولة متابعة تالية للعميل:</b>\nيرجى تحديد الموعد المطلوب للاتصال القادم:`, {
+                    reply_markup: { inline_keyboard }
+                });
+                await ctx.answerCbQuery();
+            } else if (data.startsWith('set_followup:')) {
+                const parts = data.split(':');
+                const leadId = parts[1];
+                const days = parseInt(parts[2]);
+
+                try {
+                    const lead = await prisma.crmLead.findUnique({ where: { id: leadId } });
+                    if (!lead) {
+                        await ctx.answerCbQuery('⚠️ لم يتم العثور على العميل');
+                        return;
+                    }
+
+                    const followUpDate = new Date();
+                    followUpDate.setDate(followUpDate.getDate() + days);
+                    followUpDate.setHours(9, 0, 0, 0); // Default to 9:00 AM
+
+                    const updated = await prisma.crmLead.update({
+                        where: { id: leadId },
+                        data: { dateDeadline: followUpDate }
+                    });
+
+                    const dateStr = followUpDate.toLocaleDateString('ar-AE', { day: 'numeric', month: 'numeric', year: 'numeric' });
+                    const noteText = `📅 تم جدولة مكالمة متابعة تالية للعميل بتاريخ ${dateStr}.`;
+
+                    await prisma.crmNote.create({
+                        data: {
+                            leadId,
+                            userId: currentUser.id,
+                            content: noteText,
+                            type: 'note'
+                        }
+                    });
+
+                    // Google sheet sync
+                    try {
+                        const googleSheetUrl = process.env.GOOGLE_SHEET_URL || process.env.GOOGLE_SHEET_ID;
+                        if (googleSheetUrl) {
+                            GoogleSheetsService.appendLeadToSheet({
+                                spreadsheetUrlOrId: googleSheetUrl,
+                                lead: updated,
+                                noteContent: noteText
+                            }).catch((err: any) => console.error('[Google Sheets Sync] Sync failed:', err));
+                        }
+                    } catch (e) {}
+
+                    await ctx.answerCbQuery('✅ تم جدولة المتابعة');
+                    await ctx.replyWithHTML(`📅 تم جدولة مكالمة متابعة للعميل <b>${lead.name}</b> بنجاح!\n\n📅 <b>موعد الاتصال القادم:</b> ${dateStr}`);
+                } catch (err: any) {
+                    await ctx.answerCbQuery('❌ حدث خطأ');
+                }
+            } else if (data.startsWith('set_followup_custom:')) {
+                const leadId = data.split(':')[1];
+                userStates[userId] = { action: 'expecting_custom_followup', leadId };
+                await ctx.answerCbQuery();
+                await ctx.replyWithHTML(`📅 <b>يرجى إرسال موعد المتابعة المطلوب:</b>\nيمكنك كتابة التاريخ بالتنسيق المباشر (مثال: <code>15/05/2026</code> أو <code>غداً</code> أو <code>بعد أسبوع</code>):`);
+            } else if (data.startsWith('queue_no_answer:')) {
+                const parts = data.split(':');
+                const leadId = parts[1];
+                const currentIndex = parseInt(parts[2]);
+                const total = parseInt(parts[3]);
+
+                try {
+                    const crmConfig = await getTelegramCrmConfig();
+                    const lead = await prisma.crmLead.findUnique({ where: { id: leadId } });
+                    if (!lead) {
+                        await ctx.answerCbQuery();
+                        return;
+                    }
+
+                    const updated = await prisma.crmLead.update({
+                        where: { id: leadId },
+                        data: {
+                            levelOfInterest: crmConfig.noAnswerInterest,
+                            dateDeadline: new Date(Date.now() + 24 * 60 * 60 * 1000) // Postpone to tomorrow
+                        }
+                    });
+
+                    await prisma.crmNote.create({
+                        data: {
+                            leadId,
+                            userId: currentUser.id,
+                            content: `${crmConfig.noAnswerNote} (طابور الاتصال التفاعلي)`,
+                            type: 'note'
+                        }
+                    });
+
+                    await ctx.answerCbQuery('📴 تم تسجيل عدم الرد للعميل');
+                    await ctx.replyWithHTML(`📴 تم تسجيل عدم الرد للعميل <b>${lead.name}</b> وتأجيل مكالمته لغد تلقائياً.`);
+
+                    // Fetch next
+                    await fetchAndPresentNextInQueue(ctx, currentUser.id, currentIndex, total);
+                } catch (err: any) {
+                    await ctx.reply(`⚠️ فشل التخطي: ${err.message}`);
+                }
+            } else if (data.startsWith('queue_answered:')) {
+                const parts = data.split(':');
+                const leadId = parts[1];
+                const currentIndex = parseInt(parts[2]);
+                const total = parseInt(parts[3]);
+
+                userStates[userId] = { action: `expecting_queue_note:${currentIndex}:${total}`, leadId };
+                await ctx.answerCbQuery();
+                await ctx.replyWithHTML(`📝 <b>يرجى إرسال التقرير والملخص الصوتي وملاحظات المكالمة للعميل الآن كرسالة مباشرة:</b>`);
+            } else if (data.startsWith('queue_next:')) {
+                const parts = data.split(':');
+                const currentIndex = parseInt(parts[1]);
+                const total = parseInt(parts[2]);
+                await ctx.answerCbQuery();
+                await fetchAndPresentNextInQueue(ctx, currentUser.id, currentIndex, total);
             }
         } catch (err: any) {
             console.error('Callback Query Error:', err.message);
@@ -349,6 +567,133 @@ async function getDynamicBot() {
             return;
         }
 
+        // Custom follow up date parsing text state handler
+        if (userStates[userId] && userStates[userId].action === 'expecting_custom_followup') {
+            const { leadId } = userStates[userId];
+            delete userStates[userId]; // reset state
+
+            try {
+                const lead = await prisma.crmLead.findUnique({ where: { id: leadId } });
+                if (!lead) {
+                    ctx.reply('⚠️ عذراً، لم يتم العثور على ملف العميل لجدولة المتابعة.');
+                    return;
+                }
+
+                let parsedDate = new Date();
+                const cleanedText = text.trim();
+
+                if (cleanedText === 'غدا' || cleanedText === 'غداً') {
+                    parsedDate.setDate(parsedDate.getDate() + 1);
+                } else if (cleanedText.includes('يوم')) {
+                    const daysMatch = cleanedText.match(/\d+/);
+                    const days = daysMatch ? parseInt(daysMatch[0]) : 1;
+                    parsedDate.setDate(parsedDate.getDate() + days);
+                } else {
+                    const dateParts = cleanedText.split(/[\/\-\.]/);
+                    if (dateParts.length >= 2) {
+                        const day = parseInt(dateParts[0]);
+                        const month = parseInt(dateParts[1]) - 1;
+                        const year = dateParts[2] ? parseInt(dateParts[2]) : new Date().getFullYear();
+                        parsedDate = new Date(year, month, day, 9, 0, 0, 0);
+                    } else {
+                        parsedDate.setDate(parsedDate.getDate() + 1);
+                    }
+                }
+
+                const updated = await prisma.crmLead.update({
+                    where: { id: leadId },
+                    data: { dateDeadline: parsedDate }
+                });
+
+                const dateStr = parsedDate.toLocaleDateString('ar-AE', { day: 'numeric', month: 'numeric', year: 'numeric' });
+                const noteText = `📅 تم جدولة مكالمة متابعة تالية للعميل بتاريخ ${dateStr}.`;
+
+                const currentUser = await getAuthenticatedUser(userId);
+                await prisma.crmNote.create({
+                    data: {
+                        leadId,
+                        userId: currentUser!.id,
+                        content: noteText,
+                        type: 'note'
+                    }
+                });
+
+                // Google sheet sync
+                try {
+                    const googleSheetUrl = process.env.GOOGLE_SHEET_URL || process.env.GOOGLE_SHEET_ID;
+                    if (googleSheetUrl) {
+                        GoogleSheetsService.appendLeadToSheet({
+                            spreadsheetUrlOrId: googleSheetUrl,
+                            lead: updated,
+                            noteContent: noteText
+                        }).catch((err: any) => console.error('[Google Sheets Sync] Sync failed:', err));
+                    }
+                } catch (e) {}
+
+                ctx.replyWithHTML(`✅ تم جدولة مكالمة متابعة للعميل <b>${lead.name}</b> بنجاح!\n\n📅 <b>الموعد الجديد:</b> ${dateStr}`);
+            } catch (err: any) {
+                ctx.reply('⚠️ حدث خطأ أثناء حفظ موعد المتابعة.');
+            }
+            return;
+        }
+
+        // Custom follow up expectation inside call queue handler
+        if (userStates[userId] && userStates[userId].action.startsWith('expecting_queue_note:')) {
+            const stateParts = userStates[userId].action.split(':');
+            const currentIndex = parseInt(stateParts[1]);
+            const total = parseInt(stateParts[2]);
+            const { leadId } = userStates[userId];
+            delete userStates[userId]; // reset state
+
+            try {
+                const lead = await prisma.crmLead.findUnique({ where: { id: leadId } });
+                if (!lead) {
+                    ctx.reply('⚠️ عذراً، لم يتم العثور على ملف العميل لحفظ التقرير.');
+                    return;
+                }
+
+                const currentUser = await getAuthenticatedUser(userId);
+
+                // Add Note
+                await prisma.crmNote.create({
+                    data: {
+                        leadId,
+                        userId: currentUser!.id,
+                        content: `${text} (طابور الاتصال التفاعلي)`,
+                        type: 'note'
+                    }
+                });
+
+                // Set deadline / postpone to 7 days since we successfully called them!
+                const updated = await prisma.crmLead.update({
+                    where: { id: leadId },
+                    data: {
+                        dateDeadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                    }
+                });
+
+                // Sync to sheets...
+                try {
+                    const googleSheetUrl = process.env.GOOGLE_SHEET_URL || process.env.GOOGLE_SHEET_ID;
+                    if (googleSheetUrl) {
+                        GoogleSheetsService.appendLeadToSheet({
+                            spreadsheetUrlOrId: googleSheetUrl,
+                            lead: updated,
+                            noteContent: text
+                        }).catch((err: any) => console.error('[Google Sheets Sync] Failed:', err));
+                    }
+                } catch (e) {}
+
+                await ctx.replyWithHTML(`✅ تم إضافة تقرير المتابعة للعميل <b>${lead.name}</b> بنجاح!\n\n📝 <b>التقرير المضاف:</b>\n${text}`);
+
+                // Fetch and present NEXT
+                await fetchAndPresentNextInQueue(ctx, currentUser!.id, currentIndex, total);
+            } catch (err: any) {
+                ctx.reply('⚠️ حدث خطأ أثناء حفظ تقرير المتابعة.');
+            }
+            return;
+        }
+
         // Main Menu button actions
         if (text === '🔍 بحث عن عميل') {
             ctx.replyWithHTML('⌨️ <b>يرجى إرسال رقم الهاتف للبحث عنه مباشرة</b> (مثال: <code>971543446372</code>).');
@@ -411,6 +756,52 @@ async function getDynamicBot() {
             return;
         }
 
+        // Call Queue Trigger
+        if (text === '📞 اتصالات اليوم' || text === '/today') {
+            try {
+                const crmConfig = await getTelegramCrmConfig();
+                const endOfToday = new Date();
+                endOfToday.setHours(23, 59, 59, 999);
+
+                // Fetch leads assigned to user that have followUpDate <= today or new uncontacted leads
+                const leads = await prisma.crmLead.findMany({
+                    where: {
+                        salespersonId: currentUser ? currentUser.id : undefined,
+                        active: true,
+                        OR: [
+                            { dateDeadline: { lte: endOfToday } },
+                            { dateDeadline: null, levelOfInterest: null }
+                        ]
+                    },
+                    orderBy: [
+                        { priority: 'desc' },
+                        { createdAt: 'asc' }
+                    ],
+                    take: crmConfig.callQueueLimit,
+                    include: {
+                        notes: {
+                            orderBy: { createdAt: 'desc' },
+                            take: 1
+                        }
+                    }
+                });
+
+                if (leads.length === 0) {
+                    await ctx.reply('🎉 رائع وممتاز! لا توجد مكالمات متابعة أو عملاء غير متصل بهم حالياً في قائمتك لليوم.');
+                    return;
+                }
+
+                await ctx.replyWithHTML(`📞 <b>طابور اتصالات اليوم مجهز بنجاح!</b>\nتم تجهيز <code>${leads.length}</code> عملاء للاتصال والمتابعة الآن.\nسنقوم بعرضهم عليك واحداً تلو الآخر لتسهيل إدارتهم واستدعائهم ⚡`);
+
+                // Present first
+                await presentLeadInQueue(ctx, leads[0], 1, leads.length);
+            } catch (err: any) {
+                console.error('Call Queue Error:', err.message);
+                await ctx.reply('⚠️ فشل جلب اتصالات اليوم.');
+            }
+            return;
+        }
+
         if (text.includes('الاسم:') && text.includes('رقم الهاتف:')) {
             try {
                 const parsedData = crmService.parseTelegramMessage(text);
@@ -453,10 +844,22 @@ async function getDynamicBot() {
                         { text: '💬 فتح واتساب', url: `https://wa.me/${digits}` }
                     ]);
                 }
-                inline_keyboard.push([
-                    { text: '➕ إضافة ملاحظة', callback_data: `add_note:${lead.id}` },
-                    { text: '🏷️ درجة الاهتمام', callback_data: `change_interest:${lead.id}` }
-                ]);
+
+                const crmConfig = await getTelegramCrmConfig();
+                const btnRow1 = [];
+                if (crmConfig.noAnswerButtonEnabled) {
+                    btnRow1.push({ text: '📴 لم يرد', callback_data: `no_answer:${lead.id}` });
+                }
+                btnRow1.push({ text: '➕ إضافة ملاحظة', callback_data: `add_note:${lead.id}` });
+
+                const btnRow2 = [];
+                if (crmConfig.followUpButtonEnabled) {
+                    btnRow2.push({ text: '📅 جدولة متابعة', callback_data: `schedule_call:${lead.id}` });
+                }
+                btnRow2.push({ text: '🏷️ درجة الاهتمام', callback_data: `change_interest:${lead.id}` });
+
+                inline_keyboard.push(btnRow1);
+                inline_keyboard.push(btnRow2);
                 inline_keyboard.push([
                     { text: '🔄 نقل المرحلة', callback_data: `change_stage:${lead.id}` }
                 ]);
@@ -591,7 +994,7 @@ async function getDynamicBot() {
                         itemMsg += `\n──────────────────\n`;
 
                         // Add interactive action buttons (raw JSON format to ensure 100% platform compatibility)
-                        const inline_keyboard = [];
+                        const inline_keyboard: any[] = [];
                         const cleanPhone = lead.phoneNormalized || lead.phone || lead.mobileNormalized || lead.mobile;
                         if (cleanPhone) {
                             const digits = cleanPhone.replace(/\D/g, '');
@@ -599,10 +1002,22 @@ async function getDynamicBot() {
                                 { text: '💬 فتح واتساب', url: `https://wa.me/${digits}` }
                             ]);
                         }
-                        inline_keyboard.push([
-                            { text: '➕ إضافة ملاحظة', callback_data: `add_note:${lead.id}` },
-                            { text: '🏷️ درجة الاهتمام', callback_data: `change_interest:${lead.id}` }
-                        ]);
+
+                        const crmConfig = await getTelegramCrmConfig();
+                        const btnRow1 = [];
+                        if (crmConfig.noAnswerButtonEnabled) {
+                            btnRow1.push({ text: '📴 لم يرد', callback_data: `no_answer:${lead.id}` });
+                        }
+                        btnRow1.push({ text: '➕ إضافة ملاحظة', callback_data: `add_note:${lead.id}` });
+
+                        const btnRow2 = [];
+                        if (crmConfig.followUpButtonEnabled) {
+                            btnRow2.push({ text: '📅 جدولة متابعة', callback_data: `schedule_call:${lead.id}` });
+                        }
+                        btnRow2.push({ text: '🏷️ درجة الاهتمام', callback_data: `change_interest:${lead.id}` });
+
+                        inline_keyboard.push(btnRow1);
+                        inline_keyboard.push(btnRow2);
                         inline_keyboard.push([
                             { text: '🔄 نقل المرحلة', callback_data: `change_stage:${lead.id}` }
                         ]);
@@ -631,6 +1046,7 @@ async function getDynamicBot() {
                     reply_markup: {
                         keyboard: [
                             [{ text: '🔍 بحث عن عميل' }, { text: '📝 إضافة تقرير' }],
+                            [{ text: '📞 اتصالات اليوم' }],
                             [{ text: '📊 ملخص اليوم' }, { text: '⚙️ حالة الربط' }]
                         ],
                         resize_keyboard: true
@@ -654,6 +1070,88 @@ async function getDynamicBot() {
     }
 
     return botInstance;
+}
+
+async function presentLeadInQueue(ctx: any, lead: any, currentIndex: number, total: number) {
+    let msg = `📞 <b>[عميل رقم ${currentIndex}/${total}]</b>\n\n`;
+    msg += `👤 <b>الاسم:</b> ${lead.name}\n`;
+    msg += `📞 <b>رقم الهاتف:</b> ${lead.phone || lead.mobile}\n`;
+    if (lead.nationality) msg += `🌍 <b>الجنسية:</b> ${lead.nationality}\n`;
+    if (lead.emirate) msg += `📍 <b>الإمارة:</b> ${lead.emirate}\n`;
+    if (lead.interestedDiploma) msg += `🎓 <b>الدبلوم المهتم به:</b> ${lead.interestedDiploma}\n`;
+    if (lead.levelOfInterest) msg += `🔥 <b>درجة الاهتمام:</b> ${lead.levelOfInterest}/10\n`;
+    
+    if (lead.notes && lead.notes.length > 0) {
+        msg += `\n📝 <b>آخر ملاحظة مسجلة للعميل:</b>\n<i>${lead.notes[0].content}</i>\n`;
+    }
+
+    const cleanPhone = lead.phoneNormalized || lead.phone || lead.mobileNormalized || lead.mobile;
+    const digits = cleanPhone ? cleanPhone.replace(/\D/g, '') : '';
+
+    const inline_keyboard = [];
+    if (digits) {
+        inline_keyboard.push([
+            { text: '💬 فتح واتساب العميل', url: `https://wa.me/${digits}` }
+        ]);
+    }
+
+    inline_keyboard.push([
+        { text: '📴 لم يرد (تخطي وتأجيل)', callback_data: `queue_no_answer:${lead.id}:${currentIndex}:${total}` },
+        { text: '✅ أجاب (إدخال تقرير)', callback_data: `queue_answered:${lead.id}:${currentIndex}:${total}` }
+    ]);
+
+    inline_keyboard.push([
+        { text: '⏩ العميل التالي ↩️', callback_data: `queue_next:${currentIndex}:${total}` }
+    ]);
+
+    await ctx.replyWithHTML(msg, {
+        reply_markup: { inline_keyboard }
+    });
+}
+
+async function fetchAndPresentNextInQueue(ctx: any, salespersonId: string, currentIndex: number, total: number) {
+    if (currentIndex >= total) {
+        await ctx.replyWithHTML('🎉 <b>تهانينا الحارة! لقد أنهيت طابور اتصالات ومتابعات اليوم بالكامل بنجاح تام!</b> ✨\nجهودكم مشكورة في ريادة مبيعات معهد السلام! 🚀');
+        return;
+    }
+
+    try {
+        const crmConfig = await getTelegramCrmConfig();
+        const endOfToday = new Date();
+        endOfToday.setHours(23, 59, 59, 999);
+
+        const leads = await prisma.crmLead.findMany({
+            where: {
+                salespersonId,
+                active: true,
+                OR: [
+                    { dateDeadline: { lte: endOfToday } },
+                    { dateDeadline: null, levelOfInterest: null }
+                ]
+            },
+            orderBy: [
+                { priority: 'desc' },
+                { createdAt: 'asc' }
+            ],
+            take: crmConfig.callQueueLimit,
+            include: {
+                notes: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 1
+                }
+            }
+        });
+
+        if (leads.length <= currentIndex) {
+            await ctx.replyWithHTML('🎉 <b>لقد أكملت جميع الاتصالات المتبقية المتاحة لليوم! عمل رائع!</b> ✨');
+            return;
+        }
+
+        const nextLead = leads[currentIndex];
+        await presentLeadInQueue(ctx, nextLead, currentIndex + 1, total);
+    } catch (err: any) {
+        await ctx.reply(`⚠️ فشل تحميل العميل التالي: ${err.message}`);
+    }
 }
 
 export const crmController = {
@@ -682,6 +1180,38 @@ export const crmController = {
             const botInstance = await getDynamicBot();
             await botInstance.telegram.setWebhook(url);
             res.json({ success: true, url });
+        } catch (error: any) {
+            res.status(500).json({ success: false, error: error.message });
+        }
+    },
+
+    /**
+     * Get Telegram CRM settings configuration
+     */
+    async getTelegramConfig(req: Request, res: Response) {
+        try {
+            const config = await getTelegramCrmConfig();
+            res.json({ success: true, data: config });
+        } catch (error: any) {
+            res.status(500).json({ success: false, error: error.message });
+        }
+    },
+
+    /**
+     * Update Telegram CRM settings configuration
+     */
+    async updateTelegramConfig(req: Request, res: Response) {
+        try {
+            const configData = req.body;
+            const updated = await prisma.systemSetting.upsert({
+                where: { key: 'telegram_crm_config' },
+                update: { value: JSON.stringify(configData) },
+                create: {
+                    key: 'telegram_crm_config',
+                    value: JSON.stringify(configData)
+                }
+            });
+            res.json({ success: true, data: JSON.parse(updated.value) });
         } catch (error: any) {
             res.status(500).json({ success: false, error: error.message });
         }

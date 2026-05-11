@@ -49,6 +49,17 @@ export default function Settings() {
     const [networkInfo, setNetworkInfo] = useState<{ ips: string[], port: number } | null>(null);
     const [fetchingNetwork, setFetchingNetwork] = useState(false);
 
+    // Telegram CRM configurations state
+    const [telegramCrmConfig, setTelegramCrmConfig] = useState<any>({
+        noAnswerButtonEnabled: true,
+        noAnswerNote: '🚨 تم الاتصال ولم يرد على المكالمة.',
+        noAnswerInterest: 0,
+        followUpButtonEnabled: true,
+        callQueueEnabled: true,
+        callQueueLimit: 5,
+        remindersEnabled: true
+    });
+
     // Toast and Confirm Dialog states
     const [toast, setToast] = useState<{ type: ToastType; message: string } | null>(null);
     const [confirmDialog, setConfirmDialog] = useState<{
@@ -57,6 +68,15 @@ export default function Settings() {
         type: 'danger' | 'warning' | 'info';
         onConfirm: () => void;
     } | null>(null);
+
+    const fetchTelegramCrmConfig = async () => {
+        try {
+            const res = await settingsService.getTelegramCrmConfig();
+            if (res.data) setTelegramCrmConfig(res.data);
+        } catch (error) {
+            console.error('Error fetching Telegram CRM config:', error);
+        }
+    };
 
     useEffect(() => {
         if (settings) {
@@ -69,6 +89,7 @@ export default function Settings() {
         fetchAwardingBodies();
         fetchLevels();
         fetchAccounts();
+        fetchTelegramCrmConfig();
     }, [settings, fetchSettings]);
 
     const fetchAccounts = async () => {
@@ -107,6 +128,7 @@ export default function Settings() {
             }
             updateField('awardingBodies', []); // Clear legacy JSON data if it exists
             await updateSettings(saveData as any);
+            await settingsService.updateTelegramCrmConfig(telegramCrmConfig);
             setToast({ type: 'success', message: '✅ تم حفظ الإعدادات بنجاح' });
             setSelectedSection(null);
         } catch (error: any) {
@@ -1633,64 +1655,167 @@ export default function Settings() {
 
             {selectedSection === 'telegram' && (
                 <div className="modal-overlay-2026" onClick={() => setSelectedSection(null)}>
-                    <div className="modal-content-2026 large" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h2>🤖 إعدادات بوت تليجرام المخصص</h2>
-                            <button className="close-modal" onClick={() => setSelectedSection(null)}>×</button>
+                    <div className="modal-content-2026 large" style={{ maxWidth: '900px', width: '95%' }} onClick={e => e.stopPropagation()}>
+                        <div className="modal-header" style={{ background: 'linear-gradient(135deg, #0088cc 0%, #006699 100%)', color: 'white' }}>
+                            <h2>🤖 إعدادات بوت تليجرام الذكي المتكامل CRM</h2>
+                            <button className="close-modal" style={{ color: 'white' }} onClick={() => setSelectedSection(null)}>×</button>
                         </div>
-                        <div className="modal-form">
-                            <div className="form-group">
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.telegramBotEnabled || false}
-                                        onChange={e => updateField('telegramBotEnabled', e.target.checked)}
-                                    />
-                                    <span style={{ fontWeight: 600 }}>تفعيل ربط بوت تليجرام مخصص (Multi-Bot)</span>
-                                </label>
-                                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem', marginRight: '1.8rem' }}>
-                                    عند التفعيل، سيستخدم النظام المفتاح والمعرف المدخلين بالأسفل بدلاً من البوت الافتراضي لاستقبال تقارير المبيعات وتحديث العملاء.
-                                </p>
-                            </div>
-
-                            <div className={`form-grid ${!formData.telegramBotEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
-                                <div className="form-group">
-                                    <label>معرف البوت (Bot Username)</label>
-                                    <input
-                                        type="text"
-                                        value={formData.telegramBotUsername || ''}
-                                        onChange={e => updateField('telegramBotUsername', e.target.value)}
-                                        placeholder="@my_custom_crm_bot"
-                                        disabled={!formData.telegramBotEnabled}
-                                        dir="ltr"
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>مفتاح البوت (Bot Token) *</label>
-                                    <input
-                                        type="password"
-                                        value={formData.telegramBotToken || ''}
-                                        onChange={e => updateField('telegramBotToken', e.target.value)}
-                                        placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ"
-                                        disabled={!formData.telegramBotEnabled}
-                                        dir="ltr"
-                                    />
+                        <div className="modal-body-scroll" style={{ padding: '2rem' }}>
+                            <div className="info-box-premium" style={{ background: '#f0fafe', border: '1px solid #b3e5fc', borderRadius: '14px', padding: '1.25rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                                <span style={{ fontSize: '1.5rem' }}>🎯</span>
+                                <div>
+                                    <h3 style={{ margin: '0 0 0.5rem 0', color: '#01579b', fontSize: '1rem' }}>التحكم الذكي وتجربة المستخدم الاستثنائية</h3>
+                                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#0277bd', lineHeight: '1.6' }}>
+                                        هذه اللوحة تمكنكم من تخصيص سلوك البوت بالكامل. يمكنك تفعيل ميزات الاتصالات المتقدمة، تعيين ردود تلقائية مسبقة لحالات "لم يرد"، وتعيين حجم طابور المتابعة اليومي لزيادة إنتاجية فريق المبيعات.
+                                    </p>
                                 </div>
                             </div>
 
-                            <div className="ai-status-notice orange" style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(0, 136, 204, 0.05)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(0, 136, 204, 0.1)' }}>
-                                <p style={{ fontSize: '0.85rem', color: 'var(--text-main)', margin: 0 }}>
-                                    <strong>💡 دليل الإعداد السريع لربط البوت:</strong><br/>
-                                    1. تواصل مع <a href="https://t.me/BotFather" target="_blank" rel="noreferrer" style={{ color: '#0088cc', textDecoration: 'underline' }}>@BotFather</a> على تليجرام وأنشئ بوت جديد باستخدام أمر <code style={{ dir: 'ltr' }}>/newbot</code>.<br/>
-                                    2. انسخ الـ <strong>API Token</strong> والصقه في الحقل أعلاه.<br/>
-                                    3. <strong>⚡ ربط تلقائي بالكامل:</strong> بمجرد النقر على زر <strong>"حفظ التعديلات"</strong> بالأسفل، سيقوم النظام تلقائياً بربط البوت بالـ Webhook وتفعيله فوراً دون أي حاجة لفتح روابط خارجية يدويًا!<br/>
-                                    4. <em>تنبيه احتياطي:</em> إذا احتجت لإعادة الربط يدوياً في أي وقت، يمكنك فتح الرابط التالي في المتصفح: <a href="https://erp-xi-lac.vercel.app/api/v1/crm/telegram/setup" target="_blank" rel="noreferrer" style={{ color: '#0088cc', fontWeight: 'bold' }}>رابط التفعيل اليدوي للـ Webhook</a>.
-                                </p>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', flexWrap: 'wrap' }} className="form-grid-double-column">
+                                {/* Left Column: Connection & API Keys */}
+                                <div style={{ borderLeft: '1px solid #e2e8f0', paddingLeft: '1.5rem' }} className="column-connection">
+                                    <h3 style={{ fontSize: '1.05rem', color: 'var(--text-main)', borderBottom: '2px solid #0088cc', paddingBottom: '0.5rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <span>🔑</span> ربط البوت والمفاتيح (Multi-Bot)
+                                    </h3>
+
+                                    <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 600 }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.telegramBotEnabled || false}
+                                                onChange={e => updateField('telegramBotEnabled', e.target.checked)}
+                                            />
+                                            <span>تفعيل ربط بوت مخصص</span>
+                                        </label>
+                                    </div>
+
+                                    <div className={!formData.telegramBotEnabled ? 'opacity-50 pointer-events-none' : ''}>
+                                        <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+                                            <label style={{ fontWeight: 600, fontSize: '0.85rem', display: 'block', marginBottom: '0.4rem' }}>معرف البوت (Bot Username)</label>
+                                            <input
+                                                type="text"
+                                                value={formData.telegramBotUsername || ''}
+                                                onChange={e => updateField('telegramBotUsername', e.target.value)}
+                                                placeholder="@my_custom_crm_bot"
+                                                disabled={!formData.telegramBotEnabled}
+                                                dir="ltr"
+                                                style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #cbd5e1' }}
+                                            />
+                                        </div>
+
+                                        <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+                                            <label style={{ fontWeight: 600, fontSize: '0.85rem', display: 'block', marginBottom: '0.4rem' }}>مفتاح البوت (Bot Token)</label>
+                                            <input
+                                                type="password"
+                                                value={formData.telegramBotToken || ''}
+                                                onChange={e => updateField('telegramBotToken', e.target.value)}
+                                                placeholder="123456789:ABCdef..."
+                                                disabled={!formData.telegramBotEnabled}
+                                                dir="ltr"
+                                                style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #cbd5e1' }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '12px', fontSize: '0.8rem', color: '#475569', border: '1px solid #e2e8f0', marginTop: '1.5rem' }}>
+                                        <strong>💡 تفعيل الويب هوك التلقائي:</strong><br/>
+                                        بمجرد النقر على حفظ، يتم ربط الـ Webhook مع سيرفرات تليجرام تلقائيًا ليعمل البوت فورًا!
+                                    </div>
+                                </div>
+
+                                {/* Right Column: Advanced CRM Bot Automation Logic */}
+                                <div className="column-logic">
+                                    <h3 style={{ fontSize: '1.05rem', color: 'var(--text-main)', borderBottom: '2px solid #FF6B00', paddingBottom: '0.5rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <span>⚙️</span> المنطق التفاعلي المؤتمت للبيانات
+                                    </h3>
+
+                                    {/* No-Answer Toggles */}
+                                    <div style={{ background: '#fff9f5', border: '1px solid #ffe8d6', borderRadius: '12px', padding: '1rem', marginBottom: '1.25rem' }}>
+                                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 600 }}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={telegramCrmConfig.noAnswerButtonEnabled}
+                                                    onChange={e => setTelegramCrmConfig({ ...telegramCrmConfig, noAnswerButtonEnabled: e.target.checked })}
+                                                />
+                                                <span style={{ color: '#c2410c' }}>📴 تفعيل زر (لم يرد) السريع</span>
+                                            </label>
+                                        </div>
+                                        
+                                        {telegramCrmConfig.noAnswerButtonEnabled && (
+                                            <>
+                                                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                                                    <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '0.25rem' }}>النص التلقائي المسجل كملاحظة:</label>
+                                                    <input
+                                                        type="text"
+                                                        value={telegramCrmConfig.noAnswerNote}
+                                                        onChange={e => setTelegramCrmConfig({ ...telegramCrmConfig, noAnswerNote: e.target.value })}
+                                                        style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #f97316' }}
+                                                    />
+                                                </div>
+                                                <div className="form-group">
+                                                    <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '0.25rem' }}>درجة الاهتمام الجديدة عند الضغط (0 - 10):</label>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        max="10"
+                                                        value={telegramCrmConfig.noAnswerInterest}
+                                                        onChange={e => setTelegramCrmConfig({ ...telegramCrmConfig, noAnswerInterest: parseInt(e.target.value) || 0 })}
+                                                        style={{ width: '80px', padding: '0.5rem', borderRadius: '8px', border: '1px solid #f97316', textAlign: 'center' }}
+                                                    />
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* Follow-Up Quick Action */}
+                                    <div className="form-group" style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '1rem' }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 600 }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={telegramCrmConfig.followUpButtonEnabled}
+                                                onChange={e => setTelegramCrmConfig({ ...telegramCrmConfig, followUpButtonEnabled: e.target.checked })}
+                                            />
+                                            <span>📅 تفعيل زر (جدولة متابعة) تفاعلي</span>
+                                        </label>
+                                        <p style={{ fontSize: '0.75rem', color: '#64748B', margin: '0.25rem 0 0 1.5rem' }}>
+                                            يتيح للمندوب جدولة مكالمة لاحقة بنقرة واحدة (غداً، بعد يومين، أو تحديد موعد مخصص).
+                                        </p>
+                                    </div>
+
+                                    {/* Call Queue Setting */}
+                                    <div style={{ background: '#f0fdf4', border: '1px solid #dcfce7', borderRadius: '12px', padding: '1rem' }}>
+                                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 600 }}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={telegramCrmConfig.callQueueEnabled}
+                                                    onChange={e => setTelegramCrmConfig({ ...telegramCrmConfig, callQueueEnabled: e.target.checked })}
+                                                />
+                                                <span style={{ color: '#15803d' }}>📞 تفعيل نظام طابور الاتصالات اليومي</span>
+                                            </label>
+                                        </div>
+
+                                        {telegramCrmConfig.callQueueEnabled && (
+                                            <div className="form-group" style={{ marginRight: '1.5rem' }}>
+                                                <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '0.25rem' }}>الحد الأقصى للاتصالات المعروضة يومياً لكل موظف:</label>
+                                                <input
+                                                    type="number"
+                                                    min="1"
+                                                    max="100"
+                                                    value={telegramCrmConfig.callQueueLimit}
+                                                    onChange={e => setTelegramCrmConfig({ ...telegramCrmConfig, callQueueLimit: parseInt(e.target.value) || 5 })}
+                                                    style={{ width: '80px', padding: '0.5rem', borderRadius: '8px', border: '1px solid #22c55e', textAlign: 'center' }}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div className="form-actions-footer">
                             <button type="button" className="btn-cancel" onClick={() => setSelectedSection(null)}>إلغاء</button>
-                            <button type="button" className="btn-save orange" onClick={handleSave}>حفظ التعديلات</button>
+                            <button type="button" className="btn-save orange" onClick={handleSave}>حفظ الإعدادات بالكامل</button>
                         </div>
                     </div>
                 </div>

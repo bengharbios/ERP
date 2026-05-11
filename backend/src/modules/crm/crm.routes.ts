@@ -15,6 +15,10 @@ router.get('/telegram/setup', crmController.setupWebhook);
 // Protect all subsequent CRM routes with JWT authentication
 router.use(authenticateToken);
 
+// --- Telegram Configuration Routes ---
+router.get('/telegram/config', crmController.getTelegramConfig);
+router.post('/telegram/config', crmController.updateTelegramConfig);
+
 // --- Lead Routes ---
 router.get('/leads', leadController.getLeads);
 router.get('/leads/:id', leadController.getLeadById);

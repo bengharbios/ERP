@@ -105,6 +105,15 @@ export const settingsService = {
         return apiClient.get('/settings/network');
     },
 
+    // Telegram CRM settings
+    async getTelegramCrmConfig(): Promise<ApiResponse<TelegramCrmConfig>> {
+        return apiClient.get('/crm/telegram/config');
+    },
+
+    async updateTelegramCrmConfig(data: TelegramCrmConfig): Promise<ApiResponse<TelegramCrmConfig>> {
+        return apiClient.post('/crm/telegram/config', data);
+    },
+
     // Aliases for compatibility
     async getSettings(): Promise<ApiResponse<{ settings: SystemSettings }>> {
         return this.getSystemSettings();
@@ -114,6 +123,16 @@ export const settingsService = {
         return this.updateSystemSettings(data);
     },
 };
+
+export interface TelegramCrmConfig {
+    noAnswerButtonEnabled: boolean;
+    noAnswerNote: string;
+    noAnswerInterest: number;
+    followUpButtonEnabled: boolean;
+    callQueueEnabled: boolean;
+    callQueueLimit: number;
+    remindersEnabled: boolean;
+}
 
 // ============================================
 // SYSTEM SETTINGS INTERFACES
