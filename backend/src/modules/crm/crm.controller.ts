@@ -8,7 +8,42 @@ import { comparePassword } from '../../common/utils/password';
 
 // Cache bots by token to avoid re-initializing on every request
 const botsCache: Record<string, any> = {};
-const userStates: Record<string, { action: string; leadId: string }> = {};
+
+async function getUserState(userId: number): Promise<{ action: string; leadId: string } | null> {
+    try {
+        const setting = await prisma.systemSetting.findUnique({
+            where: { key: `telegram_state:${userId}` }
+        });
+        if (setting && setting.value) {
+            return JSON.parse(setting.value);
+        }
+    } catch (e) {
+        console.error('Failed to get user state:', e);
+    }
+    return null;
+}
+
+async function setUserState(userId: number, action: string, leadId: string): Promise<void> {
+    try {
+        await prisma.systemSetting.upsert({
+            where: { key: `telegram_state:${userId}` },
+            update: { value: JSON.stringify({ action, leadId }) },
+            create: { key: `telegram_state:${userId}`, value: JSON.stringify({ action, leadId }) }
+        });
+    } catch (e) {
+        console.error('Failed to set user state:', e);
+    }
+}
+
+async function deleteUserState(userId: number): Promise<void> {
+    try {
+        await prisma.systemSetting.delete({
+            where: { key: `telegram_state:${userId}` }
+        }).catch(() => {});
+    } catch (e) {
+        // ignore if not found
+    }
+}
 
 export interface TelegramCrmConfig {
     noAnswerButtonEnabled: boolean;
@@ -145,7 +180,7 @@ async function getDynamicBot() {
 
             if (data.startsWith('add_note:')) {
                 const leadId = data.split(':')[1];
-                userStates[userId] = { action: 'expecting_note', leadId };
+                await setUserState(userId, 'expecting_note', leadId);
                 await ctx.answerCbQuery();
                 await ctx.replyWithHTML('✍️ <b>يرجى كتابة המلاحظة الجديدة للعميل وإرسالها الآن كرسالة نصية مباشرة:</b>');
             } else if (data.startsWith('change_interest:')) {
@@ -235,7 +270,6 @@ async function getDynamicBot() {
                     const updated = await prisma.crmLead.update({
                         where: { id: leadId },
                         data: {
-                            levelOfInterest: crmConfig.noAnswerInterest,
                             dateDeadline: new Date(Date.now() + 24 * 60 * 60 * 1000) // Postpone next follow-up by 24h
                         }
                     });
@@ -262,7 +296,7 @@ async function getDynamicBot() {
                     } catch (e) {}
 
                     await ctx.answerCbQuery('✅ تم تسجيل عدم الرد');
-                    await ctx.replyWithHTML(`📴 تم تسجيل <b>عدم رد</b> للعميل <b>${lead.name}</b> بنجاح!\n\n📉 الاهتمام: <code>${crmConfig.noAnswerInterest}/10</code>\n📝 الملاحظة: <i>${crmConfig.noAnswerNote}</i>`);
+                    await ctx.replyWithHTML(`📴 تم تسجيل <b>عدم رد</b> للعميل <b>${lead.name}</b> بنجاح!\n\n🔥 درجة الاهتمام الحالية: <code>${lead.levelOfInterest || 0}/10</code> (محفوظة دون تعديل)\n📝 الملاحظة: <i>${crmConfig.noAnswerNote}</i>`);
                 } catch (err: any) {
                     await ctx.answerCbQuery('❌ حدث خطأ');
                 }
@@ -337,9 +371,9 @@ async function getDynamicBot() {
                 }
             } else if (data.startsWith('set_followup_custom:')) {
                 const leadId = data.split(':')[1];
-                userStates[userId] = { action: 'expecting_custom_followup', leadId };
+                await setUserState(userId, 'expecting_custom_followup', leadId);
                 await ctx.answerCbQuery();
-                await ctx.replyWithHTML(`📅 <b>يرجى إرسال موعد المتابعة المطلوب:</b>\nيمكنك كتابة التاريخ بالتنسيق المباشر (مثال: <code>15/05/2026</code> أو <code>غداً</code> أو <code>بعد أسبوع</code>):`);
+                await ctx.replyWithHTML(`📅 <b>يرجى إرسال موعد المتابعة المطلوب:</b>\nيمكنك كتابة التاريخ والوقت بالتنسيق المباشر (مثال: <code>15/05/2026 الساعة 5 مساءً</code> أو <code>غداً الساعة 3 العصر</code>):`);
             } else if (data.startsWith('queue_no_answer:')) {
                 const parts = data.split(':');
                 const leadId = parts[1];
@@ -357,7 +391,6 @@ async function getDynamicBot() {
                     const updated = await prisma.crmLead.update({
                         where: { id: leadId },
                         data: {
-                            levelOfInterest: crmConfig.noAnswerInterest,
                             dateDeadline: new Date(Date.now() + 24 * 60 * 60 * 1000) // Postpone to tomorrow
                         }
                     });
@@ -372,7 +405,7 @@ async function getDynamicBot() {
                     });
 
                     await ctx.answerCbQuery('📴 تم تسجيل عدم الرد للعميل');
-                    await ctx.replyWithHTML(`📴 تم تسجيل عدم الرد للعميل <b>${lead.name}</b> وتأجيل مكالمته لغد تلقائياً.`);
+                    await ctx.replyWithHTML(`📴 تم تسجيل عدم الرد للعميل <b>${lead.name}</b> وتأجيل مكالمته لغد تلقائياً.\n\n🔥 درجة الاهتمام الحالية: <code>${lead.levelOfInterest || 0}/10</code> (محفوظة دون تعديل)`);
 
                     // Fetch next
                     await fetchAndPresentNextInQueue(ctx, currentUser.id, currentIndex, total);
@@ -385,15 +418,94 @@ async function getDynamicBot() {
                 const currentIndex = parseInt(parts[2]);
                 const total = parseInt(parts[3]);
 
-                userStates[userId] = { action: `expecting_queue_note:${currentIndex}:${total}`, leadId };
+                await setUserState(userId, `expecting_queue_note:${currentIndex}:${total}`, leadId);
                 await ctx.answerCbQuery();
                 await ctx.replyWithHTML(`📝 <b>يرجى إرسال التقرير والملخص الصوتي وملاحظات المكالمة للعميل الآن كرسالة مباشرة:</b>`);
-            } else if (data.startsWith('queue_next:')) {
-                const parts = data.split(':');
-                const currentIndex = parseInt(parts[1]);
-                const total = parseInt(parts[2]);
+            } else if (data === 'queue_start_calling') {
                 await ctx.answerCbQuery();
-                await fetchAndPresentNextInQueue(ctx, currentUser.id, currentIndex, total);
+                try {
+                    const crmConfig = await getTelegramCrmConfig();
+                    const endOfToday = new Date();
+                    endOfToday.setHours(23, 59, 59, 999);
+
+                    const leads = await prisma.crmLead.findMany({
+                        where: {
+                            salespersonId: currentUser.id,
+                            active: true,
+                            OR: [
+                                { dateDeadline: { lte: endOfToday } },
+                                { dateDeadline: null, levelOfInterest: null }
+                            ]
+                        },
+                        orderBy: [
+                            { priority: 'desc' },
+                            { createdAt: 'asc' }
+                        ],
+                        take: crmConfig.callQueueLimit,
+                        include: {
+                            notes: {
+                                orderBy: { createdAt: 'desc' },
+                                take: 1
+                            }
+                        }
+                    });
+
+                    if (leads.length === 0) {
+                        await ctx.reply('🎉 رائع! لا توجد مكالمات متابعة لليوم في قائمتك.');
+                        return;
+                    }
+
+                    await presentLeadInQueue(ctx, leads[0], 1, leads.length);
+                } catch (err: any) {
+                    await ctx.reply(`⚠️ فشل بدء الاتصالات: ${err.message}`);
+                }
+            } else if (data === 'queue_view_list') {
+                await ctx.answerCbQuery();
+                try {
+                    const crmConfig = await getTelegramCrmConfig();
+                    const endOfToday = new Date();
+                    endOfToday.setHours(23, 59, 59, 999);
+
+                    const leads = await prisma.crmLead.findMany({
+                        where: {
+                            salespersonId: currentUser.id,
+                            active: true,
+                            OR: [
+                                { dateDeadline: { lte: endOfToday } },
+                                { dateDeadline: null, levelOfInterest: null }
+                            ]
+                        },
+                        orderBy: [
+                            { priority: 'desc' },
+                            { createdAt: 'asc' }
+                        ],
+                        take: crmConfig.callQueueLimit
+                    });
+
+                    if (leads.length === 0) {
+                        await ctx.reply('🎉 رائع! لا توجد مكالمات متابعة لليوم في قائمتك.');
+                        return;
+                    }
+
+                    let msg = `📋 <b>قائمة عملاء اليوم المطلوب الاتصال بهم (${leads.length} عملاء):</b>\n\n`;
+                    leads.forEach((lead, index) => {
+                        const cleanPhone = lead.phone || lead.mobile || 'غير مسجل';
+                        msg += `${index + 1}. 👤 <b>${lead.name}</b>\n`;
+                        msg += `   📞 الهاتف: <code>${cleanPhone}</code>\n`;
+                        if (lead.levelOfInterest) {
+                            msg += `   🔥 الاهتمام: <code>${lead.levelOfInterest}/10</code>\n`;
+                        }
+                        if (lead.interestedDiploma) {
+                            msg += `   🎓 الدبلوم: <i>${lead.interestedDiploma}</i>\n`;
+                        }
+                        msg += `\n`;
+                    });
+
+                    msg += `💡 <i>يمكنك الضغط على أي رقم هاتف للاتصال به ومراسلته مباشرة!</i>`;
+                    await ctx.replyWithHTML(msg);
+                } catch (err: any) {
+                    await ctx.reply(`⚠️ فشل عرض القائمة: ${err.message}`);
+                }
             }
         } catch (err: any) {
             console.error('Callback Query Error:', err.message);
@@ -524,10 +636,12 @@ async function getDynamicBot() {
             return;
         }
 
-        // Check active in-memory user states (e.g. typing a note)
-        if (userStates[userId] && userStates[userId].action === 'expecting_note') {
-            const { leadId } = userStates[userId];
-            delete userStates[userId]; // reset state
+        // Check active database-driven user states (survives Vercel restarts)
+        const activeState = await getUserState(userId);
+
+        if (activeState && activeState.action === 'expecting_note') {
+            const { leadId } = activeState;
+            await deleteUserState(userId); // reset state
 
             try {
                 const lead = await prisma.crmLead.findUnique({ where: { id: leadId } });
@@ -567,10 +681,10 @@ async function getDynamicBot() {
             return;
         }
 
-        // Custom follow up date parsing text state handler
-        if (userStates[userId] && userStates[userId].action === 'expecting_custom_followup') {
-            const { leadId } = userStates[userId];
-            delete userStates[userId]; // reset state
+        // Custom follow up date & time parsing text state handler
+        if (activeState && activeState.action === 'expecting_custom_followup') {
+            const { leadId } = activeState;
+            await deleteUserState(userId); // reset state
 
             try {
                 const lead = await prisma.crmLead.findUnique({ where: { id: leadId } });
@@ -582,20 +696,81 @@ async function getDynamicBot() {
                 let parsedDate = new Date();
                 const cleanedText = text.trim();
 
-                if (cleanedText === 'غدا' || cleanedText === 'غداً') {
+                // 1. Parse Date portion
+                let dayAdded = false;
+                if (cleanedText.includes('اليوم')) {
+                    dayAdded = true;
+                } else if (cleanedText.includes('غدا') || cleanedText.includes('غداً')) {
                     parsedDate.setDate(parsedDate.getDate() + 1);
-                } else if (cleanedText.includes('يوم')) {
-                    const daysMatch = cleanedText.match(/\d+/);
-                    const days = daysMatch ? parseInt(daysMatch[0]) : 1;
-                    parsedDate.setDate(parsedDate.getDate() + days);
+                    dayAdded = true;
+                } else if (cleanedText.includes('بعد يومين')) {
+                    parsedDate.setDate(parsedDate.getDate() + 2);
+                    dayAdded = true;
+                } else if (cleanedText.includes('بعد 3 أيام') || cleanedText.includes('بعد ثلاثة أيام')) {
+                    parsedDate.setDate(parsedDate.getDate() + 3);
+                    dayAdded = true;
+                } else if (cleanedText.includes('بعد أسبوع') || cleanedText.includes('اسبوع')) {
+                    parsedDate.setDate(parsedDate.getDate() + 7);
+                    dayAdded = true;
                 } else {
-                    const dateParts = cleanedText.split(/[\/\-\.]/);
-                    if (dateParts.length >= 2) {
-                        const day = parseInt(dateParts[0]);
-                        const month = parseInt(dateParts[1]) - 1;
-                        const year = dateParts[2] ? parseInt(dateParts[2]) : new Date().getFullYear();
-                        parsedDate = new Date(year, month, day, 9, 0, 0, 0);
+                    // Check for DD/MM/YYYY or DD/MM pattern
+                    const dateParts = cleanedText.match(/(\d{1,2})[\/\-\.](\d{1,2})(?:[\/\-\.](\d{2,4}))?/);
+                    if (dateParts) {
+                        const day = parseInt(dateParts[1]);
+                        const month = parseInt(dateParts[2]) - 1;
+                        const year = dateParts[3] ? (dateParts[3].length === 2 ? 2000 + parseInt(dateParts[3]) : parseInt(dateParts[3])) : new Date().getFullYear();
+                        parsedDate = new Date(year, month, day);
+                        dayAdded = true;
+                    }
+                }
+
+                // 2. Parse Time portion
+                let hour = 9; // Default: 9:00 AM
+                let minute = 0;
+                let timeMatched = false;
+
+                // Match colon-separated format e.g. "5:30" or "17:00"
+                const colonTimeMatch = cleanedText.match(/(\d{1,2}):(\d{2})/);
+                if (colonTimeMatch) {
+                    hour = parseInt(colonTimeMatch[1]);
+                    minute = parseInt(colonTimeMatch[2]);
+                    timeMatched = true;
+                } else {
+                    // Match "الساعة X"
+                    const hourMatch = cleanedText.match(/(?:الساعة|ساعة)\s*(\d{1,2})/);
+                    if (hourMatch) {
+                        hour = parseInt(hourMatch[1]);
+                        minute = 0;
+                        timeMatched = true;
                     } else {
+                        // Check for stand-alone digits in text if date portion was already found
+                        const plainNumMatch = cleanedText.match(/(?:\s|^)(\d{1,2})(?:\s|$)/);
+                        if (plainNumMatch && dayAdded) {
+                            hour = parseInt(plainNumMatch[1]);
+                            minute = 0;
+                            timeMatched = true;
+                        }
+                    }
+                }
+
+                // Adjust for PM / AM
+                const isPM = cleanedText.includes('مساء') || cleanedText.includes('مساءً') || cleanedText.includes('م') || cleanedText.includes('العصر') || cleanedText.includes('المساء') || cleanedText.includes('مساءا');
+                const isAM = cleanedText.includes('صباح') || cleanedText.includes('صباحاً') || cleanedText.includes('ص') || cleanedText.includes('الصباح') || cleanedText.includes('صباحا');
+
+                if (isPM && hour < 12) {
+                    hour += 12;
+                } else if (isAM && hour === 12) {
+                    hour = 0;
+                } else if (!isAM && !isPM && timeMatched && hour < 8) {
+                    // Default small standalone business hours (1 to 7) to PM if no AM/PM specified (e.g. "الساعة 5" -> 5:00 PM)
+                    hour += 12;
+                }
+
+                parsedDate.setHours(hour, minute, 0, 0);
+
+                // If no date was matched explicitly and parsed time is already past today, schedule it for tomorrow!
+                if (!dayAdded) {
+                    if (parsedDate.getTime() < Date.now()) {
                         parsedDate.setDate(parsedDate.getDate() + 1);
                     }
                 }
@@ -606,7 +781,8 @@ async function getDynamicBot() {
                 });
 
                 const dateStr = parsedDate.toLocaleDateString('ar-AE', { day: 'numeric', month: 'numeric', year: 'numeric' });
-                const noteText = `📅 تم جدولة مكالمة متابعة تالية للعميل بتاريخ ${dateStr}.`;
+                const timeStr = parsedDate.toLocaleTimeString('ar-AE', { hour: '2-digit', minute: '2-digit', hour12: true });
+                const noteText = `📅 تم جدولة مكالمة متابعة تالية للعميل بتاريخ ${dateStr} الساعة ${timeStr}.`;
 
                 const currentUser = await getAuthenticatedUser(userId);
                 await prisma.crmNote.create({
@@ -630,7 +806,7 @@ async function getDynamicBot() {
                     }
                 } catch (e) {}
 
-                ctx.replyWithHTML(`✅ تم جدولة مكالمة متابعة للعميل <b>${lead.name}</b> بنجاح!\n\n📅 <b>الموعد الجديد:</b> ${dateStr}`);
+                ctx.replyWithHTML(`✅ <b>تم جدولة مكالمة متابعة للعميل ${lead.name} بنجاح!</b>\n\n📅 <b>موعد الاتصال القادم:</b> ${dateStr} في تمام الساعة <b>${timeStr}</b> ⏰`);
             } catch (err: any) {
                 ctx.reply('⚠️ حدث خطأ أثناء حفظ موعد المتابعة.');
             }
@@ -638,12 +814,12 @@ async function getDynamicBot() {
         }
 
         // Custom follow up expectation inside call queue handler
-        if (userStates[userId] && userStates[userId].action.startsWith('expecting_queue_note:')) {
-            const stateParts = userStates[userId].action.split(':');
+        if (activeState && activeState.action.startsWith('expecting_queue_note:')) {
+            const stateParts = activeState.action.split(':');
             const currentIndex = parseInt(stateParts[1]);
             const total = parseInt(stateParts[2]);
-            const { leadId } = userStates[userId];
-            delete userStates[userId]; // reset state
+            const { leadId } = activeState;
+            await deleteUserState(userId); // reset state
 
             try {
                 const lead = await prisma.crmLead.findUnique({ where: { id: leadId } });
@@ -777,13 +953,7 @@ async function getDynamicBot() {
                         { priority: 'desc' },
                         { createdAt: 'asc' }
                     ],
-                    take: crmConfig.callQueueLimit,
-                    include: {
-                        notes: {
-                            orderBy: { createdAt: 'desc' },
-                            take: 1
-                        }
-                    }
+                    take: crmConfig.callQueueLimit
                 });
 
                 if (leads.length === 0) {
@@ -791,10 +961,23 @@ async function getDynamicBot() {
                     return;
                 }
 
-                await ctx.replyWithHTML(`📞 <b>طابور اتصالات اليوم مجهز بنجاح!</b>\nتم تجهيز <code>${leads.length}</code> عملاء للاتصال والمتابعة الآن.\nسنقوم بعرضهم عليك واحداً تلو الآخر لتسهيل إدارتهم واستدعائهم ⚡`);
-
-                // Present first
-                await presentLeadInQueue(ctx, leads[0], 1, leads.length);
+                await ctx.replyWithHTML(
+                    `📞 <b>طابور اتصالات اليوم مجهز بنجاح!</b>\n` +
+                    `تم تجهيز <code>${leads.length}</code> عملاء للمتابعة والاتصال لليوم.\n\n` +
+                    `يرجى اختيار طريقة العرض المفضلة للبدء:`,
+                    {
+                        reply_markup: {
+                            inline_keyboard: [
+                                [
+                                    { text: '🚀 بدء الاتصال المتتابع (واحد تلو الآخر)', callback_data: 'queue_start_calling' }
+                                ],
+                                [
+                                    { text: '📋 عرض قائمة الأسماء الكاملة لليوم', callback_data: 'queue_view_list' }
+                                ]
+                            ]
+                        }
+                    }
+                );
             } catch (err: any) {
                 console.error('Call Queue Error:', err.message);
                 await ctx.reply('⚠️ فشل جلب اتصالات اليوم.');
