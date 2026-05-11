@@ -109,6 +109,12 @@ export class GoogleSheetsService {
         
         const clean = (s: string) => s.trim().toLowerCase().replace(/[^a-zA-Z0-9\u0621-\u064A]/g, '');
 
+        // First check if there is an explicit November date column (Column N)
+        const novemberIndex = headers.findIndex(header => {
+            const h = clean(header);
+            return h.includes('نوفمبر') && (h.includes('تسليم') || h.includes('delivery'));
+        });
+
         headers.forEach((header, index) => {
             const h = clean(header);
             
@@ -132,8 +138,20 @@ export class GoogleSheetsService {
                 mapping['notes'] = index;
             } else if (['المصدر', 'المنصة', 'source', 'platform', 'leadsource', 'المنصةplatform', 'platform'].includes(h)) {
                 mapping['source'] = index;
-            } else if (['تاريخالتسجيل', 'تاريخالإنشاء', 'تاريخالاضافه', 'تاريخ', 'التاريخ', 'date', 'createdat', 'timestamp', 'registrationdate', 'تاريخالتسليم', 'تاريخالاستلام', 'deliverydate', 'delivery_date'].includes(h)) {
-                mapping['createdAt'] = index;
+            } else if (
+                h.includes('تاريخالتسجيل') || h.includes('تاريخالإنشاء') || h.includes('تاريخالاضافه') || 
+                h.includes('تاريخالتسليم') || h.includes('تاريخالاستلام') || h.includes('deliverydate') || 
+                h.includes('delivery_date') || ['تاريخ', 'التاريخ', 'date', 'createdat', 'timestamp', 'registrationdate'].includes(h)
+            ) {
+                // Prioritize November column index if found
+                if (novemberIndex !== -1) {
+                    mapping['createdAt'] = novemberIndex;
+                } else {
+                    // Only assign if mapping['createdAt'] is not already set to avoid overwriting general with worse matches
+                    if (mapping['createdAt'] === undefined) {
+                        mapping['createdAt'] = index;
+                    }
+                }
             }
         });
 
