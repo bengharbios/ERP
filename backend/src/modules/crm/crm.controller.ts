@@ -517,11 +517,13 @@ async function getDynamicBot() {
         const text = ctx.message.text.trim();
         const userId = ctx.from.id;
 
+        // Load currentUser at the top so it is available to all text triggers
+        const currentUser = await getAuthenticatedUser(userId);
+
         // Allow /start, /menu, /login, /auth, /logout commands to run without authentication
         const isAuthCommand = text.startsWith('/start') || text.startsWith('/login') || text.startsWith('/auth') || text.startsWith('/logout') || text === 'قائمة' || text === '/menu' || text === 'تسجيل الخروج' || text === 'تسجيل خروج';
 
         if (!isAuthCommand) {
-            const currentUser = await getAuthenticatedUser(userId);
             if (!currentUser) {
                 const settings = await prisma.settings.findFirst({
                     where: { id: 'singleton' }
@@ -650,7 +652,6 @@ async function getDynamicBot() {
                     return;
                 }
 
-                const currentUser = await getAuthenticatedUser(userId);
                 const noteAuthorId = currentUser ? currentUser.id : (lead.salespersonId || 'system');
 
                 await prisma.crmNote.create({
@@ -784,7 +785,6 @@ async function getDynamicBot() {
                 const timeStr = parsedDate.toLocaleTimeString('ar-AE', { hour: '2-digit', minute: '2-digit', hour12: true });
                 const noteText = `📅 تم جدولة مكالمة متابعة تالية للعميل بتاريخ ${dateStr} الساعة ${timeStr}.`;
 
-                const currentUser = await getAuthenticatedUser(userId);
                 await prisma.crmNote.create({
                     data: {
                         leadId,
@@ -827,8 +827,6 @@ async function getDynamicBot() {
                     ctx.reply('⚠️ عذراً، لم يتم العثور على ملف العميل لحفظ التقرير.');
                     return;
                 }
-
-                const currentUser = await getAuthenticatedUser(userId);
 
                 // Add Note
                 await prisma.crmNote.create({
