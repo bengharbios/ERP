@@ -1366,22 +1366,21 @@ async function getDynamicBot() {
                             lead.notes.forEach((note: any) => {
                                 const text = note.content;
                                 if (!emirate) {
-                                    const m = text.match(/الإمارة:\s*([^\n\r\-]+)/);
+                                    const m = text.match(/(?:📍\s*)?الإمارة\s*:\s*([^\n\r\-\|]+?)(?=\s*(?:الدبلوم|درجة الاهتمام|الجنسية|الملاحظات|👤|📞|🎓|🔥|🚨|•|$))/);
                                     if (m) emirate = m[1].trim();
                                 }
                                 if (!nationality) {
-                                    const m = text.match(/الجنسية:\s*([^\n\r\-]+)/);
+                                    const m = text.match(/(?:🌍\s*)?الجنسية\s*(?:\.\.|\s*:\s*)\s*([^\n\r\-\|]+?)(?=\s*(?:الإمارة|الدبلوم|درجة الاهتمام|الملاحظات|👤|📞|🎓|🔥|🚨|•|$))/);
                                     if (m) nationality = m[1].trim();
                                 }
                                 if (!interestedDiploma) {
-                                    const m = text.match(/(الدبلوم المهتم به|الدبلوم):\s*([^\n\r\-]+)/);
-                                    if (m) interestedDiploma = m[2].trim();
+                                    const m = text.match(/(?:🎓\s*)?(?:الدبلوم المهتم به|الدبلوم)\s*:\s*([^\n\r\-\|]+?)(?=\s*(?:درجة الاهتمام|درجة الإهتمام|الإمارة|الجنسية|الملاحظات|👤|📞|🎓|🔥|🚨|•|$))/);
+                                    if (m) interestedDiploma = m[1].trim();
                                 }
                                 if (!levelOfInterest) {
-                                    const m = text.match(/(درجة الاهتمام|درجة الإهتمام):\s*([^\n\r\-]+)/);
+                                    const m = text.match(/(?:🔥\s*)?(?:درجة الاهتمام|درجة الإهتمام)\s*:\s*(\d+)/);
                                     if (m) {
-                                        const num = parseInt(m[2].replace(/\D/g, ''));
-                                        if (!isNaN(num)) levelOfInterest = num;
+                                        levelOfInterest = parseInt(m[1]);
                                     }
                                 }
                             });
@@ -1391,8 +1390,6 @@ async function getDynamicBot() {
                         if (lead.phone) itemMsg += `📞 <b>الهاتف</b>: ${lead.phone}\n`;
                         if (lead.mobile) itemMsg += `📱 <b>الموبايل</b>: ${lead.mobile}\n`;
                         
-                        const salespersonName = lead.salesperson ? `${lead.salesperson.firstName || ''} ${lead.salesperson.lastName || ''}`.trim() : 'غير محدد';
-                        itemMsg += `👤 <b>المسؤول</b>: ${salespersonName}\n`;
                         if (nationality) itemMsg += `🌍 <b>الجنسية</b>: ${nationality}\n`;
                         if (emirate) itemMsg += `📍 <b>الإمارة</b>: ${emirate}\n`;
                         if (interestedDiploma) itemMsg += `🎓 <b>الدبلوم</b>: ${interestedDiploma}\n`;
@@ -1438,6 +1435,8 @@ async function getDynamicBot() {
                             });
                         }
                         itemMsg += `\n──────────────────\n`;
+                        const salespersonName = lead.salesperson ? `${lead.salesperson.firstName || ''} ${lead.salesperson.lastName || ''}`.trim() : 'غير محدد';
+                        itemMsg += `👤 <b>المسؤول</b>: ${salespersonName}\n`;
 
                         // Add interactive action buttons (raw JSON format to ensure 100% platform compatibility)
                         const inline_keyboard: any[] = [];
