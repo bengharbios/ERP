@@ -288,18 +288,28 @@ export class GoogleSheetsService {
                 if (!isNaN(ts)) {
                     parsedDate = new Date(ts);
                 } else {
-                    // Handle DD/MM/YYYY or DD.MM.YYYY
                     const parts = cleanDateStr.split(/[\/\-\.\s]+/);
                     if (parts.length >= 3) {
-                        const day = parseInt(parts[0]);
-                        const month = parseInt(parts[1]) - 1; // 0-indexed
-                        let year = parseInt(parts[2]);
-                        if (year < 100) year += 2000;
+                        const p0 = parseInt(parts[0]);
+                        const p1 = parseInt(parts[1]);
+                        const p2 = parseInt(parts[2]);
 
-                        if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
-                            const d1 = new Date(year, month, day);
-                            if (!isNaN(d1.getTime())) {
-                                parsedDate = d1;
+                        if (!isNaN(p0) && !isNaN(p1) && !isNaN(p2)) {
+                            // Check if format is YYYY/MM/DD or YYYY-MM-DD
+                            if (p0 > 1000) {
+                                // Year, Month, Day
+                                const d1 = new Date(p0, p1 - 1, p2);
+                                if (!isNaN(d1.getTime())) {
+                                    parsedDate = d1;
+                                }
+                            } else {
+                                // Day, Month, Year
+                                let year = p2;
+                                if (year < 100) year += 2000;
+                                const d1 = new Date(year, p1 - 1, p0);
+                                if (!isNaN(d1.getTime())) {
+                                    parsedDate = d1;
+                                }
                             }
                         }
                     }
