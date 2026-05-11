@@ -79,6 +79,21 @@ async function getTelegramCrmConfig(): Promise<TelegramCrmConfig> {
     return DEFAULT_TELEGRAM_CRM_CONFIG;
 }
 
+async function getGoogleSheetUrl(): Promise<string> {
+    try {
+        const googleSheetUrl = process.env.GOOGLE_SHEET_URL || process.env.GOOGLE_SHEET_ID;
+        if (googleSheetUrl) return googleSheetUrl;
+
+        const setting = await prisma.systemSetting.findUnique({
+            where: { key: 'crm_google_sheet_url' }
+        });
+        return setting?.value || '';
+    } catch (e) {
+        console.error('Failed to retrieve crm_google_sheet_url:', e);
+        return '';
+    }
+}
+
 async function getAuthenticatedUser(telegramUserId: number) {
     const userIdStr = String(telegramUserId);
     return await prisma.user.findFirst({
@@ -207,7 +222,7 @@ async function getDynamicBot() {
 
                 // Push update to Google Sheet asynchronously if available
                 try {
-                    const googleSheetUrl = process.env.GOOGLE_SHEET_URL || process.env.GOOGLE_SHEET_ID;
+                    const googleSheetUrl = await getGoogleSheetUrl();
                     if (googleSheetUrl && (updatedLead.phone || updatedLead.mobile)) {
                         GoogleSheetsService.updateLeadFieldInSheet({
                             spreadsheetUrlOrId: googleSheetUrl,
@@ -261,7 +276,7 @@ async function getDynamicBot() {
 
                 // Push update to Google Sheet asynchronously if available
                 try {
-                    const googleSheetUrl = process.env.GOOGLE_SHEET_URL || process.env.GOOGLE_SHEET_ID;
+                    const googleSheetUrl = await getGoogleSheetUrl();
                     if (googleSheetUrl && (updatedLead.phone || updatedLead.mobile)) {
                         GoogleSheetsService.updateLeadFieldInSheet({
                             spreadsheetUrlOrId: googleSheetUrl,
@@ -303,7 +318,7 @@ async function getDynamicBot() {
 
                     // Google sheet sync
                     try {
-                        const googleSheetUrl = process.env.GOOGLE_SHEET_URL || process.env.GOOGLE_SHEET_ID;
+                        const googleSheetUrl = await getGoogleSheetUrl();
                         if (googleSheetUrl && (updated.phone || updated.mobile)) {
                             GoogleSheetsService.updateLeadFieldInSheet({
                                 spreadsheetUrlOrId: googleSheetUrl,

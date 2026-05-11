@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import * as leadService from '../services/lead.service';
+import prisma from '../../../common/db/prisma';
 
 export async function getLeads(req: Request, res: Response) {
     try {
@@ -206,6 +207,22 @@ export async function syncGoogleSheet(req: Request, res: Response) {
 
         if (!spreadsheetUrl) {
             return res.status(400).json({ success: false, error: { message: 'رابط ملف Google Sheet مطلوب لإتمام المزامنة.' } });
+        }
+
+        // Dynamically save the spreadsheet URL to database settings so the Telegram Bot can read it
+        try {
+            await prisma.systemSetting.upsert({
+                where: { key: 'crm_google_sheet_url' },
+                update: { value: spreadsheetUrl },
+                create: {
+                    key: 'crm_google_sheet_url',
+                    value: spreadsheetUrl,
+                    dataType: 'string',
+                    description: 'رابط ملف Google Sheets لمزامنة عملاء البوت تلقائياً'
+                }
+            });
+        } catch (dbErr: any) {
+            console.error('[CRM] Failed to save crm_google_sheet_url in settings:', dbErr.message);
         }
 
         const { GoogleSheetsService } = require('../services/google-sheets.service');
