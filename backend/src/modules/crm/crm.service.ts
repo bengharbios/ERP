@@ -6,24 +6,40 @@ export const crmService = {
      * Parses a structured telegram message into a Lead object
      */
     parseTelegramMessage(text: string) {
+        let clientText = text;
+        let employeeText = '';
+
+        // Isolate the employee section to prevent employee names from overwriting client names
+        const empIndex = text.search(/(?:👤\s*)?الموظف المسؤول/);
+        if (empIndex !== -1) {
+            clientText = text.substring(0, empIndex);
+            employeeText = text.substring(empIndex);
+        }
+
         const patterns = {
-            name: /الاسم:\s*(.+)/,
-            phone: /رقم الهاتف:\s*([\d\s+-]+)/,
-            nationality: /الجنسية:\s*(.+)/,
-            emirate: /الإمارة:\s*(.+)/,
-            diploma: /الدبلوم المهتم به:\s*(.+)/,
-            interestLevel: /درجة الاهتمام:\s*(\d+)/,
-            notes: /📝 الملاحظات:\s*([\s\S]+?)(?=-{3,}|👤|📅|$)/,
-            reschedule: /📅 إعادة جدولة:\s*(.+)/,
-            employee: /👤 الموظف المسؤول:\s*(?:الاسم:\s*)?(.+)/
+            name: /(?:👤\s*)?الاسم\s*:\s*(.+)/,
+            phone: /(?:📞\s*)?رقم الهاتف\s*:\s*([\d\s+-]+)/,
+            nationality: /(?:🌍\s*)?الجنسية\s*(?:\.\.|\s*:\s*)\s*(.+)/,
+            emirate: /(?:📍\s*)?الإمارة\s*:\s*(.+)/,
+            diploma: /(?:🎓\s*)?الدبلوم المهتم به\s*:\s*(.+)/,
+            interestLevel: /(?:🔥\s*)?درجة الاهتمام\s*:\s*(\d+)/,
+            notes: /(?:📝\s*)?(?:الملاحظات|الملاحظة|ملاحظات)\s*:\s*([\s\S]+?)(?=-{3,}|👤|📅|$)/,
+            reschedule: /(?:📅\s*)?إعادة جدولة\s*:\s*(.+)/,
         };
 
         const data: any = {};
         for (const [key, pattern] of Object.entries(patterns)) {
-            const match = text.match(pattern);
+            const match = clientText.match(pattern);
             if (match) {
                 data[key] = match[1].trim();
             }
+        }
+
+        // Parse employee separately from the employeeText section
+        const employeePattern = /(?:👤\s*)?الموظف المسؤول:\s*(?:الاسم:\s*)?([^\n\r]+)/;
+        const empMatch = text.match(employeePattern);
+        if (empMatch) {
+            data.employee = empMatch[1].trim();
         }
 
         return data;
