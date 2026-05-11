@@ -541,6 +541,7 @@ export default function CRMLeads2026() {
         if (filterSalesp && l.salespersonId !== filterSalesp) return false;
         if (filterProgram && l.programId !== filterProgram) return false;
         if (filterDup && !l.isDuplicate) return false;
+        return true;
     }), [leads, search, filterSource, filterStage, filterSalesp, filterProgram, filterDup]);
 
     /* ── SORTING ── */
