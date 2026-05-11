@@ -123,7 +123,7 @@ const ALL_COLUMNS = [
     { key: 'isDuplicate', label: 'مكرر' },
 ];
 
-const DEFAULT_VISIBLE = ['name', 'phone', 'emailFrom', 'stage', 'salesperson', 'source', 'priority'];
+const DEFAULT_VISIBLE = ['name', 'phone', 'emailFrom', 'stage', 'salesperson', 'source', 'priority', 'createdAt'];
 
 const SOURCES = ['WhatsApp', 'Facebook', 'Instagram', 'Call', 'Walk-in', 'Website', 'Referral', 'Email'];
 
@@ -541,8 +541,75 @@ export default function CRMLeads2026() {
         if (filterSalesp && l.salespersonId !== filterSalesp) return false;
         if (filterProgram && l.programId !== filterProgram) return false;
         if (filterDup && !l.isDuplicate) return false;
-        return true;
     }), [leads, search, filterSource, filterStage, filterSalesp, filterProgram, filterDup]);
+
+    /* ── SORTING ── */
+    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({
+        key: 'createdAt',
+        direction: 'desc'
+    });
+
+    const handleSort = (key: string) => {
+        let direction: 'asc' | 'desc' = 'desc';
+        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'desc') {
+            direction = 'asc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const sortedAndFiltered = useMemo(() => {
+        const result = [...filtered];
+        if (sortConfig) {
+            result.sort((a, b) => {
+                let aVal = a[sortConfig.key];
+                let bVal = b[sortConfig.key];
+                
+                // Handle special fields
+                if (sortConfig.key === 'stage') {
+                    aVal = a.stage?.name || '';
+                    bVal = b.stage?.name || '';
+                } else if (sortConfig.key === 'salesperson') {
+                    aVal = a.salesperson?.username || '';
+                    bVal = b.salesperson?.username || '';
+                } else if (sortConfig.key === 'source') {
+                    aVal = a.sourceId || a.source || '';
+                    bVal = b.sourceId || b.source || '';
+                }
+
+                if (aVal === undefined || aVal === null) return 1;
+                if (bVal === undefined || bVal === null) return -1;
+
+                if (sortConfig.key === 'createdAt') {
+                    const d1 = new Date(aVal).getTime();
+                    const d2 = new Date(bVal).getTime();
+                    return sortConfig.direction === 'asc' ? d1 - d2 : d2 - d1;
+                }
+
+                if (typeof aVal === 'string') {
+                    return sortConfig.direction === 'asc' 
+                        ? aVal.localeCompare(bVal) 
+                        : bVal.localeCompare(aVal);
+                }
+
+                return sortConfig.direction === 'asc' 
+                    ? (aVal > bVal ? 1 : -1) 
+                    : (bVal > aVal ? 1 : -1);
+            });
+        }
+        return result;
+    }, [filtered, sortConfig]);
+
+    /* ── LAZY SCROLL PAGINATION ── */
+    const [visibleCount, setVisibleCount] = useState(100);
+
+    // Reset visible count when filters or search changes
+    useEffect(() => {
+        setVisibleCount(100);
+    }, [search, filterSource, filterStage, filterSalesp, filterProgram, filterDup]);
+
+    const displayedLeads = useMemo(() => {
+        return sortedAndFiltered.slice(0, visibleCount);
+    }, [sortedAndFiltered, visibleCount]);
 
     /* ── STATS ── */
     const stats = useMemo(() => ({
@@ -576,7 +643,7 @@ export default function CRMLeads2026() {
             case 'priority': return <PriorityStars value={lead.priority} />;
             case 'score': return <span className="crm-tag crm-tag-score">⭐ {lead.score}</span>;
             case 'program': return <span style={{ fontSize: '0.78rem' }}>—</span>;
-            case 'createdAt': return <span style={{ fontSize: '0.75rem', color: 'var(--hz-text-muted)' }}>{new Date(lead.createdAt).toLocaleDateString('ar-AE')}</span>;
+            case 'createdAt': return <span style={{ fontSize: '0.75rem', color: 'var(--hz-text-muted)', fontWeight: 'bold' }}>{lead.createdAt ? new Date(lead.createdAt).toLocaleDateString('ar-AE', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</span>;
             case 'isDuplicate': return lead.isDuplicate ? <span className="crm-dup-tag"><AlertTriangle size={10} /> مكرر</span> : <span style={{ color: 'var(--hz-text-muted)', fontSize: '0.7rem' }}>—</span>;
             case 'nationality': return <span>{lead.nationality || '—'}</span>;
             case 'emirate': return <span>{lead.emirate || '—'}</span>;
@@ -944,15 +1011,28 @@ export default function CRMLeads2026() {
                                     <table className="crm-table">
                                         <thead>
                                             <tr>
-                                                <th>العميل</th>
+                                                <th 
+                                                    onClick={() => handleSort('name')} 
+                                                    style={{ cursor: 'pointer', userSelect: 'none', transition: 'background-color 0.2s' }}
+                                                    title="اضغط للترتيب حسب الاسم"
+                                                >
+                                                    العميل {sortConfig?.key === 'name' ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ' ↕'}
+                                                </th>
                                                 {ALL_COLUMNS.filter(c => !c.always && visibleCols.includes(c.key)).map(c => (
-                                                    <th key={c.key}>{c.label}</th>
+                                                    <th 
+                                                        key={c.key} 
+                                                        onClick={() => handleSort(c.key)}
+                                                        style={{ cursor: 'pointer', userSelect: 'none', transition: 'background-color 0.2s' }}
+                                                        title={`اضغط للترتيب حسب ${c.label}`}
+                                                    >
+                                                        {c.label} {sortConfig?.key === c.key ? (sortConfig.direction === 'asc' ? ' ▲' : ' ▼') : ' ↕'}
+                                                    </th>
                                                 ))}
                                                 <th style={{ textAlign: 'center' }}>إجراءات</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {filtered.map((lead: any, index: number) => (
+                                            {displayedLeads.map((lead: any, index: number) => (
                                                 <tr key={lead.id} className={lead.isDuplicate ? 'crm-dup-row' : ''} onClick={() => openModal(lead)}>
                                                     <td>
                                                         <div className="crm-cell-name">
@@ -987,57 +1067,107 @@ export default function CRMLeads2026() {
                                         </tbody>
                                     </table>
                                 </div>
+                                {sortedAndFiltered.length > visibleCount && (
+                                    <div style={{ display: 'flex', justifyContent: 'center', padding: '20px', background: 'var(--hz-surface-2)', borderTop: '1px solid var(--hz-border-soft)', borderRadius: '0 0 12px 12px' }}>
+                                        <button 
+                                            className="ag-btn" 
+                                            style={{
+                                                background: 'linear-gradient(135deg, var(--hz-primary), #4d88ff)',
+                                                color: '#fff',
+                                                border: 'none',
+                                                borderRadius: 10,
+                                                padding: '10px 24px',
+                                                fontWeight: 800,
+                                                fontSize: '0.85rem',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 8,
+                                                boxShadow: '0 4px 12px rgba(0, 102, 255, 0.2)'
+                                            }}
+                                            onClick={() => setVisibleCount(p => p + 150)}
+                                        >
+                                            <Plus size={14} /> عرض المزيد من العملاء ({sortedAndFiltered.length - visibleCount} عملاء متبقين)
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             /* ── KANBAN ── */
-                            <div className="crm-kanban">
-                                {filtered.map((lead: any, index: number) => {
-                                    const srcNote = lead.notes?.find((n: any) => n.content?.startsWith('📌'));
-                                    const src = srcNote?.content?.replace('📌 مصدر العميل: ', '') || '';
-                                    return (
-                                        <div key={lead.id} className="crm-card" onClick={() => openModal(lead)}>
-                                            <span style={{ position: 'absolute', top: 12, left: 12, fontSize: '0.72rem', color: 'var(--hz-text-muted)', fontWeight: 800 }}>
-                                                #{index + 1}
-                                            </span>
-                                            {lead.isDuplicate && (
-                                                <div className="crm-card-dup-badge" style={{ background: '#FF6B00', color: '#fff', fontSize: '0.68rem', fontWeight: 'bold', padding: '3px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                                                    🔥 مكرر {lead.duplicateCount ? `${lead.duplicateCount} مرات` : ''}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 20, width: '100%' }}>
+                                <div className="crm-kanban">
+                                    {displayedLeads.map((lead: any, index: number) => {
+                                        const srcNote = lead.notes?.find((n: any) => n.content?.startsWith('📌'));
+                                        const src = srcNote?.content?.replace('📌 مصدر العميل: ', '') || '';
+                                        return (
+                                            <div key={lead.id} className="crm-card" onClick={() => openModal(lead)}>
+                                                <span style={{ position: 'absolute', top: 12, left: 12, fontSize: '0.72rem', color: 'var(--hz-text-muted)', fontWeight: 800 }}>
+                                                    #{index + 1}
+                                                </span>
+                                                {lead.isDuplicate && (
+                                                    <div className="crm-card-dup-badge" style={{ background: '#FF6B00', color: '#fff', fontSize: '0.68rem', fontWeight: 'bold', padding: '3px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                                        🔥 مكرر {lead.duplicateCount ? `${lead.duplicateCount} مرات` : ''}
+                                                    </div>
+                                                )}
+                                                <div className="crm-card-header">
+                                                    <div className="crm-avatar">{lead.name?.charAt(0)?.toUpperCase() || '؟'}</div>
+                                                    <div className="crm-card-meta">
+                                                        <div className="crm-card-name">{lead.name}</div>
+                                                        {lead.contactName && <div className="crm-card-sub">{lead.contactName}</div>}
+                                                    </div>
+                                                    <PriorityStars value={lead.priority} size={13} />
                                                 </div>
-                                            )}
-                                            <div className="crm-card-header">
-                                                <div className="crm-avatar">{lead.name?.charAt(0)?.toUpperCase() || '؟'}</div>
-                                                <div className="crm-card-meta">
-                                                    <div className="crm-card-name">{lead.name}</div>
-                                                    {lead.contactName && <div className="crm-card-sub">{lead.contactName}</div>}
+
+                                                <div className="crm-card-contacts">
+                                                    {lead.phone && <div className="crm-contact-row"><Phone size={12} /><span dir="ltr">{lead.phone}</span></div>}
+                                                    {lead.emailFrom && <div className="crm-contact-row"><Mail size={12} /><span>{lead.emailFrom}</span></div>}
                                                 </div>
-                                                <PriorityStars value={lead.priority} size={13} />
-                                            </div>
 
-                                            <div className="crm-card-contacts">
-                                                {lead.phone && <div className="crm-contact-row"><Phone size={12} /><span dir="ltr">{lead.phone}</span></div>}
-                                                {lead.emailFrom && <div className="crm-contact-row"><Mail size={12} /><span>{lead.emailFrom}</span></div>}
-                                            </div>
-
-                                            <div className="crm-card-tags">
-                                                {src && <span className="crm-tag crm-tag-source">{src}</span>}
-                                                {lead.stage && <span className="crm-tag crm-tag-stage">{lead.stage.name}</span>}
-                                                <span className="crm-tag crm-tag-score">⭐ {lead.score}</span>
-                                            </div>
-
-                                            <div className="crm-card-footer">
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.75rem', color: 'var(--hz-text-muted)', flex: 1 }}>
-                                                    <User size={11} /> {getSalespName(lead)}
+                                                <div className="crm-card-tags">
+                                                    {src && <span className="crm-tag crm-tag-source">{src}</span>}
+                                                    {lead.stage && <span className="crm-tag crm-tag-stage">{lead.stage.name}</span>}
+                                                    <span className="crm-tag crm-tag-score">⭐ {lead.score}</span>
                                                 </div>
-                                                <button className="ag-btn-icon" style={{ width: 30, height: 30 }} onClick={e => { e.stopPropagation(); openConvert(lead, e); }} title="تحويل">
-                                                    <ArrowRightLeft size={13} />
-                                                </button>
-                                                <button className="ag-btn-icon" style={{ width: 30, height: 30, color: '#FF4D4D', borderColor: 'rgba(255,77,77,.25)' }} onClick={e => { e.stopPropagation(); handleDelete(lead.id); }}>
-                                                    <Trash2 size={13} />
-                                                </button>
+
+                                                <div className="crm-card-footer">
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.75rem', color: 'var(--hz-text-muted)', flex: 1 }}>
+                                                        <User size={11} /> {getSalespName(lead)}
+                                                    </div>
+                                                    <button className="ag-btn-icon" style={{ width: 30, height: 30 }} onClick={e => { e.stopPropagation(); openConvert(lead, e); }} title="تحويل">
+                                                        <ArrowRightLeft size={13} />
+                                                    </button>
+                                                    <button className="ag-btn-icon" style={{ width: 30, height: 30, color: '#FF4D4D', borderColor: 'rgba(255,77,77,.25)' }} onClick={e => { e.stopPropagation(); handleDelete(lead.id); }}>
+                                                        <Trash2 size={13} />
+                                                    </button>
+                                                </div>
                                             </div>
-                                        </div>
-                                    );
-                                })}
+                                        );
+                                    })}
+                                </div>
+                                {sortedAndFiltered.length > visibleCount && (
+                                    <div style={{ display: 'flex', justifyContent: 'center', padding: '15px 0' }}>
+                                        <button 
+                                            className="ag-btn" 
+                                            style={{
+                                                background: 'linear-gradient(135deg, var(--hz-primary), #4d88ff)',
+                                                color: '#fff',
+                                                border: 'none',
+                                                borderRadius: 10,
+                                                padding: '12px 30px',
+                                                fontWeight: 800,
+                                                fontSize: '0.88rem',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 8,
+                                                boxShadow: '0 4px 15px rgba(0, 102, 255, 0.25)'
+                                            }}
+                                            onClick={() => setVisibleCount(p => p + 100)}
+                                        >
+                                            <Plus size={14} /> عرض المزيد من العملاء ({sortedAndFiltered.length - visibleCount} عملاء متبقين)
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </main>

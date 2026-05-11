@@ -506,7 +506,7 @@ async function getDynamicBot() {
                         },
                         orderBy: [
                             { priority: 'desc' },
-                            { createdAt: 'asc' }
+                            { createdAt: 'desc' }
                         ],
                         take: limit,
                         include: {

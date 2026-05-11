@@ -1784,3 +1784,13 @@ select.crm-sidebar-input {
     border: 1px solid rgba(237, 137, 54, 0.2);
     color: #ed8936;
 }
+
+/* ── SORTABLE TABLE HEADERS ── */
+.crm-table thead th:hover {
+    background: var(--hz-surface-3) !important;
+    color: var(--hz-text-bright) !important;
+}
+
+.crm-table thead th {
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
