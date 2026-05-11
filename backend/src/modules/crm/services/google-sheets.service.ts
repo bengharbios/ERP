@@ -624,4 +624,128 @@ export class GoogleSheetsService {
             return { success: false, error: error.message };
         }
     }
+
+    /**
+     * Converts a 0-indexed column index into Excel/Google Sheets column letter format (A, B, C... Z, AA, AB...)
+     */
+    public static getColumnLetter(colIndex: number): string {
+        let temp = colIndex;
+        let letter = '';
+        while (temp >= 0) {
+            letter = String.fromCharCode((temp % 26) + 65) + letter;
+            temp = Math.floor(temp / 26) - 1;
+        }
+        return letter;
+    }
+
+    /**
+     * Updates specific fields of an existing lead in the Google Sheet (Live Update of the existing row).
+     */
+    public static async updateLeadFieldInSheet(options: {
+        spreadsheetUrlOrId: string;
+        range?: string;
+        phone: string;
+        updates: {
+            levelOfInterest?: number;
+            status?: string;
+            noteContent?: string;
+        };
+    }) {
+        try {
+            const { spreadsheetUrlOrId, range = 'Sheet1!A:Z', phone, updates } = options;
+            const spreadsheetId = this.extractSheetId(spreadsheetUrlOrId);
+
+            const phoneNormalized = normalizePhone(phone);
+            if (!phoneNormalized) return { success: false, error: 'رقم هاتف غير صالح' };
+
+            const auth = this.getAuth();
+            const sheets = google.sheets({ version: 'v4', auth });
+
+            // Fetch the sheet values to locate the row index
+            const response = await sheets.spreadsheets.values.get({
+                spreadsheetId,
+                range
+            });
+
+            const rows = response.data.values;
+            if (!rows || rows.length < 2) return { success: false, error: 'الشيت فارغ' };
+
+            const headers = rows[0];
+            const mapping = this.mapHeadersToFields(headers);
+
+            // Locate the phone or mobile column index
+            const phoneIdx = mapping['phone'];
+            const mobileIdx = mapping['mobile'];
+
+            if (phoneIdx === undefined) return { success: false, error: 'لم يتم العثور على عمود الهاتف' };
+
+            // Find the matching row index
+            let rowIndex = -1;
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                const rowPhone = normalizePhone(row[phoneIdx]);
+                const rowMobile = mobileIdx !== undefined ? normalizePhone(row[mobileIdx]) : null;
+
+                if (rowPhone === phoneNormalized || (rowMobile && rowMobile === phoneNormalized)) {
+                    rowIndex = i + 1; // 1-indexed Google Sheet row number
+                    break;
+                }
+            }
+
+            if (rowIndex === -1) {
+                return { success: false, error: 'لم يتم العثور على العميل في الشيت' };
+            }
+
+            // Update fields dynamically based on headers
+            const sheetRangeUpdates = [];
+
+            // 1. Level of interest
+            if (updates.levelOfInterest !== undefined && mapping['levelOfInterest'] !== undefined) {
+                const colLetter = this.getColumnLetter(mapping['levelOfInterest']);
+                sheetRangeUpdates.push({
+                    range: `${range.split('!')[0]}!${colLetter}${rowIndex}`,
+                    values: [[updates.levelOfInterest]]
+                });
+            }
+
+            // 2. Status (Column R / "حالة العميل" or similar)
+            let statusIdx = headers.findIndex(h => {
+                const cleanH = h.trim().toLowerCase().replace(/[^a-zA-Z0-9\u0621-\u064A]/g, '');
+                return ['حالةالعميل', 'حالةالتواصلاهتمامالعميل', 'حالةالتواصل', 'لايرد', 'حالة', 'status', 'customerstatus'].includes(cleanH);
+            });
+
+            if (statusIdx !== -1 && updates.status !== undefined) {
+                const colLetter = this.getColumnLetter(statusIdx);
+                sheetRangeUpdates.push({
+                    range: `${range.split('!')[0]}!${colLetter}${rowIndex}`,
+                    values: [[updates.status]]
+                });
+            }
+
+            // 3. Notes
+            if (updates.noteContent !== undefined && mapping['notes'] !== undefined) {
+                const colLetter = this.getColumnLetter(mapping['notes']);
+                sheetRangeUpdates.push({
+                    range: `${range.split('!')[0]}!${colLetter}${rowIndex}`,
+                    values: [[updates.noteContent]]
+                });
+            }
+
+            // Execute batch updates if there are any
+            if (sheetRangeUpdates.length > 0) {
+                await sheets.spreadsheets.values.batchUpdate({
+                    spreadsheetId,
+                    requestBody: {
+                        valueInputOption: 'USER_ENTERED',
+                        data: sheetRangeUpdates
+                    }
+                });
+            }
+
+            return { success: true };
+        } catch (error: any) {
+            console.error('[GoogleSheetsService] updateLeadFieldInSheet error:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
 }

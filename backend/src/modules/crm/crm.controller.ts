@@ -208,11 +208,14 @@ async function getDynamicBot() {
                 // Push update to Google Sheet asynchronously if available
                 try {
                     const googleSheetUrl = process.env.GOOGLE_SHEET_URL || process.env.GOOGLE_SHEET_ID;
-                    if (googleSheetUrl) {
-                        GoogleSheetsService.appendLeadToSheet({
+                    if (googleSheetUrl && (updatedLead.phone || updatedLead.mobile)) {
+                        GoogleSheetsService.updateLeadFieldInSheet({
                             spreadsheetUrlOrId: googleSheetUrl,
-                            lead: updatedLead,
-                            noteContent: `تحديث درجة الاهتمام تلقائياً إلى ${level}/10`
+                            phone: (updatedLead.phone || updatedLead.mobile)!,
+                            updates: {
+                                levelOfInterest: parseInt(level),
+                                noteContent: `تحديث درجة الاهتمام تلقائياً إلى ${level}/10`
+                            }
                         }).catch((err: any) => console.error('[Google Sheets Sync] Live update failed:', err));
                     }
                 } catch (e) {}
@@ -247,11 +250,14 @@ async function getDynamicBot() {
                 // Push update to Google Sheet asynchronously if available
                 try {
                     const googleSheetUrl = process.env.GOOGLE_SHEET_URL || process.env.GOOGLE_SHEET_ID;
-                    if (googleSheetUrl) {
-                        GoogleSheetsService.appendLeadToSheet({
+                    if (googleSheetUrl && (updatedLead.phone || updatedLead.mobile)) {
+                        GoogleSheetsService.updateLeadFieldInSheet({
                             spreadsheetUrlOrId: googleSheetUrl,
-                            lead: updatedLead,
-                            noteContent: `تحديث مرحلة العميل تلقائياً إلى: ${stage?.name || 'مرحلة جديدة'}`
+                            phone: (updatedLead.phone || updatedLead.mobile)!,
+                            updates: {
+                                status: stage?.name || 'مرحلة جديدة',
+                                noteContent: `تحديث مرحلة العميل تلقائياً إلى: ${stage?.name || 'مرحلة جديدة'}`
+                            }
                         }).catch((err: any) => console.error('[Google Sheets Sync] Live update failed:', err));
                     }
                 } catch (e) {}
@@ -286,11 +292,14 @@ async function getDynamicBot() {
                     // Google sheet sync
                     try {
                         const googleSheetUrl = process.env.GOOGLE_SHEET_URL || process.env.GOOGLE_SHEET_ID;
-                        if (googleSheetUrl) {
-                            GoogleSheetsService.appendLeadToSheet({
+                        if (googleSheetUrl && (updated.phone || updated.mobile)) {
+                            GoogleSheetsService.updateLeadFieldInSheet({
                                 spreadsheetUrlOrId: googleSheetUrl,
-                                lead: updated,
-                                noteContent: crmConfig.noAnswerNote
+                                phone: (updated.phone || updated.mobile)!,
+                                updates: {
+                                    status: 'لا يرد',
+                                    noteContent: crmConfig.noAnswerNote
+                                }
                             }).catch((err: any) => console.error('[Google Sheets Sync] Live update failed:', err));
                         }
                     } catch (e) {}
@@ -1024,6 +1033,183 @@ async function getDynamicBot() {
             } catch (err: any) {
                 console.error('Call Queue Error:', err.message);
                 await ctx.reply('⚠️ فشل جلب اتصالات اليوم.');
+            }
+            return;
+        }
+
+        // Genius Lead Filtering & Reporting Parser
+        if (text.startsWith('فلتر') || text.startsWith('/filter')) {
+            try {
+                // Get month mapping
+                const arabicMonths: { [key: string]: number } = {
+                    'يناير': 0, 'فبراير': 1, 'مارس': 2, 'أبريل': 3, 'مايو': 4, 'يونيو': 5,
+                    'يوليو': 6, 'أغسطس': 7, 'سبتمبر': 8, 'أكتوبر': 9, 'نوفمبر': 10, 'ديسمبر': 11
+                };
+
+                const parts = text.split(/\s+/);
+                let limit = 10;
+                let statusQuery: string | null = null;
+                let targetMonth: number | null = null;
+
+                // Parse components naturally from the input phrase
+                for (const part of parts) {
+                    if (part === 'فلتر' || part === '/filter') continue;
+
+                    // Parse limit (any written number)
+                    const num = parseInt(part);
+                    if (!isNaN(num) && num > 0) {
+                        limit = num;
+                        continue;
+                    }
+
+                    // Parse month
+                    let foundMonth = false;
+                    for (const monthName of Object.keys(arabicMonths)) {
+                        if (part.includes(monthName)) {
+                            targetMonth = arabicMonths[monthName];
+                            foundMonth = true;
+                            break;
+                        }
+                    }
+                    if (foundMonth) continue;
+
+                    // Check numeric month formats if they write e.g. "شهر 11" or similar
+                    if (part.startsWith('شهر_') || part.startsWith('شهر')) {
+                        const mNum = parseInt(part.replace(/\D/g, ''));
+                        if (!isNaN(mNum) && mNum >= 1 && mNum <= 12) {
+                            targetMonth = mNum - 1;
+                            continue;
+                        }
+                    }
+
+                    // If it's none of the above, it's treated as part of the status query phrase
+                    statusQuery = statusQuery ? `${statusQuery} ${part}` : part;
+                }
+
+                // Construct Database Prisma where clauses
+                const whereClause: any = { active: true };
+
+                // 1. Filter by Status/Stage category
+                if (statusQuery) {
+                    const sq = statusQuery.trim();
+                    if (sq.includes('مهتم')) {
+                        // High interest leads
+                        whereClause.levelOfInterest = { gte: 7 };
+                    } else if (sq.includes('يستفسر') || sq.includes('استفسار')) {
+                        whereClause.notes = {
+                            some: {
+                                content: { contains: 'يستفسر', mode: 'insensitive' }
+                            }
+                        };
+                    } else if (sq.includes('لايرد') || sq.includes('لا يرد') || sq.includes('لم يرد')) {
+                        whereClause.notes = {
+                            some: {
+                                content: { contains: 'لم يرد', mode: 'insensitive' }
+                            }
+                        };
+                    } else if (sq.includes('مسجل')) {
+                        const registeredStage = await prisma.crmStage.findFirst({
+                            where: { name: { contains: 'مسجل' } }
+                        });
+                        if (registeredStage) {
+                            whereClause.stageId = registeredStage.id;
+                        } else {
+                            whereClause.notes = {
+                                some: {
+                                    content: { contains: 'مسجل', mode: 'insensitive' }
+                                }
+                            };
+                        }
+                    } else if (sq.includes('عدمالازعاج') || sq.includes('عدم ازعاج') || sq.includes('ازعاج')) {
+                        whereClause.notes = {
+                            some: {
+                                content: { contains: 'عدم ازعاج', mode: 'insensitive' }
+                            }
+                        };
+                    } else if (sq.includes('جديد') || sq.includes('حديث')) {
+                        whereClause.levelOfInterest = null;
+                        whereClause.dateDeadline = null;
+                    } else {
+                        // General text search over stage name, notes or interested diploma
+                        whereClause.OR = [
+                            { interestedDiploma: { contains: sq, mode: 'insensitive' } },
+                            { notes: { some: { content: { contains: sq, mode: 'insensitive' } } } },
+                            { stage: { name: { contains: sq, mode: 'insensitive' } } }
+                        ];
+                    }
+                }
+
+                // 2. Filter by month of the current year (2026)
+                if (targetMonth !== null) {
+                    const currentYear = new Date().getFullYear();
+                    const startDate = new Date(currentYear, targetMonth, 1, 0, 0, 0);
+                    const endDate = new Date(currentYear, targetMonth + 1, 0, 23, 59, 59, 999);
+                    whereClause.createdAt = {
+                        gte: startDate,
+                        lte: endDate
+                    };
+                }
+
+                // Fetch filtered leads
+                const leads = await prisma.crmLead.findMany({
+                    where: whereClause,
+                    orderBy: { createdAt: 'desc' },
+                    take: limit,
+                    include: {
+                        stage: true,
+                        notes: {
+                            orderBy: { createdAt: 'desc' },
+                            take: 1
+                        }
+                    }
+                });
+
+                if (leads.length === 0) {
+                    let emptyMsg = `🔍 <b>لم يتم العثور على أي عملاء يطابقون الفلتر:</b>\n`;
+                    if (statusQuery) emptyMsg += `• 🎯 تصنيف/حالة: <code>${statusQuery}</code>\n`;
+                    if (targetMonth !== null) emptyMsg += `• 📅 الشهر: <code>${Object.keys(arabicMonths)[targetMonth]}</code>\n`;
+                    await ctx.replyWithHTML(emptyMsg);
+                    return;
+                }
+
+                let filterTitle = '🔍 <b>نتائج التصفية والتقرير الذكي:</b>\n';
+                if (statusQuery) filterTitle += `• 🎯 الحالة المستهدفة: <code>${statusQuery}</code>\n`;
+                if (targetMonth !== null) filterTitle += `• 📅 شهر التسليم: <code>${Object.keys(arabicMonths)[targetMonth]}</code>\n`;
+                filterTitle += `• 📊 عدد النتائج المعروضة: <code>${leads.length}</code>\n\n`;
+
+                let msg = filterTitle;
+                leads.forEach((lead, index) => {
+                    const cleanPhone = lead.phone || lead.mobile || 'غير مسجل';
+                    let leadStatus = lead.stage?.name || 'جديد لم يتم التواصل معه';
+                    if (lead.notes?.[0]?.content?.includes('لم يرد')) {
+                        leadStatus = 'لا يرد (قيد المحاولة)';
+                    } else if (lead.notes?.[0]?.content?.includes('عدم ازعاج')) {
+                        leadStatus = 'عدم إزعاج (DND)';
+                    }
+
+                    msg += `${index + 1}. 👤 <b>${lead.name}</b>\n`;
+                    msg += `   📞 الهاتف: <code>${cleanPhone}</code>\n`;
+                    msg += `   🎯 الحالة/المرحلة: <i>${leadStatus}</i>\n`;
+                    if (lead.levelOfInterest) msg += `   🔥 الاهتمام: <code>${lead.levelOfInterest}/10</code>\n`;
+                    if (lead.interestedDiploma) msg += `   🎓 الدبلوم: <i>${lead.interestedDiploma}</i>\n`;
+                    const dateStr = lead.createdAt.toLocaleDateString('ar-AE', { day: 'numeric', month: 'numeric', year: 'numeric' });
+                    msg += `   📅 تاريخ الاستلام: <code>${dateStr}</code>\n\n`;
+                });
+
+                msg += `💡 <i>يمكنك تخصيص الفلاتر بشكل مرن تماماً، مثال: <code>فلتر مهتمين نوفمبر 5</code></i>`;
+                await ctx.replyWithHTML(msg, {
+                    reply_markup: {
+                        keyboard: [
+                            [{ text: '🔍 بحث عن عميل' }, { text: '📝 إضافة تقرير' }],
+                            [{ text: '📞 اتصالات اليوم' }],
+                            [{ text: '📊 ملخص اليوم' }, { text: '⚙️ حالة الربط' }]
+                        ],
+                        resize_keyboard: true
+                    }
+                });
+            } catch (err: any) {
+                console.error('Filter Command Error:', err.message);
+                await ctx.reply(`⚠️ حدث خطأ أثناء تصفية البيانات: ${err.message}`);
             }
             return;
         }
