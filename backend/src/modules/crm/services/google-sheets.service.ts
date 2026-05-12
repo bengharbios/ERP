@@ -570,13 +570,15 @@ export class GoogleSheetsService {
             const auth = this.getAuth();
             const sheets = google.sheets({ version: 'v4', auth });
 
-            // Fetch the column headers to map our lead values dynamically
+            // Fetch all sheet values to map columns and find duplicates dynamically
             const metaResponse = await sheets.spreadsheets.values.get({
                 spreadsheetId,
-                range: `${range.split('!')[0]}!1:1` // Read only first row
+                range: `${range.split('!')[0]}!A:Z` // Read entire sheet
             });
 
-            const headers = metaResponse.data.values?.[0];
+            const allRows = metaResponse.data.values || [];
+            const headers = allRows[0];
+
             if (!headers || headers.length === 0) {
                 // If sheet is empty, write a default header row first
                 const defaultHeaders = ['الاسم', 'الهاتف', 'الموبايل', 'البريد الإلكتروني', 'الجنسية', 'الإمارة', 'الدبلوم المهتم به', 'مستوى الاهتمام', 'الملاحظات', 'المصدر', 'تاريخ التسجيل'];
@@ -613,9 +615,32 @@ export class GoogleSheetsService {
             }
 
             const mapping = this.mapHeadersToFields(headers);
-            
+            const phoneColIdx = mapping['phone'];
+            const mobileColIdx = mapping['mobile'];
+
+            // Find if the lead already exists by normalized phone number
+            let existingRowIndex = -1; // 1-indexed for Google Sheets
+            const targetPhoneNorm = normalizePhone(lead.phone || lead.mobile || '');
+
+            if (targetPhoneNorm) {
+                for (let i = 1; i < allRows.length; i++) {
+                    const row = allRows[i];
+                    const rowPhone = (phoneColIdx !== undefined && row[phoneColIdx]) ? normalizePhone(row[phoneColIdx]) : '';
+                    const rowMobile = (mobileColIdx !== undefined && row[mobileColIdx]) ? normalizePhone(row[mobileColIdx]) : '';
+                    if (rowPhone === targetPhoneNorm || rowMobile === targetPhoneNorm) {
+                        existingRowIndex = i + 1; // Row index is i + 1 (Google Sheets is 1-indexed)
+                        break;
+                    }
+                }
+            }
+
             // Build the dynamic values row matching the sheet's existing columns
+            // Copy existing values if updating, or start with empty strings
+            const existingRowValues = existingRowIndex !== -1 ? allRows[existingRowIndex - 1] : [];
             const newRowValues = new Array(headers.length).fill('');
+            for (let colIdx = 0; colIdx < headers.length; colIdx++) {
+                newRowValues[colIdx] = existingRowValues[colIdx] !== undefined ? existingRowValues[colIdx] : '';
+            }
 
             const mapIfExist = (field: string, val: any) => {
                 if (mapping[field] !== undefined && mapping[field] < newRowValues.length) {
@@ -631,19 +656,44 @@ export class GoogleSheetsService {
             mapIfExist('emirate', lead.emirate);
             mapIfExist('interestedDiploma', lead.interestedDiploma);
             mapIfExist('levelOfInterest', lead.levelOfInterest);
-            mapIfExist('notes', noteContent || '');
             mapIfExist('source', lead.platform || 'Telegram Bot');
 
-            // Append any unmatched remaining details as fallback at the end of the sheet row if headers exist for them
-            // or write the values row
-            await sheets.spreadsheets.values.append({
-                spreadsheetId,
-                range,
-                valueInputOption: 'USER_ENTERED',
-                requestBody: {
-                    values: [newRowValues]
+            // Notes field mapping
+            if (noteContent) {
+                const notesColIdx = mapping['notes'];
+                if (notesColIdx !== undefined && notesColIdx < newRowValues.length) {
+                    const existingNote = existingRowValues[notesColIdx] || '';
+                    if (existingNote) {
+                        // Append the new note with a newline and timestamp
+                        const datePrefix = new Date().toLocaleDateString('ar-AE', { day: 'numeric', month: 'numeric', year: 'numeric' });
+                        newRowValues[notesColIdx] = `${existingNote}\n• [${datePrefix}] ${noteContent}`;
+                    } else {
+                        newRowValues[notesColIdx] = noteContent;
+                    }
                 }
-            });
+            }
+
+            // If client exists, perform an UPDATE on that specific row
+            if (existingRowIndex !== -1) {
+                await sheets.spreadsheets.values.update({
+                    spreadsheetId,
+                    range: `${range.split('!')[0]}!A${existingRowIndex}`,
+                    valueInputOption: 'USER_ENTERED',
+                    requestBody: {
+                        values: [newRowValues]
+                    }
+                });
+            } else {
+                // If client does not exist, APPEND as a new row
+                await sheets.spreadsheets.values.append({
+                    spreadsheetId,
+                    range,
+                    valueInputOption: 'USER_ENTERED',
+                    requestBody: {
+                        values: [newRowValues]
+                    }
+                });
+            }
 
             return { success: true };
         } catch (error: any) {
