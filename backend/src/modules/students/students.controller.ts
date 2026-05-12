@@ -719,20 +719,26 @@ export const updateStudent = async (req: AuthRequest, res: Response): Promise<vo
 
         if (validatedData.dateOfBirth) {
             updateData.dateOfBirth = new Date(validatedData.dateOfBirth);
+        } else if (validatedData.dateOfBirth === '' || validatedData.dateOfBirth === null) {
+            updateData.dateOfBirth = null;
         }
 
         if (validatedData.passportExpiryDate) {
             updateData.passportExpiryDate = new Date(validatedData.passportExpiryDate);
-        } else if (validatedData.passportExpiryDate === '') {
+        } else if (validatedData.passportExpiryDate === '' || validatedData.passportExpiryDate === null) {
             updateData.passportExpiryDate = null;
         }
 
         if (validatedData.registrationDateAlsalam) {
             updateData.registrationDateAlsalam = new Date(validatedData.registrationDateAlsalam);
+        } else if (validatedData.registrationDateAlsalam === '' || validatedData.registrationDateAlsalam === null) {
+            updateData.registrationDateAlsalam = null;
         }
 
         if (validatedData.enrollmentDate) {
             updateData.enrollmentDate = new Date(validatedData.enrollmentDate);
+        } else if (validatedData.enrollmentDate === '' || validatedData.enrollmentDate === null) {
+            updateData.enrollmentDate = null;
         }
 
         console.log('Final Update Data:', updateData);
