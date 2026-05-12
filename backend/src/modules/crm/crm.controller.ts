@@ -1410,7 +1410,7 @@ async function getDynamicBot() {
                                 if (displayedNotesCount >= 10) break; // Limit to 10 unique notes
 
                                 const noteDate = new Date(note.createdAt);
-                                const dateStr = noteDate.toLocaleDateString('ar-AE', { day: 'numeric', month: 'numeric', year: 'numeric' });
+                                const dateStr = `${noteDate.getDate()}/${noteDate.getMonth() + 1}/${noteDate.getFullYear()}`;
                                 
                                 let cleanContent = note.content;
                                 if (cleanContent.includes('📝 **بيانات وملاحظات الشيت المستوردة:**')) {
@@ -1434,7 +1434,7 @@ async function getDynamicBot() {
                                 if (!cleanContent || seenNotes.has(cleanContent)) continue;
                                 seenNotes.add(cleanContent);
 
-                                itemMsg += `• [${dateStr}] ${cleanContent}\n`;
+                                itemMsg += `• 📅 ${dateStr} : ${cleanContent}\n`;
                                 displayedNotesCount++;
                             }
                         }
