@@ -1241,7 +1241,8 @@ async function getDynamicBot() {
             return;
         }
 
-        if (text.includes('الاسم:') && text.includes('رقم الهاتف:')) {
+        const isReport = /الاسم\s*:/i.test(text) && /(?:رقم\s*)?الهاتف\s*:/i.test(text);
+        if (isReport) {
             try {
                 const parsedData = crmService.parseTelegramMessage(text);
                 const currentUser = await getAuthenticatedUser(userId);
