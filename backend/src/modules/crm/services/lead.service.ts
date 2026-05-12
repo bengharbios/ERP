@@ -329,7 +329,15 @@ export async function createLead(data: any, userId: string) {
     }
 
     // Live Append to Google Sheet asynchronously (non-blocking)
-    const googleSheetUrl = process.env.GOOGLE_SHEET_URL || process.env.GOOGLE_SHEET_ID;
+    let googleSheetUrl = process.env.GOOGLE_SHEET_URL || process.env.GOOGLE_SHEET_ID;
+    if (!googleSheetUrl) {
+        try {
+            const setting = await prisma.systemSetting.findUnique({
+                where: { key: 'crm_google_sheet_url' }
+            });
+            googleSheetUrl = setting?.value || '';
+        } catch (e) {}
+    }
     if (googleSheetUrl) {
         try {
             const { GoogleSheetsService } = require('./google-sheets.service');

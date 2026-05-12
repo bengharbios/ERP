@@ -390,7 +390,7 @@ async function getDynamicBot() {
 
                     // Google sheet sync
                     try {
-                        const googleSheetUrl = process.env.GOOGLE_SHEET_URL || process.env.GOOGLE_SHEET_ID;
+                        const googleSheetUrl = await getGoogleSheetUrl();
                         if (googleSheetUrl) {
                             GoogleSheetsService.appendLeadToSheet({
                                 spreadsheetUrlOrId: googleSheetUrl,
@@ -735,7 +735,7 @@ async function getDynamicBot() {
 
                 // Push update to Google Sheet live
                 try {
-                    const googleSheetUrl = process.env.GOOGLE_SHEET_URL || process.env.GOOGLE_SHEET_ID;
+                    const googleSheetUrl = await getGoogleSheetUrl();
                     if (googleSheetUrl) {
                         GoogleSheetsService.appendLeadToSheet({
                             spreadsheetUrlOrId: googleSheetUrl,
@@ -866,7 +866,7 @@ async function getDynamicBot() {
 
                 // Google sheet sync
                 try {
-                    const googleSheetUrl = process.env.GOOGLE_SHEET_URL || process.env.GOOGLE_SHEET_ID;
+                    const googleSheetUrl = await getGoogleSheetUrl();
                     if (googleSheetUrl) {
                         GoogleSheetsService.appendLeadToSheet({
                             spreadsheetUrlOrId: googleSheetUrl,
@@ -918,7 +918,7 @@ async function getDynamicBot() {
 
                 // Sync to sheets...
                 try {
-                    const googleSheetUrl = process.env.GOOGLE_SHEET_URL || process.env.GOOGLE_SHEET_ID;
+                    const googleSheetUrl = await getGoogleSheetUrl();
                     if (googleSheetUrl) {
                         GoogleSheetsService.appendLeadToSheet({
                             spreadsheetUrlOrId: googleSheetUrl,
