@@ -1348,7 +1348,7 @@ async function getDynamicBot() {
                         salesperson: true,
                         notes: {
                             orderBy: { createdAt: 'desc' },
-                            take: 5 // Expanded to show 5 recent notes (فتح ملاحظات الاستفسار)
+                            take: 30 // Increased to fetch more notes, filtered in JS to show up to 10 unique ones
                         }
                     }
                 });
@@ -1404,8 +1404,11 @@ async function getDynamicBot() {
                         if (lead.notes && lead.notes.length > 0) {
                             itemMsg += `\n📜 <b>آخر الملاحظات والأنشطة (تظهر الملاحظات كاملة):</b>\n`;
                             const seenNotes = new Set<string>();
+                            let displayedNotesCount = 0;
 
-                            lead.notes.forEach((note: any) => {
+                            for (const note of lead.notes) {
+                                if (displayedNotesCount >= 10) break; // Limit to 10 unique notes
+
                                 const noteDate = new Date(note.createdAt);
                                 const dateStr = noteDate.toLocaleDateString('ar-AE', { day: 'numeric', month: 'numeric', year: 'numeric' });
                                 
@@ -1428,11 +1431,12 @@ async function getDynamicBot() {
 
                                 cleanContent = cleanContent.replace(/\*\*/g, '').trim();
 
-                                if (!cleanContent || seenNotes.has(cleanContent)) return;
+                                if (!cleanContent || seenNotes.has(cleanContent)) continue;
                                 seenNotes.add(cleanContent);
 
                                 itemMsg += `• [${dateStr}] ${cleanContent}\n`;
-                            });
+                                displayedNotesCount++;
+                            }
                         }
                         itemMsg += `\n──────────────────\n`;
                         const salespersonName = lead.salesperson ? `${lead.salesperson.firstName || ''} ${lead.salesperson.lastName || ''}`.trim() : 'غير محدد';
