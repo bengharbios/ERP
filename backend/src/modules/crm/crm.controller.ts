@@ -209,7 +209,7 @@ async function getDynamicBot() {
                 const leadId = data.split(':')[1];
                 await setUserState(userId, 'expecting_note', leadId);
                 await ctx.answerCbQuery();
-                await ctx.replyWithHTML('✍️ <b>يرجى كتابة המلاحظة الجديدة للعميل وإرسالها الآن كرسالة نصية مباشرة:</b>');
+                await ctx.replyWithHTML('✍️ <b>يرجى كتابة الملاحظة الجديدة للعميل وإرسالها الآن كرسالة نصية مباشرة:</b>');
             } else if (data.startsWith('change_interest:')) {
                 const leadId = data.split(':')[1];
                 await ctx.answerCbQuery();
