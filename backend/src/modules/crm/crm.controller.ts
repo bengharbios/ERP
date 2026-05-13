@@ -1181,6 +1181,205 @@ async function getDynamicBot() {
             return;
         }
 
+        // Detailed CRM Stats Command (with dynamic date filtering and duplicate tracking)
+        const isStatsDetailed = text.startsWith('/stats_detailed') || 
+                                text.startsWith('/detailed_stats') || 
+                                text.startsWith('/stats_detail') || 
+                                text === '📊 إحصائيات تفصيلية' || 
+                                text === '📊 تقرير تفصيلي';
+
+        if (isStatsDetailed) {
+            try {
+                const crmConfig = await getTelegramCrmConfig();
+                if (!crmConfig.statsCommandEnabled) {
+                    await ctx.reply('⚠️ عذراً، لوحة الصدارة وإحصائيات المبيعات معطلة حالياً من قبل الإدارة.');
+                    return;
+                }
+
+                // Check authorization
+                const adminsStr = crmConfig.statsCommandAdmins || '';
+                if (adminsStr.trim().length > 0) {
+                    const allowedAdmins = adminsStr.split(',').map(s => s.trim().toLowerCase());
+                    const senderId = String(ctx.from.id);
+                    const senderUser = ctx.from.username ? ctx.from.username.toLowerCase() : '';
+                    
+                    const isAuthorized = allowedAdmins.includes(senderId) || 
+                                         (senderUser && allowedAdmins.includes(senderUser)) || 
+                                         (currentUser && currentUser.username === 'admin');
+
+                    if (!isAuthorized) {
+                        await ctx.reply('⚠️ عذراً، لا تملك الصلاحية الكافية لعرض إحصائيات المبيعات الحساسة.');
+                        return;
+                    }
+                }
+
+                // Parse parameter for date filtering
+                let dateParam = '';
+                if (text.includes(' ')) {
+                    dateParam = text.substring(text.indexOf(' ')).trim();
+                }
+
+                // Date ranges calculation function helper
+                const parseDateParam = (param: string) => {
+                    const start = new Date();
+                    const end = new Date();
+                    
+                    if (!param || param.trim() === '') {
+                        // Default: Last 7 days
+                        start.setDate(start.getDate() - 7);
+                        start.setHours(0, 0, 0, 0);
+                        end.setHours(23, 59, 59, 999);
+                        return { startDate: start, endDate: end, label: 'آخر 7 أيام' };
+                    }
+
+                    const cleaned = param.trim().toLowerCase();
+
+                    if (cleaned === 'today' || cleaned === 'اليوم') {
+                        start.setHours(0, 0, 0, 0);
+                        end.setHours(23, 59, 59, 999);
+                        return { startDate: start, endDate: end, label: 'اليوم' };
+                    }
+
+                    if (cleaned === 'yesterday' || cleaned === 'أمس' || cleaned === 'امس') {
+                        start.setDate(start.getDate() - 1);
+                        start.setHours(0, 0, 0, 0);
+                        end.setDate(end.getDate() - 1);
+                        end.setHours(23, 59, 59, 999);
+                        return { startDate: start, endDate: end, label: 'أمس' };
+                    }
+
+                    if (cleaned === 'week' || cleaned === 'الأسبوع' || cleaned === 'الاسبوع' || cleaned === 'هذا الاسبوع' || cleaned === 'هذا الأسبوع') {
+                        const day = start.getDay();
+                        const diff = start.getDate() - day + (day === 0 ? -6 : 1);
+                        start.setDate(diff);
+                        start.setHours(0, 0, 0, 0);
+                        end.setHours(23, 59, 59, 999);
+                        return { startDate: start, endDate: end, label: 'هذا الأسبوع' };
+                    }
+
+                    if (cleaned === 'month' || cleaned === 'الشهر' || cleaned === 'هذا الشهر') {
+                        start.setDate(1);
+                        start.setHours(0, 0, 0, 0);
+                        end.setHours(23, 59, 59, 999);
+                        return { startDate: start, endDate: end, label: 'هذا الشهر' };
+                    }
+
+                    // Try explicit date match e.g. "13/5/2026", "13-5", etc.
+                    const dateParts = cleaned.match(/(\d{1,2})[\/\-\.](\d{1,2})(?:[\/\-\.](\d{2,4}))?/);
+                    if (dateParts) {
+                        const day = parseInt(dateParts[1]);
+                        const month = parseInt(dateParts[2]) - 1;
+                        const year = dateParts[3] ? (dateParts[3].length === 2 ? 2000 + parseInt(dateParts[3]) : parseInt(dateParts[3])) : new Date().getFullYear();
+                        
+                        const customStart = new Date(year, month, day, 0, 0, 0, 0);
+                        const customEnd = new Date(year, month, day, 23, 59, 59, 999);
+                        
+                        return {
+                            startDate: customStart,
+                            endDate: customEnd,
+                            label: customStart.toLocaleDateString('ar-AE', { day: 'numeric', month: 'numeric', year: 'numeric' })
+                        };
+                    }
+
+                    // Fallback to Last 7 days
+                    start.setDate(start.getDate() - 7);
+                    start.setHours(0, 0, 0, 0);
+                    end.setHours(23, 59, 59, 999);
+                    return { startDate: start, endDate: end, label: 'آخر 7 أيام (تلقائي)' };
+                };
+
+                const { startDate, endDate, label } = parseDateParam(dateParam);
+
+                // 1. Unique Leads Count
+                const totalUniqueLeads = await prisma.crmLead.count({
+                    where: {
+                        createdAt: { gte: startDate, lte: endDate },
+                        isDuplicate: false,
+                        active: true
+                    }
+                });
+
+                // 2. Duplicates Count
+                const totalDuplicates = await prisma.crmLead.count({
+                    where: {
+                        createdAt: { gte: startDate, lte: endDate },
+                        isDuplicate: true,
+                        active: true
+                    }
+                });
+
+                // 3. Interested Leads Count (level >= 7)
+                const interestedLeads = await prisma.crmLead.count({
+                    where: {
+                        createdAt: { gte: startDate, lte: endDate },
+                        levelOfInterest: { gte: 7 },
+                        active: true
+                    }
+                });
+
+                // 4. Raw/new leads with no stages assigned yet
+                const rawLeadsCount = await prisma.crmLead.count({
+                    where: {
+                        createdAt: { gte: startDate, lte: endDate },
+                        stageId: null,
+                        active: true
+                    }
+                });
+
+                // 5. Active Stages breakdown
+                const activeStages = await prisma.crmStage.findMany({
+                    where: { isActive: true },
+                    orderBy: { sequence: 'asc' }
+                });
+
+                const stageCounts = [];
+                for (const stage of activeStages) {
+                    const count = await prisma.crmLead.count({
+                        where: {
+                            createdAt: { gte: startDate, lte: endDate },
+                            stageId: stage.id,
+                            active: true
+                        }
+                    });
+                    if (count > 0) {
+                        stageCounts.push({ name: stage.name, count });
+                    }
+                }
+
+                // Build HTML response message
+                let responseText = `📊 <b>التقرير الإحصائي التفصيلي للفترة: (${label})</b> 📊\n\n`;
+                responseText += `👤 <b>تحليل العملاء والفرص الواردة:</b>\n`;
+                responseText += `  ▪️ <b>العملاء الفريدين الجدد:</b> <code>${totalUniqueLeads}</code> عميل\n`;
+                responseText += `  ▪️ <b>العملاء المكررين المستبعدين:</b> <code>${totalDuplicates}</code> عميل مكرر\n`;
+                responseText += `  ▪️ <b>العملاء المهتمين جدداً (7+/10):</b> 🔥 <code>${interestedLeads}</code> عميل\n\n`;
+
+                responseText += `📁 <b>توزيع الحالات والمراحل الحالية:</b>\n`;
+                if (rawLeadsCount > 0) {
+                    responseText += `  ▪️ <b>عملاء جدد (بانتظار المتابعة):</b> <code>${rawLeadsCount}</code> عميل\n`;
+                }
+                if (stageCounts.length === 0 && rawLeadsCount === 0) {
+                    responseText += `  <i>لا توجد بيانات لمراحل العملاء في هذه الفترة</i>\n`;
+                } else {
+                    stageCounts.forEach(sc => {
+                        responseText += `  ▪️ <b>${sc.name}:</b> <code>${sc.count}</code> عميل\n`;
+                    });
+                }
+
+                responseText += `\n🎯 <b>ملاحظة:</b> يتم مطابقة تاريخ تسليم واستلام العميل في النظام تلقائياً مع الفلترة المحددة.\n\n`;
+                responseText += `💡 <b>للاستعلام عن فترة أخرى:</b>\n`;
+                responseText += `أرسل الأمر متبوعاً بالتاريخ، أمثلة:\n`;
+                responseText += `• <code>/stats_detailed اليوم</code>\n`;
+                responseText += `• <code>/stats_detailed أمس</code>\n`;
+                responseText += `• <code>/stats_detailed 12/5/2026</code>`;
+
+                await ctx.replyWithHTML(responseText);
+            } catch (err: any) {
+                console.error('Detailed stats command error:', err.message);
+                await ctx.reply('⚠️ فشل جلب التقرير الإحصائي التفصيلي.');
+            }
+            return;
+        }
+
         if (text === '⚙️ حالة الربط') {
             try {
                 ctx.replyWithHTML(
