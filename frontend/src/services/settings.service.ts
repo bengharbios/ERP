@@ -132,6 +132,12 @@ export interface TelegramCrmConfig {
     callQueueEnabled: boolean;
     callQueueLimit: number;
     remindersEnabled: boolean;
+    reminderTime: string;
+    statsCommandEnabled: boolean;
+    statsCommandAdmins: string;
+    leadAlertsEnabled: boolean;
+    whatsappBotEnabled: boolean;
+    whatsappAllowedGroups: string;
 }
 
 // ============================================

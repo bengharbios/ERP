@@ -53,6 +53,12 @@ export interface TelegramCrmConfig {
     callQueueEnabled: boolean;
     callQueueLimit: number;
     remindersEnabled: boolean;
+    reminderTime: string;
+    statsCommandEnabled: boolean;
+    statsCommandAdmins: string;
+    leadAlertsEnabled: boolean;
+    whatsappBotEnabled: boolean;
+    whatsappAllowedGroups: string;
 }
 
 const DEFAULT_TELEGRAM_CRM_CONFIG: TelegramCrmConfig = {
@@ -62,7 +68,13 @@ const DEFAULT_TELEGRAM_CRM_CONFIG: TelegramCrmConfig = {
     followUpButtonEnabled: true,
     callQueueEnabled: true,
     callQueueLimit: 5,
-    remindersEnabled: true
+    remindersEnabled: true,
+    reminderTime: '09:00',
+    statsCommandEnabled: true,
+    statsCommandAdmins: '',
+    leadAlertsEnabled: true,
+    whatsappBotEnabled: false,
+    whatsappAllowedGroups: ''
 };
 
 async function getTelegramCrmConfig(): Promise<TelegramCrmConfig> {
@@ -615,6 +627,78 @@ async function getDynamicBot() {
             }
         }
 
+        // Handle /start Command (with Deep Linking support)
+        if (text.startsWith('/start')) {
+            const parts = text.split(/\s+/);
+            if (parts.length > 1 && parts[1].startsWith('lead_')) {
+                const leadId = parts[1].replace('lead_', '').trim();
+                try {
+                    const lead = await prisma.crmLead.findUnique({
+                        where: { id: leadId },
+                        include: { stage: true }
+                    });
+
+                    if (lead) {
+                        // Show Lead details immediately!
+                        let cardMsg = `👤 <b>الملف المالي والاتصالي للعميل:</b>\n\n`;
+                        cardMsg += `🏷️ <b>الاسم:</b> ${lead.name}\n`;
+                        if (lead.phone || lead.mobile) {
+                            cardMsg += `📱 <b>الهاتف:</b> <code>${lead.phone || lead.mobile}</code>\n`;
+                        }
+                        if (lead.nationality) {
+                            cardMsg += `🌍 <b>الجنسية:</b> ${lead.nationality}\n`;
+                        }
+                        if (lead.emirate) {
+                            cardMsg += `📍 <b>الإمارة:</b> ${lead.emirate}\n`;
+                        }
+                        if (lead.interestedDiploma) {
+                            cardMsg += `🎓 <b>الدبلوم المهتم:</b> ${lead.interestedDiploma}\n`;
+                        }
+                        if (lead.levelOfInterest !== null && lead.levelOfInterest !== undefined) {
+                            cardMsg += `🔥 <b>درجة الاهتمام:</b> ${lead.levelOfInterest}/10\n`;
+                        }
+                        if (lead.stage) {
+                            cardMsg += `📁 <b>المرحلة الحالية:</b> ${lead.stage.name}\n`;
+                        }
+                        cardMsg += `\n📅 <i>تاريخ الإضافة: ${lead.createdAt.toLocaleDateString('ar-AE')}</i>\n`;
+
+                        // Display Interactive Quick Action Buttons!
+                        const buttons = [
+                            [
+                                { text: '📴 تم الاتصال ولم يرد', callback_data: `no_answer:${lead.id}` },
+                                { text: '🔥 مهتم جداً', callback_data: `set_interest:${lead.id}:9` }
+                            ],
+                            [
+                                { text: '📅 جدولة متابعة', callback_data: `schedule_call:${lead.id}` },
+                                { text: '✍️ إضافة ملاحظة', callback_data: `add_note:${lead.id}` }
+                            ],
+                            [
+                                { text: '📁 نقل إلى مرحلة أخرى', callback_data: `change_stage:${lead.id}` }
+                            ]
+                        ];
+
+                        await ctx.replyWithHTML(cardMsg, {
+                            reply_markup: { inline_keyboard: buttons }
+                        });
+                        return;
+                    } else {
+                        await ctx.reply('⚠️ عذراً، لم يتم العثور على هذا العميل بالنظام.');
+                    }
+                } catch (err: any) {
+                    console.error('Start lead deep link error:', err.message);
+                }
+            }
+
+            // Standard Start greeting
+            await ctx.replyWithHTML(
+                `👋 <b>مرحباً بك في نظام إدارة علاقات العملاء الذكي (CRM) لمعهد السلام!</b>\n\n` +
+                `هذا البوت يتيح لك البحث عن العملاء، تسجيل الملاحظات، وجدولة المتابعات اليومية فوراً وبلمسة واحدة لزيادة مبيعاتك.\n\n` +
+                `💡 <b>لتسجيل الدخول:</b>\n` +
+                `<code>/login [اسم المستخدم] [كلمة المرور]</code>`
+            );
+            return;
+        }
+
         // Handle Login Command
         if (text.startsWith('/login') || text.startsWith('/auth')) {
             const parts = text.split(/\s+/);
@@ -980,6 +1064,119 @@ async function getDynamicBot() {
                 );
             } catch (err: any) {
                 ctx.reply('⚠️ فشل تحميل إحصاءات اليوم.');
+            }
+            return;
+        }
+
+        // Leaderboard & Sales Stats Command
+        if (text === '🏆 لوحة الصدارة' || text === '/leaderboard' || text === '/stats') {
+            try {
+                const crmConfig = await getTelegramCrmConfig();
+                if (!crmConfig.statsCommandEnabled) {
+                    await ctx.reply('⚠️ عذراً، لوحة الصدارة وإحصائيات المبيعات معطلة حالياً من قبل الإدارة.');
+                    return;
+                }
+
+                // Check authorization
+                const adminsStr = crmConfig.statsCommandAdmins || '';
+                if (adminsStr.trim().length > 0) {
+                    const allowedAdmins = adminsStr.split(',').map(s => s.trim().toLowerCase());
+                    const senderId = String(ctx.from.id);
+                    const senderUser = ctx.from.username ? ctx.from.username.toLowerCase() : '';
+                    
+                    const isAuthorized = allowedAdmins.includes(senderId) || 
+                                         (senderUser && allowedAdmins.includes(senderUser)) || 
+                                         (currentUser && currentUser.username === 'admin');
+
+                    if (!isAuthorized) {
+                        await ctx.reply('⚠️ عذراً، لا تملك الصلاحية الكافية لعرض لوحة الصدارة وإحصائيات المبيعات الحساسة.');
+                        return;
+                    }
+                }
+
+                // Query statistics
+                const sevenDaysAgo = new Date();
+                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+                // 1. Leads registered this week grouped by salesperson
+                const leadsGrouped = await prisma.crmLead.groupBy({
+                    by: ['salespersonId'],
+                    where: {
+                        createdAt: { gte: sevenDaysAgo },
+                        active: true
+                    },
+                    _count: {
+                        id: true
+                    }
+                });
+
+                // 2. Calls/notes created this week grouped by user
+                const notesGrouped = await prisma.crmNote.groupBy({
+                    by: ['userId'],
+                    where: {
+                        createdAt: { gte: sevenDaysAgo }
+                    },
+                    _count: {
+                        id: true
+                    }
+                });
+
+                // Fetch user/salesperson names to display on the leaderboard
+                const users = await prisma.user.findMany({
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true
+                    }
+                });
+
+                const userMap = new Map(users.map(u => [u.id, `${u.firstName || ''} ${u.lastName || ''}`.trim() || 'موظف']));
+
+                // Map results for leads
+                const leadLeaderboard = leadsGrouped
+                    .map(g => ({
+                        name: g.salespersonId ? (userMap.get(g.salespersonId) || 'موزع تلقائي') : 'غير معين',
+                        count: g._count.id
+                    }))
+                    .sort((a, b) => b.count - a.count);
+
+                // Map results for follow-ups
+                const notesLeaderboard = notesGrouped
+                    .map(g => ({
+                        name: userMap.get(g.userId) || 'موظف مبيعات',
+                        count: g._count.id
+                    }))
+                    .sort((a, b) => b.count - a.count);
+
+                // Formatting output
+                let responseText = `🏆 <b>لوحة الصدارة وإحصائيات مبيعات فريق السلام (آخر 7 أيام)</b> 🏆\n\n`;
+
+                responseText += `👤 <b>إضافة العملاء الجدد والفرص:</b>\n`;
+                if (leadLeaderboard.length === 0) {
+                    responseText += `  <i>لا توجد بيانات عملاء جدد هذا الأسبوع</i>\n`;
+                } else {
+                    leadLeaderboard.forEach((item, index) => {
+                        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '👤';
+                        responseText += `  ${medal} <b>${item.name}</b>: <code>${item.count}</code> عميل\n`;
+                    });
+                }
+
+                responseText += `\n📞 <b>متابعات الاتصال وتقارير المبيعات:</b>\n`;
+                if (notesLeaderboard.length === 0) {
+                    responseText += `  <i>لا توجد بيانات متابعات هذا الأسبوع</i>\n`;
+                } else {
+                    notesLeaderboard.forEach((item, index) => {
+                        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '📞';
+                        responseText += `  ${medal} <b>${item.name}</b>: <code>${item.count}</code> متابعة\n`;
+                    });
+                }
+
+                responseText += `\n🎯 <i>هذه البيانات تحدث تلقائياً لتحفيز ورفع كفاءة مبيعات المعهد! استمروا بالقوة والعزيمة!</i> 💪🚀`;
+
+                await ctx.replyWithHTML(responseText);
+            } catch (err: any) {
+                console.error('Leaderboard command error:', err.message);
+                await ctx.reply('⚠️ فشل جلب بيانات لوحة الصدارة.');
             }
             return;
         }
@@ -1665,6 +1862,48 @@ export const crmController = {
         } catch (error: any) {
             res.status(500).json({ success: false, error: error.message });
         }
+    },
+
+    /**
+     * Send an instant alert to the assigned salesperson when a new lead is created
+     */
+    async sendInstantLeadAlert(leadId: string) {
+        try {
+            const config = await getTelegramCrmConfig();
+            if (!config.leadAlertsEnabled) return;
+
+            const lead = await prisma.crmLead.findUnique({
+                where: { id: leadId },
+                include: { salesperson: true }
+            });
+
+            if (!lead || !lead.salespersonId || !lead.salesperson?.telegramUserId) return;
+
+            const botInstance = await getDynamicBot();
+            const tgId = lead.salesperson.telegramUserId;
+
+            let msg = `🔥 <b>تنبيه: عميل جديد تم تعيينه لك فوراً!</b> 🔥\n\n`;
+            msg += `🏷️ <b>الاسم:</b> ${lead.name}\n`;
+            if (lead.phone || lead.mobile) {
+                msg += `📱 <b>الهاتف:</b> <code>${lead.phone || lead.mobile}</code>\n`;
+            }
+            if (lead.nationality) {
+                msg += `🌍 <b>الجنسية:</b> ${lead.nationality}\n`;
+            }
+            if (lead.emirate) {
+                msg += `📍 <b>الإمارة:</b> ${lead.emirate}\n`;
+            }
+            if (lead.interestedDiploma) {
+                msg += `🎓 <b>الدبلوم المهتم:</b> ${lead.interestedDiploma}\n`;
+            }
+            msg += `\n🎯 <i>يرجى التواصل الفوري مع العميل وتحديث تقرير المتابعة الخاص به لزيادة نسبة نجاح التحويل والتسجيل!</i>\n\n`;
+            msg += `🔗 <a href="t.me/${botInstance.botInfo?.username}?start=lead_${lead.id}">ابدأ المتابعة الآن بالبوت 🤖</a>`;
+
+            await botInstance.telegram.sendMessage(tgId, msg, { parse_mode: 'HTML' });
+            console.log(`✅ [Alert] Instant Lead notification sent to salesperson ${lead.salesperson.firstName} for lead ${lead.name}`);
+        } catch (error: any) {
+            console.error('[Alert] Error sending instant lead telegram alert:', error.message);
+        }
     }
 };
 
@@ -1674,3 +1913,99 @@ if (process.env.VERCEL !== '1') {
         .then(() => console.log('🤖 Telegram Bot auto-started in local environment successfully!'))
         .catch((err: any) => console.error('❌ Failed to auto-start Telegram Bot locally:', err.message));
 }
+
+let lastRemindersSentDate = '';
+
+async function triggerDailyMorningReminders() {
+    try {
+        const crmConfig = await getTelegramCrmConfig();
+        if (!crmConfig.remindersEnabled) return;
+
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0]; // '2026-05-13'
+        
+        // Prevent sending duplicates on the same day
+        if (lastRemindersSentDate === todayStr) return;
+
+        const currentHourMin = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }); // '09:12'
+        const configTime = crmConfig.reminderTime || '09:00';
+
+        if (currentHourMin < configTime) return; // Not time yet
+
+        console.log(`⏰ [Tazkeer] Time matches! Triggering morning follow-up reminders for ${todayStr} after ${configTime}...`);
+
+        // Fetch all leads whose dateDeadline matches today
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        const endOfToday = new Date();
+        endOfToday.setHours(23, 59, 59, 999);
+
+        const leadsDue = await prisma.crmLead.findMany({
+            where: {
+                active: true,
+                dateDeadline: {
+                    gte: startOfToday,
+                    lte: endOfToday
+                },
+                salespersonId: { not: null }
+            },
+            include: {
+                salesperson: true
+            }
+        });
+
+        if (leadsDue.length === 0) {
+            console.log('⏰ [Tazkeer] No leads scheduled for follow-up today.');
+            lastRemindersSentDate = todayStr; // Mark as done for today anyway
+            return;
+        }
+
+        // Group leads by salesperson
+        const salespersonLeads = new Map<string, any[]>();
+        for (const lead of leadsDue) {
+            if (!lead.salespersonId || !lead.salesperson?.telegramUserId) continue;
+            const list = salespersonLeads.get(lead.salespersonId) || [];
+            list.push(lead);
+            salespersonLeads.set(lead.salespersonId, list);
+        }
+
+        // Send customized telegram message to each salesperson
+        const botInstance = await getDynamicBot();
+        for (const [spId, leads] of salespersonLeads.entries()) {
+            const salesperson = leads[0].salesperson;
+            const tgId = salesperson.telegramUserId;
+
+            let msg = `☀️ <b>صباح الخير يا ${salesperson.firstName || 'مستشار المبيعات'}!</b> ☀️\n\n`;
+            msg += `⏰ <b>حان وقت المتابعات اليومية لعملاء معهد السلام!</b>\n`;
+            msg += `لديك اليوم <code>${leads.length}</code> عملاء مجدولين للاتصال والمتابعة:\n\n`;
+
+            leads.forEach((lead, index) => {
+                const phoneStr = lead.phone || lead.mobile || 'لا يوجد';
+                msg += `${index + 1}. 👤 <b>${lead.name}</b>\n`;
+                msg += `   📱 الهاتف: <code>${phoneStr}</code>\n`;
+                if (lead.interestedDiploma) {
+                    msg += `   🎓 المهتم بـ: ${lead.interestedDiploma}\n`;
+                }
+                msg += `   🔗 تفاصيل العميل: <a href="t.me/${botInstance.botInfo?.username}?start=lead_${lead.id}">عرض بالبوت 🤖</a>\n\n`;
+            });
+
+            msg += `💪 نتمنى لك يوماً حافلاً بالنجاح والتسجيلات! ابدأ فوراً بكتابة <code>/today</code> لتجهيز خط اتصالات اليوم.`;
+
+            try {
+                await botInstance.telegram.sendMessage(tgId, msg, { parse_mode: 'HTML' });
+                console.log(`✅ [Tazkeer] Morning reminder successfully sent to ${salesperson.firstName} (${tgId})`);
+            } catch (err: any) {
+                console.error(`❌ [Tazkeer] Failed to send telegram reminder to user ${tgId}:`, err.message);
+            }
+        }
+
+        lastRemindersSentDate = todayStr;
+    } catch (error: any) {
+        console.error('⏰ [Tazkeer] Error in daily reminders job:', error.message);
+    }
+}
+
+// Start in-memory background interval to check reminders every 5 minutes
+setInterval(() => {
+    triggerDailyMorningReminders().catch(err => console.error('[Tazkeer Background Error]', err));
+}, 5 * 60 * 1000);

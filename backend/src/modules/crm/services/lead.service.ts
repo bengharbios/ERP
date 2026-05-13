@@ -351,6 +351,14 @@ export async function createLead(data: any, userId: string) {
         }
     }
 
+    // Live Instant Telegram notification alert for salesperson assignment
+    try {
+        const { crmController } = require('../crm.controller');
+        crmController.sendInstantLeadAlert(lead.id).catch((err: any) => console.error('[Telegram Alert] Failed:', err));
+    } catch (err) {
+        console.error('[Telegram Alert] Failed to load crmController:', err);
+    }
+
     return { ...lead, duplicates };
 }
 

@@ -121,6 +121,70 @@ class WhatsAppService {
                 return;
             }
 
+            // WhatsApp Group Chat Report Parser for CRM
+            if (message.from.endsWith('@g.us')) {
+                try {
+                    // 1. Fetch system settings to check if WhatsApp CRM integration is enabled
+                    const systemSetting = await prisma.systemSetting.findFirst({
+                        where: { key: 'telegram_crm_config' }
+                    });
+                    
+                    if (systemSetting) {
+                        const crmConfig = JSON.parse(systemSetting.value);
+                        
+                        if (crmConfig.whatsappBotEnabled) {
+                            const chat = await message.getChat();
+                            const groupName = chat.name || '';
+                            
+                            // 2. Filter allowed group names if configured
+                            const allowedStr = crmConfig.whatsappAllowedGroups || '';
+                            let isGroupAllowed = true;
+                            
+                            if (allowedStr.trim().length > 0) {
+                                const allowedGroups = allowedStr.split(',').map((g: string) => g.trim().toLowerCase());
+                                isGroupAllowed = allowedGroups.includes(groupName.toLowerCase());
+                            }
+                            
+                            if (isGroupAllowed) {
+                                const text = message.body || '';
+                                
+                                // Test if the text matches a CRM structured sales report
+                                const isReport = /الاسم\s*:/i.test(text) && /(?:رقم\s*)?الهاتف\s*:/i.test(text);
+                                
+                                if (isReport) {
+                                    console.log(`📲 [WhatsApp CRM] Parsing sales report from WhatsApp group "${groupName}"...`);
+                                    
+                                    const { crmService } = require('../../crm/crm.service');
+                                    const parsedData = crmService.parseTelegramMessage(text);
+                                    
+                                    if (parsedData && parsedData.phone) {
+                                        const result = await crmService.updateLeadFromMessage(parsedData);
+                                        
+                                        // Send a confirmation text back to the WhatsApp group so the salesperson knows it registered!
+                                        const clientName = result.lead?.name || parsedData.name || 'العميل';
+                                        const spName = result.lead?.salesperson ? `${result.lead.salesperson.firstName || ''} ${result.lead.salesperson.lastName || ''}`.trim() : 'الموظف المسؤول';
+                                        
+                                        await message.reply(
+                                            `✅ *تم تسجيل التقرير بنجاح في نظام السلام CRM وجوجل شيت!* 📝\n\n` +
+                                            `👤 *العميل:* ${clientName}\n` +
+                                            `📁 *الحالة:* تم التحديث والجدولة\n` +
+                                            `👤 *الموظف المسؤول:* ${spName}`
+                                        );
+                                        console.log(`✅ [WhatsApp CRM] Sales report for "${clientName}" successfully processed and logged!`);
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (err: any) {
+                    console.error('❌ [WhatsApp CRM] Error parsing group report:', err.message);
+                }
+                
+                // Do not continue to create marketing activities for group messages
+                return;
+            }
+
             const contact = await message.getContact();
             const phoneNumber = message.from.replace('@c.us', '');
             const messageText = message.body;

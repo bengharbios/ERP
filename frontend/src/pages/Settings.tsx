@@ -57,7 +57,13 @@ export default function Settings() {
         followUpButtonEnabled: true,
         callQueueEnabled: true,
         callQueueLimit: 5,
-        remindersEnabled: true
+        remindersEnabled: true,
+        reminderTime: '09:00',
+        statsCommandEnabled: true,
+        statsCommandAdmins: '',
+        leadAlertsEnabled: true,
+        whatsappBotEnabled: false,
+        whatsappAllowedGroups: ''
     });
 
     // Toast and Confirm Dialog states
@@ -1726,7 +1732,7 @@ export default function Settings() {
                                 {/* Right Column: Advanced CRM Bot Automation Logic */}
                                 <div className="column-logic">
                                     <h3 style={{ fontSize: '1.05rem', color: 'var(--text-main)', borderBottom: '2px solid #FF6B00', paddingBottom: '0.5rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <span>⚙️</span> المنطق التفاعلي المؤتمت للبيانات
+                                        <span>⚙️</span> المنطق التفاعلي والربط الذكي للروبوت
                                     </h3>
 
                                     {/* No-Answer Toggles */}
@@ -1784,7 +1790,7 @@ export default function Settings() {
                                     </div>
 
                                     {/* Call Queue Setting */}
-                                    <div style={{ background: '#f0fdf4', border: '1px solid #dcfce7', borderRadius: '12px', padding: '1rem' }}>
+                                    <div style={{ background: '#f0fdf4', border: '1px solid #dcfce7', borderRadius: '12px', padding: '1rem', marginBottom: '1.25rem' }}>
                                         <div className="form-group" style={{ marginBottom: '0.75rem' }}>
                                             <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 600 }}>
                                                 <input
@@ -1806,6 +1812,97 @@ export default function Settings() {
                                                     value={telegramCrmConfig.callQueueLimit}
                                                     onChange={e => setTelegramCrmConfig({ ...telegramCrmConfig, callQueueLimit: parseInt(e.target.value) || 5 })}
                                                     style={{ width: '80px', padding: '0.5rem', borderRadius: '8px', border: '1px solid #22c55e', textAlign: 'center' }}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Morning Reminders (Tazkeer System) & Alerts */}
+                                    <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '12px', padding: '1rem', marginBottom: '1.25rem' }}>
+                                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 600 }}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={telegramCrmConfig.remindersEnabled}
+                                                    onChange={e => setTelegramCrmConfig({ ...telegramCrmConfig, remindersEnabled: e.target.checked })}
+                                                />
+                                                <span style={{ color: '#1d4ed8' }}>⏰ تفعيل التنبيهات والتذكيرات الصباحية</span>
+                                            </label>
+                                        </div>
+
+                                        {telegramCrmConfig.remindersEnabled && (
+                                            <div className="form-group" style={{ marginRight: '1.5rem', marginBottom: '0.75rem' }}>
+                                                <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '0.25rem' }}>وقت إرسال التذكير اليومي (صباحاً):</label>
+                                                <input
+                                                    type="time"
+                                                    value={telegramCrmConfig.reminderTime || '09:00'}
+                                                    onChange={e => setTelegramCrmConfig({ ...telegramCrmConfig, reminderTime: e.target.value })}
+                                                    style={{ width: '120px', padding: '0.5rem', borderRadius: '8px', border: '1px solid #3b82f6', textAlign: 'center' }}
+                                                />
+                                            </div>
+                                        )}
+
+                                        <div className="form-group" style={{ marginTop: '0.75rem' }}>
+                                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 600 }}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={telegramCrmConfig.leadAlertsEnabled}
+                                                    onChange={e => setTelegramCrmConfig({ ...telegramCrmConfig, leadAlertsEnabled: e.target.checked })}
+                                                />
+                                                <span style={{ color: '#1d4ed8' }}>🔔 إشعار فوري للمبيعات عند تسجيل عميل جديد</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    {/* Stats & Leaderboard */}
+                                    <div style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '12px', padding: '1rem', marginBottom: '1.25rem' }}>
+                                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 600 }}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={telegramCrmConfig.statsCommandEnabled}
+                                                    onChange={e => setTelegramCrmConfig({ ...telegramCrmConfig, statsCommandEnabled: e.target.checked })}
+                                                />
+                                                <span style={{ color: '#6d28d9' }}>📊 تفعيل أوامر الإحصائيات والمتصدرين (/stats)</span>
+                                            </label>
+                                        </div>
+
+                                        {telegramCrmConfig.statsCommandEnabled && (
+                                            <div className="form-group" style={{ marginRight: '1.5rem' }}>
+                                                <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '0.25rem' }}>المعرفات المسموح لها بعرض الإحصائيات (مفصولة بفاصلة):</label>
+                                                <input
+                                                    type="text"
+                                                    value={telegramCrmConfig.statsCommandAdmins || ''}
+                                                    onChange={e => setTelegramCrmConfig({ ...telegramCrmConfig, statsCommandAdmins: e.target.value })}
+                                                    placeholder="مثلاً: 12345678, ali_admin"
+                                                    style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #8b5cf6' }}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* WhatsApp Integration */}
+                                    <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', padding: '1rem' }}>
+                                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 600 }}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={telegramCrmConfig.whatsappBotEnabled}
+                                                    onChange={e => setTelegramCrmConfig({ ...telegramCrmConfig, whatsappBotEnabled: e.target.checked })}
+                                                />
+                                                <span style={{ color: '#166534' }}>📲 ربط وقراءة جروبات الواتساب</span>
+                                            </label>
+                                        </div>
+
+                                        {telegramCrmConfig.whatsappBotEnabled && (
+                                            <div className="form-group" style={{ marginRight: '1.5rem' }}>
+                                                <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '0.25rem' }}>أسماء جروبات الواتساب المسموحة (مفصولة بفاصلة):</label>
+                                                <input
+                                                    type="text"
+                                                    value={telegramCrmConfig.whatsappAllowedGroups || ''}
+                                                    onChange={e => setTelegramCrmConfig({ ...telegramCrmConfig, whatsappAllowedGroups: e.target.value })}
+                                                    placeholder="مثلاً: جروب تقارير السلام, مبيعات دبي"
+                                                    style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #22c55e' }}
                                                 />
                                             </div>
                                         )}
