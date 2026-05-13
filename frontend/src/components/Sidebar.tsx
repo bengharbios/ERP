@@ -137,7 +137,7 @@ export default function Sidebar({ isCollapsed, onToggle, isMobileOpen, onMobileC
             icon: Rocket,
             items: [
                 { path: '/marketing', icon: Megaphone, label: 'الحملات', permission: 'view_sys_marketing' },
-                { path: '/whatsapp-tracker', icon: MessageCircle, label: 'واتساب', permission: 'view_sys_whatsapp' }
+                { path: '/whatsapp-tracker', icon: MessageCircle, label: 'واتساب', permission: 'view_sys_marketing' }
             ]
         },
         {

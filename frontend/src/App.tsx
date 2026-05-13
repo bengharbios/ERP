@@ -434,7 +434,7 @@ function App() {
                 <Route
                     path="/whatsapp-tracker"
                     element={
-                        <ProtectedRoute requiredPermission="view_sys_whatsapp">
+                        <ProtectedRoute requiredPermission="view_sys_whatsapp|view_sys_marketing|view_crm_leads">
                             <LayoutProvider>
                                 <WhatsAppTracker />
                             </LayoutProvider>
