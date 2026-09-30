@@ -37,6 +37,11 @@ coverage/
 *.pem
 *.key
 .cache/
+backups/
+backend/backups/
+token.txt
+backend/token.txt
+*.token
 
 # Google API Credentials
 google-credentials.json

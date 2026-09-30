@@ -76,6 +76,12 @@ import { useSettingsStore } from './store/settingsStore';
 import ProtectedRoute from './components/ProtectedRoute';
 
 import LayoutProvider from './layouts/LayoutProvider';
+import SuperAdminLayout from './layouts/SuperAdmin/SuperAdminLayout';
+import SuperAdminOverview from './pages/superadmin/SuperAdminOverview';
+import SuperAdminTenants from './pages/superadmin/SuperAdminTenants';
+import SuperAdminSubscriptions from './pages/superadmin/SuperAdminSubscriptions';
+import SuperAdminPlans from './pages/superadmin/SuperAdminPlans';
+import SuperAdminSettings from './pages/superadmin/SuperAdminSettings';
 
 // Switches Dashboard based on active template — auto, zero-config
 function DashboardSwitcher() {
@@ -759,8 +765,51 @@ function App() {
                     }
                 />
 
-
-
+                {/* 👑 Super Admin Platform Console Routes */}
+                <Route
+                    path="/super-admin"
+                    element={<Navigate to="/super-admin/overview" replace />}
+                />
+                <Route
+                    path="/super-admin/overview"
+                    element={
+                        <SuperAdminLayout>
+                            <SuperAdminOverview />
+                        </SuperAdminLayout>
+                    }
+                />
+                <Route
+                    path="/super-admin/tenants"
+                    element={
+                        <SuperAdminLayout>
+                            <SuperAdminTenants />
+                        </SuperAdminLayout>
+                    }
+                />
+                <Route
+                    path="/super-admin/subscriptions"
+                    element={
+                        <SuperAdminLayout>
+                            <SuperAdminSubscriptions />
+                        </SuperAdminLayout>
+                    }
+                />
+                <Route
+                    path="/super-admin/plans"
+                    element={
+                        <SuperAdminLayout>
+                            <SuperAdminPlans />
+                        </SuperAdminLayout>
+                    }
+                />
+                <Route
+                    path="/super-admin/settings"
+                    element={
+                        <SuperAdminLayout>
+                            <SuperAdminSettings />
+                        </SuperAdminLayout>
+                    }
+                />
 
                 {/* Default redirect */}
                 <Route

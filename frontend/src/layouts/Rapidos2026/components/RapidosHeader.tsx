@@ -110,6 +110,7 @@ export const NAV_SECTIONS = [
             { label: 'إعدادات الموارد البشرية', icon: UserCircle, path: '/hr-settings', permission: 'view_hr_settings' },
             { label: 'أجهزة البصمة', icon: Hash, path: '/biometric-devices', permission: 'view_biometric_devices' },
             { label: 'التقارير الإحصائية', icon: FileText, path: '/reports', permission: 'view_academic_reports' },
+            { label: '👑 لوحة السوبر أدمن (SaaS)', icon: ShieldAlert, path: '/super-admin/overview' },
         ],
     },
 ];
@@ -327,6 +328,26 @@ export function HorizonTopbar() {
                                 >
                                     <Settings size={14} />
                                     <span>إعدادات النظام</span>
+                                </NavLink>
+                                <NavLink to="/super-admin/overview" onClick={() => setDropdownOpen(false)} style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '10px',
+                                    padding: '10px 12px',
+                                    color: '#38BDF8',
+                                    textDecoration: 'none',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 'bold',
+                                    borderRadius: '8px',
+                                    background: 'rgba(56, 189, 248, 0.1)',
+                                    border: '1px solid rgba(56, 189, 248, 0.25)',
+                                    transition: 'background 0.2s'
+                                }} 
+                                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(56, 189, 248, 0.2)'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(56, 189, 248, 0.1)'}
+                                >
+                                    <span>👑</span>
+                                    <span>لوحة السوبر أدمن (SaaS)</span>
                                 </NavLink>
                                 <button onClick={() => { setDropdownOpen(false); logout(); }} style={{
                                     display: 'flex',
