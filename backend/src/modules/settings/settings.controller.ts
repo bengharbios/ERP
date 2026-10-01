@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../../common/db/prisma';
+import { extractTokenPayload } from '../../common/utils/jwt';
 import os from 'os';
 
 // ============================================
@@ -7,13 +8,36 @@ import os from 'os';
 // ============================================
 
 /**
- * Get system settings (singleton)
+ * Get system settings (singleton with multi-tenant overlay)
  */
-export const getSettings = async (_req: Request, res: Response): Promise<void> => {
+export const getSettings = async (req: Request, res: Response): Promise<void> => {
     try {
         let settings = await prisma.settings.findFirst({
             where: { id: 'singleton' }
         });
+
+        const tokenPayload = extractTokenPayload(req);
+        if (tokenPayload?.tenantId && tokenPayload.tenantId !== 'tenant_primary_001') {
+            const tenant = await prisma.tenant.findUnique({
+                where: { id: tokenPayload.tenantId }
+            });
+            if (tenant) {
+                // Overlay tenant-specific branding
+                settings = {
+                    ...(settings || ({} as any)),
+                    instituteName: tenant.name,
+                    instituteNameAr: tenant.name,
+                    instituteNameEn: tenant.slug,
+                    instituteLogo: tenant.logo || (settings?.instituteLogo || null),
+                    currency: tenant.currency || 'SAR',
+                    timezone: tenant.timezone || 'Asia/Riyadh',
+                    country: tenant.country || 'SA',
+                    reportInstitutionNameAr: tenant.name,
+                    reportInstitutionNameEn: tenant.slug,
+                    reportLogo: tenant.logo || (settings?.reportLogo || null),
+                } as any;
+            }
+        }
 
         // If settings don't exist, return empty or default
         if (!settings) {
@@ -91,6 +115,47 @@ export const updateSettings = async (req: Request, res: Response): Promise<void>
         }
 
         console.log('[SettingsController] Filtered & Parsed data:', JSON.stringify(filteredData, null, 2));
+
+        const tokenPayload = extractTokenPayload(req);
+        if (tokenPayload?.tenantId && tokenPayload.tenantId !== 'tenant_primary_001') {
+            const tenantUpdates: any = {};
+            if (filteredData.instituteName || filteredData.instituteNameAr) {
+                tenantUpdates.name = filteredData.instituteName || filteredData.instituteNameAr;
+            }
+            if (filteredData.instituteLogo !== undefined) {
+                tenantUpdates.logo = filteredData.instituteLogo;
+            }
+            if (filteredData.currency) {
+                tenantUpdates.currency = filteredData.currency;
+            }
+            if (filteredData.country) {
+                tenantUpdates.country = filteredData.country;
+            }
+            if (filteredData.timezone) {
+                tenantUpdates.timezone = filteredData.timezone;
+            }
+
+            if (Object.keys(tenantUpdates).length > 0) {
+                await prisma.tenant.update({
+                    where: { id: tokenPayload.tenantId },
+                    data: tenantUpdates
+                });
+            }
+
+            const baseSettings = await prisma.settings.findFirst({ where: { id: 'singleton' } });
+            return res.json({
+                success: true,
+                data: {
+                    settings: {
+                        ...(baseSettings || {}),
+                        ...filteredData,
+                        instituteName: tenantUpdates.name || filteredData.instituteName,
+                        instituteNameAr: tenantUpdates.name || filteredData.instituteNameAr,
+                        instituteLogo: tenantUpdates.logo !== undefined ? tenantUpdates.logo : filteredData.instituteLogo,
+                    }
+                }
+            });
+        }
 
         const settings = await prisma.settings.upsert({
             where: { id: 'singleton' },

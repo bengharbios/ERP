@@ -84,6 +84,7 @@ import SuperAdminPlans from './pages/superadmin/SuperAdminPlans';
 import SuperAdminSettings from './pages/superadmin/SuperAdminSettings';
 import InstituteLogin from './pages/InstituteLogin';
 import InstituteDashboard from './pages/InstituteDashboard';
+import LandingPage from './pages/LandingPage';
 
 // Switches Dashboard based on active template — auto, zero-config
 function DashboardSwitcher() {
@@ -818,11 +819,15 @@ function App() {
                 <Route path="/institute/dashboard" element={<InstituteDashboard />} />
                 <Route path="/institute" element={<Navigate to="/institute/login" replace />} />
 
-                {/* Default redirect */}
+                {/* Public & Landing Routes */}
+                <Route path="/welcome" element={<LandingPage />} />
+                <Route path="/pricing" element={<LandingPage />} />
+
+                {/* Default redirect: if logged in -> /dashboard, if guest -> Landing Page */}
                 <Route
                     path="/"
                     element={
-                        <Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />
+                        isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />
                     }
                 />
 

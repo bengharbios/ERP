@@ -44,6 +44,17 @@ export const verifyToken = (token: string): TokenPayload => {
     }
 };
 
+export const extractTokenPayload = (req: Request): TokenPayload | null => {
+    try {
+        const authHeader = req.headers['authorization'];
+        const token = authHeader && authHeader.split(' ')[1];
+        if (!token) return null;
+        return verifyToken(token);
+    } catch {
+        return null;
+    }
+};
+
 export const authenticateToken = async (
     req: AuthRequest,
     res: Response,
