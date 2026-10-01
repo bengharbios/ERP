@@ -13,12 +13,15 @@ export default function SuperAdminTenants() {
     slug: '',
     adminName: '',
     adminEmail: '',
+    adminPassword: '',
     phone: '',
     plan: 'PRO' as const,
     billingCycle: 'MONTHLY' as const,
     status: 'ACTIVE' as const,
     renewDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   });
+  const [showCredentials, setShowCredentials] = useState<null | { username: string; email: string; password: string; name: string }>(null);
+  const [copied, setCopied] = useState('');
 
   const navigate = useNavigate();
 
@@ -60,13 +63,23 @@ export default function SuperAdminTenants() {
   const handleCreateTenant = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await superAdminService.addTenant(newTenant);
+      const result = await superAdminService.addTenant(newTenant);
+      const savedPassword = newTenant.adminPassword || '12345678';
+      const username = `admin_${newTenant.slug}`;
       setShowAddModal(false);
+      // Show credentials modal
+      setShowCredentials({
+        name: newTenant.name,
+        username,
+        email: newTenant.adminEmail,
+        password: savedPassword,
+      });
       setNewTenant({
         name: '',
         slug: '',
         adminName: '',
         adminEmail: '',
+        adminPassword: '',
         phone: '',
         plan: 'PRO',
         billingCycle: 'MONTHLY',
@@ -74,9 +87,15 @@ export default function SuperAdminTenants() {
         renewDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       });
       await loadTenants();
-    } catch (err) {
-      alert('حدث خطأ أثناء إضافة المعهد');
+    } catch (err: any) {
+      alert('حدث خطأ أثناء إضافة المعهد: ' + (err?.message || err));
     }
+  };
+
+  const handleCopy = (text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(key);
+    setTimeout(() => setCopied(''), 2000);
   };
 
   const filteredTenants = tenants.filter((t) => {
@@ -425,6 +444,32 @@ export default function SuperAdminTenants() {
                   </div>
                 </div>
 
+                {/* Password Field */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 600 }}>
+                    🔑 كلمة مرور مدير المعهد:
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="اتركه فارغاً للاستخدام الافتراضي: 12345678"
+                    value={newTenant.adminPassword}
+                    onChange={(e) => setNewTenant({ ...newTenant, adminPassword: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '0.65rem 0.85rem',
+                      borderRadius: '8px',
+                      background: 'rgba(255,255,255,0.06)',
+                      border: '1px solid rgba(99,102,241,0.5)',
+                      color: '#ffffff',
+                      fontFamily: 'inherit',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                  <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem', marginBottom: 0 }}>
+                    💡 سيتم إنشاء اسم المستخدم تلقائياً: <strong style={{ color: '#38bdf8' }}>admin_{newTenant.slug || 'slug-المعهد'}</strong>
+                  </p>
+                </div>
+
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 600 }}>
@@ -487,6 +532,95 @@ export default function SuperAdminTenants() {
                 </div>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ Credentials Success Modal */}
+      {showCredentials && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 9999, padding: '1rem'
+        }}>
+          <div style={{
+            borderRadius: '16px', padding: '2rem', width: '100%', maxWidth: '480px',
+            background: 'linear-gradient(135deg, #0a1320 0%, #0d1f35 100%)',
+            border: '1px solid rgba(52,211,153,0.5)',
+            boxShadow: '0 0 40px rgba(52,211,153,0.15)'
+          }}>
+            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🎉</div>
+              <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#34d399', margin: 0 }}>
+                تم إنشاء المعهد بنجاح!
+              </h3>
+              <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+                {showCredentials.name}
+              </p>
+            </div>
+
+            <div style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '12px', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+              <p style={{ color: '#fbbf24', fontSize: '0.8rem', fontWeight: 700, margin: 0, textAlign: 'center' }}>
+                ⚠️ احفظ بيانات الدخول الآن — لن تظهر مرة أخرى!
+              </p>
+
+              {/* Username */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '0.65rem 1rem' }}>
+                <div>
+                  <p style={{ color: '#64748b', fontSize: '0.72rem', margin: 0 }}>اسم المستخدم</p>
+                  <p style={{ color: '#38bdf8', fontSize: '1rem', fontWeight: 700, margin: 0, fontFamily: 'monospace' }}>{showCredentials.username}</p>
+                </div>
+                <button
+                  onClick={() => handleCopy(showCredentials.username, 'username')}
+                  style={{ background: copied === 'username' ? 'rgba(52,211,153,0.2)' : 'rgba(56,189,248,0.15)', border: '1px solid rgba(56,189,248,0.3)', borderRadius: '6px', color: copied === 'username' ? '#34d399' : '#38bdf8', padding: '0.3rem 0.7rem', cursor: 'pointer', fontSize: '0.8rem' }}
+                >
+                  {copied === 'username' ? '✅ تم النسخ' : '📋 نسخ'}
+                </button>
+              </div>
+
+              {/* Email */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '0.65rem 1rem' }}>
+                <div>
+                  <p style={{ color: '#64748b', fontSize: '0.72rem', margin: 0 }}>البريد الإلكتروني</p>
+                  <p style={{ color: '#e2e8f0', fontSize: '0.95rem', fontWeight: 600, margin: 0, fontFamily: 'monospace' }}>{showCredentials.email}</p>
+                </div>
+                <button
+                  onClick={() => handleCopy(showCredentials.email, 'email')}
+                  style={{ background: copied === 'email' ? 'rgba(52,211,153,0.2)' : 'rgba(56,189,248,0.15)', border: '1px solid rgba(56,189,248,0.3)', borderRadius: '6px', color: copied === 'email' ? '#34d399' : '#38bdf8', padding: '0.3rem 0.7rem', cursor: 'pointer', fontSize: '0.8rem' }}
+                >
+                  {copied === 'email' ? '✅ تم النسخ' : '📋 نسخ'}
+                </button>
+              </div>
+
+              {/* Password */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '0.65rem 1rem' }}>
+                <div>
+                  <p style={{ color: '#64748b', fontSize: '0.72rem', margin: 0 }}>كلمة المرور</p>
+                  <p style={{ color: '#f472b6', fontSize: '1rem', fontWeight: 700, margin: 0, fontFamily: 'monospace' }}>{showCredentials.password}</p>
+                </div>
+                <button
+                  onClick={() => handleCopy(showCredentials.password, 'password')}
+                  style={{ background: copied === 'password' ? 'rgba(52,211,153,0.2)' : 'rgba(56,189,248,0.15)', border: '1px solid rgba(56,189,248,0.3)', borderRadius: '6px', color: copied === 'password' ? '#34d399' : '#f472b6', padding: '0.3rem 0.7rem', cursor: 'pointer', fontSize: '0.8rem' }}
+                >
+                  {copied === 'password' ? '✅ تم النسخ' : '📋 نسخ'}
+                </button>
+              </div>
+
+              {/* Copy All */}
+              <button
+                onClick={() => handleCopy(`اسم المستخدم: ${showCredentials.username}\nالبريد: ${showCredentials.email}\nكلمة المرور: ${showCredentials.password}`, 'all')}
+                style={{ background: copied === 'all' ? 'rgba(52,211,153,0.3)' : 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.4)', borderRadius: '8px', color: '#34d399', padding: '0.65rem', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700, width: '100%', marginTop: '0.25rem' }}
+              >
+                {copied === 'all' ? '✅ تم نسخ الكل!' : '📋 نسخ جميع بيانات الدخول'}
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowCredentials(null)}
+              style={{ marginTop: '1.25rem', width: '100%', padding: '0.75rem', borderRadius: '10px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#e2e8f0', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 600 }}
+            >
+              حسناً، احتفظت بالبيانات ✅
+            </button>
           </div>
         </div>
       )}
