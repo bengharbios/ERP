@@ -19,6 +19,7 @@ import databaseRoutes from './modules/database/database.routes';
 import crmRoutes from './modules/crm/crm.routes';
 import accountingRoutes from './routes/accounting.routes';
 import superadminRoutes from './modules/superadmin/superadmin.routes';
+import tenantRoutes from './modules/tenant/tenant.routes';
 
 dotenv.config();
 
@@ -70,6 +71,7 @@ app.use('/api/v1/crm', crmRoutes);
 app.use('/api/v1/database', databaseRoutes);
 app.use('/api/v1/accounting', accountingRoutes); // 💰 Accounting Module
 app.use('/api/v1/superadmin', superadminRoutes); // 👑 Super Admin Platform Control
+app.use('/api/v1/tenants', tenantRoutes); // 🏢 Tenants Management
 
 // 404 handler
 app.use((_req, res) => {

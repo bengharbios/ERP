@@ -1,15 +1,21 @@
 const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const p = new PrismaClient();
 
-async function check() {
-    try {
-        const columns = await prisma.$queryRaw`SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'payrolls'`;
-        console.log(JSON.stringify(columns, null, 2));
-    } catch (e) {
-        console.error(e);
-    } finally {
-        await prisma.$disconnect();
-    }
+async function main() {
+  const students = await p.student.count();
+  const users = await p.user.count();
+  const employees = await p.employee.count();
+  
+  let crmLeads = 0;
+  try { crmLeads = await p.crmLead.count(); } catch(e) {}
+  
+  let programs = 0;
+  try { programs = await p.program.count(); } catch(e) {}
+
+  let classes = 0;
+  try { classes = await p.class.count(); } catch(e) {}
+
+  console.log(JSON.stringify({ students, users, employees, crmLeads, programs, classes }, null, 2));
 }
 
-check();
+main().catch(console.error).finally(() => p.$disconnect());

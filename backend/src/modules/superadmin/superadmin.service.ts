@@ -1,4 +1,5 @@
 import prisma from '../../common/db/prisma';
+import * as bcrypt from 'bcrypt';
 import * as fs from 'fs';
 import * as path from 'path';
 import {
@@ -284,31 +285,106 @@ export class SuperAdminService {
   }
 
   async getTenants() {
-    const data = this.loadData();
-    // Try to update primary tenant's counts
-    try {
-      const sCount = await prisma.student.count();
-      const uCount = await prisma.user.count();
-      if (data.tenants[0]) {
-        data.tenants[0].studentCount = sCount;
-        data.tenants[0].userCount = uCount;
+    const dbTenants = await prisma.tenant.findMany({
+      include: {
+        users: true,
       }
-    } catch (e) {}
-    return data.tenants;
+    });
+
+    return dbTenants.map(t => ({
+      id: t.id,
+      name: t.name,
+      slug: t.slug,
+      logo: t.logo || '',
+      adminName: t.users[0] ? `${t.users[0].firstName} ${t.users[0].lastName}` : 'غير محدد',
+      adminEmail: t.users[0]?.email || '',
+      phone: t.users[0]?.phone || '',
+      plan: 'FREE', // This will be linked to subscriptions later
+      status: t.isActive ? 'ACTIVE' : 'SUSPENDED',
+      billingCycle: 'MONTHLY',
+      studentCount: 0, // Should be fetched from DB if needed
+      userCount: t.users.length,
+      createdAt: t.createdAt.toISOString(),
+      renewDate: 'N/A',
+    }));
   }
 
-  async addTenant(tenantInput: Omit<TenantData, 'id' | 'createdAt' | 'studentCount' | 'userCount'>) {
-    const data = this.loadData();
-    const newTenant: TenantData = {
-      ...tenantInput,
-      id: `tenant_${Date.now()}`,
-      createdAt: new Date().toISOString().split('T')[0],
-      studentCount: 0,
-      userCount: 1,
+  async addTenant(tenantInput: any) {
+    const existingSlug = await prisma.tenant.findUnique({
+      where: { slug: tenantInput.slug }
+    });
+
+    if (existingSlug) {
+      throw new Error("رابط المعهد (Slug) مستخدم بالفعل");
+    }
+
+    const existingUser = await prisma.user.findUnique({
+      where: { email: tenantInput.adminEmail }
+    });
+
+    if (existingUser) {
+      throw new Error("البريد الإلكتروني للمدير مسجل بالفعل");
+    }
+
+    const saltRounds = 10;
+    // Fallback password if not provided
+    const password = tenantInput.adminPassword || "12345678"; 
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Create Tenant
+      const tenant = await tx.tenant.create({
+        data: {
+          name: tenantInput.name,
+          slug: tenantInput.slug,
+          isActive: true
+        }
+      });
+
+      // 2. Create Admin User for this Tenant
+      const adminUser = await tx.user.create({
+        data: {
+          email: tenantInput.adminEmail,
+          username: `admin_${tenantInput.slug}`,
+          passwordHash: hashedPassword,
+          firstName: tenantInput.adminName?.split(' ')[0] || "مدير",
+          lastName: tenantInput.adminName?.split(' ').slice(1).join(' ') || "",
+          phone: tenantInput.phone || null,
+          tenantId: tenant.id,
+          isActive: true
+        }
+      });
+
+      // 3. Assign Institute Admin Role
+      let adminRole = await tx.role.findUnique({ where: { name: "INSTITUTE_ADMIN" } });
+      if (!adminRole) {
+        adminRole = await tx.role.create({
+          data: { name: "INSTITUTE_ADMIN", description: "مدير المعهد", isSystemRole: true }
+        });
+      }
+
+      await tx.userRole.create({
+        data: {
+          userId: adminUser.id,
+          roleId: adminRole.id,
+          scopeType: "TENANT",
+          scopeId: tenant.id
+        }
+      });
+
+      return { tenant, adminUser };
+    });
+
+    return {
+      id: result.tenant.id,
+      name: result.tenant.name,
+      slug: result.tenant.slug,
+      adminName: `${result.adminUser.firstName} ${result.adminUser.lastName}`,
+      adminEmail: result.adminUser.email,
+      status: 'ACTIVE',
+      plan: tenantInput.plan || 'FREE',
+      createdAt: result.tenant.createdAt.toISOString()
     };
-    data.tenants.unshift(newTenant);
-    this.saveData(data);
-    return newTenant;
   }
 
   async updateTenant(id: string, updates: Partial<TenantData>) {
