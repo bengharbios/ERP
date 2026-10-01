@@ -498,6 +498,134 @@ export const changePassword = async (req: AuthRequest, res: Response): Promise<v
     }
 };
 
+/**
+ * POST /api/v1/auth/institute/login
+ * Login for institute admins and staff — returns JWT with tenantId
+ */
+export const instituteLogin = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { username, password } = req.body;
+
+        if (!username || !password) {
+            res.status(400).json({
+                success: false,
+                error: { code: 'MISSING_FIELDS', message: 'البريد الإلكتروني/اسم المستخدم وكلمة المرور مطلوبان' },
+            });
+            return;
+        }
+
+        // Find user by username or email, must belong to a tenant
+        const user = await prisma.user.findFirst({
+            where: {
+                AND: [
+                    { OR: [{ username }, { email: username }] },
+                    { isActive: true },
+                ]
+            },
+            include: {
+                tenant: { select: { id: true, name: true, slug: true, isActive: true } },
+                userRoles: {
+                    include: {
+                        role: {
+                            include: {
+                                rolePermissions: { include: { permission: true } }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!user) {
+            res.status(401).json({
+                success: false,
+                error: { code: 'INVALID_CREDENTIALS', message: 'بيانات الدخول غير صحيحة' },
+            });
+            return;
+        }
+
+        // Verify password
+        const isPasswordValid = await comparePassword(password, user.passwordHash);
+        if (!isPasswordValid) {
+            res.status(401).json({
+                success: false,
+                error: { code: 'INVALID_CREDENTIALS', message: 'بيانات الدخول غير صحيحة' },
+            });
+            return;
+        }
+
+        // Check tenant is active (if user has one)
+        if (user.tenant && !user.tenant.isActive) {
+            res.status(403).json({
+                success: false,
+                error: { code: 'TENANT_SUSPENDED', message: 'تم تعليق اشتراك هذا المعهد. تواصل مع الدعم الفني.' },
+            });
+            return;
+        }
+
+        // Determine primary role
+        const roles = user.userRoles.map(ur => ur.role.name);
+        const primaryRole = roles.includes('INSTITUTE_ADMIN') ? 'INSTITUTE_ADMIN'
+            : roles.includes('TEACHER') ? 'TEACHER'
+            : roles.includes('ACCOUNTANT') ? 'ACCOUNTANT'
+            : roles[0] || 'STAFF';
+
+        const permissions = user.userRoles.flatMap(ur =>
+            ur.role.rolePermissions.map(rp => `${rp.permission.action}_${rp.permission.resource}`)
+        );
+
+        // Build token payload WITH tenantId
+        const tokenPayload = {
+            userId: user.id,
+            username: user.username,
+            email: user.email,
+            tenantId: user.tenantId,
+            role: primaryRole,
+        };
+
+        const accessToken = generateAccessToken(tokenPayload);
+        const refreshToken = generateRefreshToken(tokenPayload);
+
+        // Update last login
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { lastLogin: new Date() },
+        });
+
+        res.json({
+            success: true,
+            data: {
+                user: {
+                    id: user.id,
+                    username: user.username,
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    role: primaryRole,
+                    roles,
+                    permissions,
+                    tenantId: user.tenantId,
+                    tenant: user.tenant ? {
+                        id: user.tenant.id,
+                        name: user.tenant.name,
+                        slug: user.tenant.slug,
+                    } : null,
+                },
+                accessToken,
+                refreshToken,
+                expiresIn: '7d',
+            },
+        });
+    } catch (error: any) {
+        console.error('Institute login error:', error);
+        res.status(500).json({
+            success: false,
+            error: { code: 'INTERNAL_ERROR', message: 'حدث خطأ أثناء تسجيل الدخول' },
+        });
+    }
+};
+
+
 export const logout = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         if (req.user) {

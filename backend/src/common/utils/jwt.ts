@@ -7,6 +7,8 @@ export interface AuthRequest extends Request {
         id: string;
         username: string;
         email: string;
+        tenantId?: string | null;
+        role?: string;
     };
 }
 
@@ -14,11 +16,13 @@ export interface TokenPayload {
     userId: string;
     username: string;
     email: string;
+    tenantId?: string | null;
+    role?: string; // e.g. 'INSTITUTE_ADMIN', 'TEACHER', 'SUPER_ADMIN'
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '15m';
-const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '30d';
 
 export const generateAccessToken = (payload: TokenPayload): string => {
     return jwt.sign(payload, JWT_SECRET, {
@@ -52,30 +56,22 @@ export const authenticateToken = async (
         if (!token) {
             res.status(401).json({
                 success: false,
-                error: {
-                    code: 'NO_TOKEN',
-                    message: 'Access token is required',
-                },
+                error: { code: 'NO_TOKEN', message: 'Access token is required' },
             });
             return;
         }
 
         const payload = verifyToken(token);
 
-        // Optional: Check if user exists in DB to prevent zombie tokens
-        // We do this to avoid foreign key violations in audit logs if user was deleted
         const userExists = await prisma.user.findUnique({
             where: { id: payload.userId },
-            select: { id: true, username: true, email: true, isActive: true }
+            select: { id: true, username: true, email: true, isActive: true, tenantId: true }
         });
 
         if (!userExists || !userExists.isActive) {
             res.status(403).json({
                 success: false,
-                error: {
-                    code: 'USER_NOT_FOUND',
-                    message: 'User account no longer exists or is inactive',
-                },
+                error: { code: 'USER_NOT_FOUND', message: 'User account no longer exists or is inactive' },
             });
             return;
         }
@@ -84,16 +80,15 @@ export const authenticateToken = async (
             id: userExists.id,
             username: userExists.username,
             email: userExists.email,
+            tenantId: payload.tenantId || userExists.tenantId,
+            role: payload.role,
         };
 
         next();
     } catch (error) {
         res.status(401).json({
             success: false,
-            error: {
-                code: 'INVALID_TOKEN',
-                message: 'Invalid or expired token',
-            },
+            error: { code: 'INVALID_TOKEN', message: 'Invalid or expired token' },
         });
     }
 };

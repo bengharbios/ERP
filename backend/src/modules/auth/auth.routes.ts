@@ -9,6 +9,9 @@ router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.post('/refresh-token', authController.refreshAccessToken);
 
+// Institute login (returns JWT with tenantId + role)
+router.post('/institute/login', authController.instituteLogin);
+
 // Protected routes
 router.get('/me', authenticateToken, authController.getMe);
 router.post('/change-password', authenticateToken, authController.changePassword);

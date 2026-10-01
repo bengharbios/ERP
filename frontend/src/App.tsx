@@ -82,6 +82,8 @@ import SuperAdminTenants from './pages/superadmin/SuperAdminTenants';
 import SuperAdminSubscriptions from './pages/superadmin/SuperAdminSubscriptions';
 import SuperAdminPlans from './pages/superadmin/SuperAdminPlans';
 import SuperAdminSettings from './pages/superadmin/SuperAdminSettings';
+import InstituteLogin from './pages/InstituteLogin';
+import InstituteDashboard from './pages/InstituteDashboard';
 
 // Switches Dashboard based on active template — auto, zero-config
 function DashboardSwitcher() {
@@ -810,6 +812,11 @@ function App() {
                         </SuperAdminLayout>
                     }
                 />
+
+                {/* Institute Portal Routes */}
+                <Route path="/institute/login" element={<InstituteLogin />} />
+                <Route path="/institute/dashboard" element={<InstituteDashboard />} />
+                <Route path="/institute" element={<Navigate to="/institute/login" replace />} />
 
                 {/* Default redirect */}
                 <Route
