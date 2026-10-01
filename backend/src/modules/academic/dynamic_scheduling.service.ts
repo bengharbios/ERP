@@ -1,4 +1,4 @@
-import { addDays, setHours, setMinutes, startOfDay } from 'date-fns';
+import { addDays, startOfDay } from 'date-fns';
 import prisma from '../../common/db/prisma';
 
 export interface ShiftParams {
@@ -41,16 +41,6 @@ function getNextStudyDay(currentDate: Date, studyDays: string[]): Date {
     return addDays(currentDate, 1);
 }
 
-const DAY_MAP: { [key: string]: number } = {
-    Sunday: 0,
-    Monday: 1,
-    Tuesday: 2,
-    Wednesday: 3,
-    Thursday: 4,
-    Friday: 5,
-    Saturday: 6,
-};
-
 /**
  * Handles lecture interruptions by either shifting subsequent lectures
  * or cancelling the specific lecture and skipping it.
@@ -59,7 +49,7 @@ export async function handleLectureInterruption(params: ShiftParams) {
     const { classId, interruptionDate, mode } = params;
     const targetDate = startOfDay(interruptionDate);
 
-    // 1. Get the class details and its study days
+    // 1. Get the class details
     const classData = await prisma.class.findUnique({
         where: { id: classId },
         select: {
@@ -71,14 +61,6 @@ export async function handleLectureInterruption(params: ShiftParams) {
     });
 
     if (!classData) throw new Error('Class not found');
-
-    const rawStudyDays: string[] = typeof classData.studyDays === 'string' ? JSON.parse(classData.studyDays || '[]') : (classData.studyDays as any) || [];
-    const studyDayNumbers = rawStudyDays.map((day: string) => DAY_MAP[day]);
-
-    const startHour = classData.lectureStartTime?.getUTCHours() || 9;
-    const startMinute = classData.lectureStartTime?.getUTCMinutes() || 0;
-    const endHour = classData.lectureEndTime?.getUTCHours() || 12;
-    const endMinute = classData.lectureEndTime?.getUTCMinutes() || 0;
 
     if (mode === 'CANCEL_SKIP') {
         // Mode 2: Just cancel the lectures on that date and do nothing else

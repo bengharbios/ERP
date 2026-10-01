@@ -273,7 +273,7 @@ export class AdvancedMarketingService {
                 behaviorScore,
                 totalScore,
                 quality,
-                conversionProb: new Decimal(conversionProb),
+                conversionProb,
                 recommendedAction
             },
             update: {
@@ -282,7 +282,7 @@ export class AdvancedMarketingService {
                 behaviorScore,
                 totalScore,
                 quality,
-                conversionProb: new Decimal(conversionProb),
+                conversionProb,
                 recommendedAction,
                 lastCalculated: new Date()
             }
@@ -330,24 +330,24 @@ export class AdvancedMarketingService {
             where: { campaignId },
             create: {
                 campaignId,
-                totalSpent: new Decimal(totalSpent),
-                setupCost: new Decimal(setupCost),
-                mediaCost: new Decimal(mediaCost),
-                totalRevenue: new Decimal(totalRevenue),
-                costPerLead: new Decimal(costPerLead),
-                costPerAcq: new Decimal(costPerAcq),
-                roi: new Decimal(roi),
-                roas: new Decimal(roas)
+                totalSpent: totalSpent,
+                setupCost: setupCost,
+                mediaCost: mediaCost,
+                totalRevenue: totalRevenue,
+                costPerLead: costPerLead,
+                costPerAcq: costPerAcq,
+                roi: roi,
+                roas: roas
             },
             update: {
-                totalSpent: new Decimal(totalSpent),
-                setupCost: new Decimal(setupCost),
-                mediaCost: new Decimal(mediaCost),
-                totalRevenue: new Decimal(totalRevenue),
-                costPerLead: new Decimal(costPerLead),
-                costPerAcq: new Decimal(costPerAcq),
-                roi: new Decimal(roi),
-                roas: new Decimal(roas)
+                totalSpent: totalSpent,
+                setupCost: setupCost,
+                mediaCost: mediaCost,
+                totalRevenue: totalRevenue,
+                costPerLead: costPerLead,
+                costPerAcq: costPerAcq,
+                roi: roi,
+                roas: roas
             }
         });
 
@@ -438,7 +438,7 @@ export class ABTestingService {
                     campaignId,
                     name: variant.name,
                     content: variant.content,
-                    trafficSplit: new Decimal(variant.trafficSplit)
+                    trafficSplit: variant.trafficSplit
                 }
             });
             createdVariants.push(created);
@@ -607,8 +607,8 @@ export class ABTestingService {
             data: {
                 campaignId,
                 winnerVariantId,
-                improvementRate: new Decimal(significance.improvementRate),
-                confidenceLevel: new Decimal(significance.confidence),
+                improvementRate: parseFloat(significance.improvementRate),
+                confidenceLevel: parseFloat(significance.confidence),
                 declaredBy,
                 notes: significance.message
             }
@@ -710,7 +710,7 @@ export class CustomerJourneyService {
             data: {
                 isConverted: true,
                 convertedAt: convertDate,
-                conversionValue: conversionValue ? new Decimal(conversionValue) : null,
+                conversionValue: conversionValue ? conversionValue : null,
                 durationDays,
                 currentStage: 'DECISION'
             }

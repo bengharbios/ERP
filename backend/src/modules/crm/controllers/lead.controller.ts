@@ -25,7 +25,8 @@ export async function getLeadById(req: Request, res: Response) {
         const lead = await leadService.getLeadById(req.params.id);
 
         if (!lead) {
-            return res.status(404).json({ success: false, error: { message: 'Lead not found' } });
+            res.status(404).json({ success: false, error: { message: 'Lead not found' } });
+            return;
         }
 
         res.json({ success: true, data: lead });
@@ -117,7 +118,8 @@ export async function checkDuplicates(req: Request, res: Response) {
         const lead = await leadService.getLeadById(req.params.id);
 
         if (!lead) {
-            return res.status(404).json({ success: false, error: { message: 'Lead not found' } });
+            res.status(404).json({ success: false, error: { message: 'Lead not found' } });
+            return;
         }
 
         const duplicates = await leadService.checkDuplicates(
@@ -164,7 +166,7 @@ export async function convertToCustomer(req: Request, res: Response) {
     }
 }
 
-export async function getStages(req: Request, res: Response) {
+export async function getStages(_req: Request, res: Response) {
     try {
         const stages = await leadService.getStages();
         res.json({ success: true, data: stages });
@@ -206,7 +208,8 @@ export async function syncGoogleSheet(req: Request, res: Response) {
         const { spreadsheetUrl, range } = req.body;
 
         if (!spreadsheetUrl) {
-            return res.status(400).json({ success: false, error: { message: 'رابط ملف Google Sheet مطلوب لإتمام المزامنة.' } });
+            res.status(400).json({ success: false, error: { message: 'رابط ملف Google Sheet مطلوب لإتمام المزامنة.' } });
+            return;
         }
 
         // Dynamically save the spreadsheet URL to database settings so the Telegram Bot can read it

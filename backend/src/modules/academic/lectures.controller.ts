@@ -417,8 +417,8 @@ export const updateLecture = async (req: AuthRequest, res: Response): Promise<vo
                     action: 'LECTURE_UPDATED',
                     resourceType: 'Lecture',
                     resourceId: id,
-                    beforeData: existing,
-                    afterData: lecture,
+                    beforeData: JSON.stringify(existing),
+                    afterData: JSON.stringify(lecture),
                     ipAddress: req.ip,
                     userAgent: req.get('user-agent'),
                 }
@@ -479,7 +479,7 @@ export const cancelLecture = async (req: AuthRequest, res: Response): Promise<vo
                     action: 'LECTURE_CANCELLED',
                     resourceType: 'Lecture',
                     resourceId: id,
-                    afterData: lecture,
+                    afterData: JSON.stringify(lecture),
                     ipAddress: req.ip,
                     userAgent: req.get('user-agent'),
                 }
@@ -549,7 +549,7 @@ export const postponeLecture = async (req: AuthRequest, res: Response): Promise<
                     action: 'LECTURE_POSTPONED',
                     resourceType: 'Lecture',
                     resourceId: id,
-                    afterData: { result }
+                    afterData: JSON.stringify({ result })
                 }
             });
         }
@@ -586,7 +586,7 @@ export const undoCancelLecture = async (req: AuthRequest, res: Response): Promis
                     action: 'LECTURE_CANCEL_UNDONE',
                     resourceType: 'Lecture',
                     resourceId: id,
-                    afterData: { result }
+                    afterData: JSON.stringify({ result })
                 }
             });
         }
@@ -623,7 +623,7 @@ export const undoPostponeLecture = async (req: AuthRequest, res: Response): Prom
                     action: 'LECTURE_POSTPONE_UNDONE',
                     resourceType: 'Lecture',
                     resourceId: id,
-                    afterData: { result }
+                    afterData: JSON.stringify({ result })
                 }
             });
         }

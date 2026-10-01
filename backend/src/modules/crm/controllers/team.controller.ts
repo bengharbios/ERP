@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import * as teamService from '../services/team.service';
 
-export async function getTeams(req: Request, res: Response) {
+export async function getTeams(_req: Request, res: Response) {
     try {
         const teams = await teamService.getTeams();
         res.json({ success: true, data: teams });
@@ -15,7 +15,8 @@ export async function getTeamById(req: Request, res: Response) {
         const team = await teamService.getTeamById(req.params.id);
 
         if (!team) {
-            return res.status(404).json({ success: false, error: { message: 'Team not found' } });
+            res.status(404).json({ success: false, error: { message: 'Team not found' } });
+            return;
         }
 
         res.json({ success: true, data: team });

@@ -522,6 +522,7 @@ export class GoogleSheetsService {
                     // Add new lead with its notes to the in-memory Map for O(1) detection of subsequent rows in the same sheet
                     const inMemoryNewLead = {
                         id: newLead.id,
+                        createdAt: new Date(),
                         phoneNormalized,
                         mobileNormalized: mobileNormalized || null,
                         duplicateCount: 0,

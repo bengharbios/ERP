@@ -68,7 +68,7 @@ export class ActionExecutor {
                 leadId,
                 activityType: 'email_sent',
                 channel: 'Email',
-                metadata: { subject: config.subject, template: config.template }
+                metadata: JSON.stringify({ subject: config.subject, template: config.template })
             }
         });
 
@@ -88,7 +88,7 @@ export class ActionExecutor {
                 leadId,
                 activityType: 'whatsapp_sent',
                 channel: 'WhatsApp',
-                metadata: { message: config.message }
+                metadata: JSON.stringify({ message: config.message })
             }
         });
 
@@ -126,7 +126,7 @@ export class ActionExecutor {
             data: {
                 leadId,
                 activityType: 'assigned',
-                metadata: { userId: config.userId }
+                metadata: JSON.stringify({ userId: config.userId })
             }
         });
 
@@ -149,7 +149,7 @@ export class ActionExecutor {
             data: {
                 leadId,
                 activityType: 'task_created',
-                metadata: { title: config.title, dueDate: config.dueDate }
+                metadata: JSON.stringify({ title: config.title, dueDate: config.dueDate })
             }
         });
 
@@ -172,7 +172,7 @@ export class ActionExecutor {
             data: {
                 leadId,
                 activityType: 'tag_added',
-                metadata: { tag: config.tag }
+                metadata: JSON.stringify({ tag: config.tag })
             }
         });
 

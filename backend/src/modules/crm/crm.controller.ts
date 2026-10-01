@@ -3,7 +3,7 @@ import { crmService } from './crm.service';
 import prisma from '../../common/db/prisma';
 import { normalizePhone } from './services/lead.service';
 import { GoogleSheetsService } from './services/google-sheets.service';
-import { Telegraf, Markup } from 'telegraf';
+import { Telegraf } from 'telegraf';
 import { comparePassword } from '../../common/utils/password';
 
 // Cache bots by token to avoid re-initializing on every request
@@ -252,7 +252,7 @@ async function getDynamicBot() {
                 const leadId = data.split(':')[1];
                 await ctx.answerCbQuery();
 
-                const stages = await prisma.crmStage.findMany({ orderBy: { order: 'asc' } });
+                const stages = await prisma.crmStage.findMany({ orderBy: { sequence: 'asc' } });
                 const stageButtons = [];
                 for (let i = 0; i < stages.length; i += 2) {
                     const row = [{ text: `📁 ${stages[i].name}`, callback_data: `set_stage:${leadId}:${stages[i].id}` }];
@@ -436,7 +436,7 @@ async function getDynamicBot() {
                         return;
                     }
 
-                    const updated = await prisma.crmLead.update({
+                    await prisma.crmLead.update({
                         where: { id: leadId },
                         data: {
                             dateDeadline: new Date(Date.now() + 24 * 60 * 60 * 1000) // Postpone to tomorrow
@@ -777,7 +777,7 @@ async function getDynamicBot() {
                 });
 
                 // Clear any active conversational state
-                delete userStates[userId];
+                await deleteUserState(userId);
 
                 await ctx.replyWithHTML(
                     `👋 <b>تم تسجيل خروجك بنجاح وإلغاء ربط حساب التليجرام!</b>\n\n` +
@@ -2055,7 +2055,7 @@ export const crmController = {
     /**
      * Get Telegram CRM settings configuration
      */
-    async getTelegramConfig(req: Request, res: Response) {
+    async getTelegramConfig(_req: Request, res: Response) {
         try {
             const config = await getTelegramCrmConfig();
             res.json({ success: true, data: config });
@@ -2078,7 +2078,7 @@ export const crmController = {
                     value: JSON.stringify(configData)
                 }
             });
-            res.json({ success: true, data: JSON.parse(updated.value) });
+            res.json({ success: true, data: JSON.parse(updated.value || '{}') });
         } catch (error: any) {
             res.status(500).json({ success: false, error: error.message });
         }
@@ -2191,7 +2191,7 @@ async function triggerDailyMorningReminders() {
 
         // Send customized telegram message to each salesperson
         const botInstance = await getDynamicBot();
-        for (const [spId, leads] of salespersonLeads.entries()) {
+        for (const [_spId, leads] of salespersonLeads.entries()) {
             const salesperson = leads[0].salesperson;
             const tgId = salesperson.telegramUserId;
 

@@ -7,7 +7,6 @@ import * as classesController from './classes.controller';
 import * as settingsController from './settings.controller';
 import * as lecturesController from './lectures.controller';
 import * as attendanceController from './attendance.controller';
-import * as reportsController from './reports.controller';
 import * as aiController from './ai.controller';
 
 const router = Router();

@@ -1,6 +1,6 @@
 import prisma from '../common/db/prisma';
 import accountService from './account.service';
-import type { CreateJournalEntryInput, UpdateJournalEntryInput, GetJournalEntriesQuery } from '../validation/journal.validation';
+import type { CreateJournalEntryInput, GetJournalEntriesQuery } from '../validation/journal.validation';
 
 export class JournalService {
     /**
@@ -71,7 +71,7 @@ export class JournalService {
     /**
      * Create a new journal entry
      */
-    async createJournalEntry(data: CreateJournalEntryInput, userId: string, tx?: any): Promise<any> {
+    async createJournalEntry(data: CreateJournalEntryInput, _userId: string, tx?: any): Promise<any> {
         const client = tx || prisma;
         // 1. Double check balance (though Zod does this, let's be safe)
         const totalDebit = data.lines.reduce((sum, line) => sum + Number(line.debit), 0);
@@ -118,7 +118,7 @@ export class JournalService {
     /**
      * Post a journal entry (Finalize it and update account balances)
      */
-    async postJournalEntry(id: string, userId: string, tx?: any): Promise<any> {
+    async postJournalEntry(id: string, _userId: string, tx?: any): Promise<any> {
         const client = tx || prisma;
         const entry = await client.journalEntry.findUnique({
             where: { id },

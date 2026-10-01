@@ -33,7 +33,7 @@ export const createNotification = async (req: AuthRequest, res: Response): Promi
                 message: validatedData.message,
                 type: validatedData.type,
                 link: validatedData.link,
-                data: validatedData.metadata || {},
+                data: JSON.stringify(validatedData.metadata || {}),
                 isRead: false,
             },
         });

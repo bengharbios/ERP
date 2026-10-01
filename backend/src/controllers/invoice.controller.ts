@@ -4,7 +4,7 @@ import { createInvoiceSchema, updateInvoiceSchema } from '../validation/invoice.
 
 class InvoiceController {
     // GET /api/v1/accounting/invoices
-    async getAllInvoices(req: Request, res: Response) {
+    async getAllInvoices(_req: Request, res: Response) {
         try {
             const invoices = await invoiceService.getAllInvoices();
             res.json({ success: true, data: invoices });
@@ -15,11 +15,12 @@ class InvoiceController {
     }
 
     // GET /api/v1/accounting/invoices/:id
-    async getInvoiceById(req: Request, res: Response) {
+    async getInvoiceById(req: Request, res: Response): Promise<void> {
         try {
             const invoice = await invoiceService.getInvoiceById(req.params.id);
             if (!invoice) {
-                return res.status(404).json({ success: false, error: 'Invoice not found' });
+                res.status(404).json({ success: false, error: 'Invoice not found' });
+                return;
             }
             res.json({ success: true, data: invoice });
         } catch (error: any) {

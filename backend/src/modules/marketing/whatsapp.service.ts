@@ -130,7 +130,7 @@ class WhatsAppService {
                     });
                     
                     if (systemSetting) {
-                        const crmConfig = JSON.parse(systemSetting.value);
+                        const crmConfig = JSON.parse(systemSetting.value ?? '{}');
                         
                         if (crmConfig.whatsappBotEnabled) {
                             const chat = await message.getChat();
@@ -245,7 +245,7 @@ class WhatsAppService {
                     leadId: lead.id,
                     activityType: 'whatsapp_message_received',
                     channel: 'WhatsApp',
-                    metadata: {
+                    metadata: JSON.stringify({
                         message: messageText,
                         contactName,
                         isDuplicate,
@@ -256,7 +256,7 @@ class WhatsAppService {
                         summary: _analysis.summary,
                         suggestedAction: _analysis.suggestedAction,
                         timestamp: new Date().toISOString()
-                    }
+                    })
                 }
             });
 
@@ -296,10 +296,10 @@ class WhatsAppService {
                         leadId: lead.id,
                         activityType: 'whatsapp_message_sent',
                         channel: 'WhatsApp',
-                        metadata: {
+                        metadata: JSON.stringify({
                             message: message.body,
                             timestamp: new Date().toISOString()
-                        }
+                        })
                     }
                 });
 
@@ -324,10 +324,10 @@ class WhatsAppService {
                         leadId: lead.id,
                         activityType: 'whatsapp_message_read',
                         channel: 'WhatsApp',
-                        metadata: {
+                        metadata: JSON.stringify({
                             messageId: message.id._serialized,
                             timestamp: new Date().toISOString()
-                        }
+                        })
                     }
                 });
             }

@@ -5,7 +5,7 @@ import { createFinancialYearSchema, updateFinancialYearSchema } from '../validat
 class FinancialYearController {
 
     // GET /api/accounting/financial-years
-    async getAllYears(req: Request, res: Response) {
+    async getAllYears(_req: Request, res: Response): Promise<void> {
         try {
             const years = await financialYearService.getAllYears();
             res.json({ success: true, data: years });
@@ -16,10 +16,13 @@ class FinancialYearController {
     }
 
     // GET /api/accounting/financial-years/current
-    async getCurrentYear(req: Request, res: Response) {
+    async getCurrentYear(_req: Request, res: Response): Promise<void> {
         try {
             const year = await financialYearService.getCurrentYear();
-            if (!year) return res.status(404).json({ success: false, error: 'No active financial year found' });
+            if (!year) {
+                res.status(404).json({ success: false, error: 'No active financial year found' });
+                return;
+            }
             res.json({ success: true, data: year });
         } catch (error: any) {
             console.error('[FinancialYearController] Error in getCurrentYear:', error);
@@ -28,20 +31,23 @@ class FinancialYearController {
     }
 
     // POST /api/accounting/financial-years
-    async createFinancialYear(req: Request, res: Response) {
+    async createFinancialYear(req: Request, res: Response): Promise<void> {
         try {
             const data = createFinancialYearSchema.parse(req.body);
             const year = await financialYearService.createFinancialYear(data);
             res.status(201).json({ success: true, data: year, message: 'Financial year created successfully' });
         } catch (error: any) {
             console.error(error);
-            if (error.errors) return res.status(400).json({ success: false, errors: error.errors });
+            if (error.errors) {
+                res.status(400).json({ success: false, errors: error.errors });
+                return;
+            }
             res.status(500).json({ success: false, error: 'Failed to create financial year' });
         }
     }
 
     // PUT /api/accounting/financial-years/:id
-    async updateFinancialYear(req: Request, res: Response) {
+    async updateFinancialYear(req: Request, res: Response): Promise<void> {
         try {
             const { id } = req.params;
             const data = updateFinancialYearSchema.parse(req.body);
@@ -49,7 +55,10 @@ class FinancialYearController {
             res.json({ success: true, data: year, message: 'Financial year updated successfully' });
         } catch (error: any) {
             console.error(error);
-            if (error.errors) return res.status(400).json({ success: false, errors: error.errors });
+            if (error.errors) {
+                res.status(400).json({ success: false, errors: error.errors });
+                return;
+            }
             res.status(500).json({ success: false, error: 'Failed to update financial year' });
         }
     }

@@ -7,13 +7,10 @@ export const crmService = {
      */
     parseTelegramMessage(text: string) {
         let clientText = text;
-        let employeeText = '';
-
         // Isolate the employee section to prevent employee names from overwriting client names
         const empIndex = text.search(/(?:👤\s*)?الموظف المسؤول/);
         if (empIndex !== -1) {
             clientText = text.substring(0, empIndex);
-            employeeText = text.substring(empIndex);
         }
 
         const patterns = {
@@ -170,7 +167,7 @@ export const crmService = {
         } else {
             isDuplicate = true;
             duplicateCount = (lead.duplicateCount || 0) + 1;
-            firstMessageDate = lead.firstMessageDate || lead.createdAt?.toISOString() || new Date().toISOString();
+            firstMessageDate = lead.firstMessageDate ? (lead.firstMessageDate instanceof Date ? lead.firstMessageDate.toISOString() : String(lead.firstMessageDate)) : (lead.createdAt?.toISOString() || new Date().toISOString());
 
             // Promote to opportunity if salesperson is assigned or already was assigned
             const updatedType = (salespersonId || lead.salespersonId) ? 'opportunity' : lead.type;

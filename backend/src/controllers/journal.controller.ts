@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import journalService from '../services/journal.service';
 import {
     createJournalEntrySchema,
-    updateJournalEntrySchema,
     getJournalEntriesQuerySchema
 } from '../validation/journal.validation';
 
@@ -54,7 +53,7 @@ export class JournalController {
     /**
      * POST /api/accounting/journal-entries
      */
-    async createJournalEntry(req: Request, res: Response) {
+    async createJournalEntry(req: Request, res: Response): Promise<void> {
         try {
             // Validate request body
             const data = createJournalEntrySchema.parse(req.body);
@@ -74,11 +73,12 @@ export class JournalController {
 
             // Handle Zod validation errors
             if (error.errors) {
-                return res.status(400).json({
+                res.status(400).json({
                     success: false,
                     error: 'Validation failed',
                     details: error.errors
                 });
+                return;
             }
 
             const status = error.message.includes('unbalanced') ? 400 : 500;

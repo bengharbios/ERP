@@ -6,7 +6,7 @@ export class FinancialSettingsController {
     /**
      * GET /api/v1/accounting/settings
      */
-    async getSettings(req: Request, res: Response) {
+    async getSettings(_req: Request, res: Response) {
         try {
             const settings = await financialSettingsService.getSettings();
             res.json({ success: true, data: settings });

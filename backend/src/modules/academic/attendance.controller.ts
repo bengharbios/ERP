@@ -240,7 +240,7 @@ export const recordAttendance = async (req: AuthRequest, res: Response): Promise
                     action: 'ATTENDANCE_RECORDED',
                     resourceType: 'Lecture',
                     resourceId: lectureId,
-                    afterData: { results }
+                    afterData: JSON.stringify({ results })
                 }
             });
         }

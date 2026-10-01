@@ -34,7 +34,7 @@ export const createUnit = async (req: AuthRequest, res: Response): Promise<void>
         const unit = await prisma.unit.create({
             data: {
                 ...unitData,
-                learningOutcomes: unitData.learningOutcomes || [],
+                learningOutcomes: JSON.stringify(unitData.learningOutcomes || []),
             },
         });
 
@@ -58,7 +58,7 @@ export const createUnit = async (req: AuthRequest, res: Response): Promise<void>
                     action: 'UNIT_CREATED',
                     resourceType: 'Unit',
                     resourceId: unit.id,
-                    afterData: { code: unit.code, name: unit.nameEn },
+                    afterData: JSON.stringify({ code: unit.code, name: unit.nameEn }),
                     ipAddress: req.ip,
                     userAgent: req.get('user-agent'),
                 },
@@ -242,9 +242,14 @@ export const updateUnit = async (req: AuthRequest, res: Response): Promise<void>
         // Separate programIds from unit data
         const { programIds, ...unitData } = validatedData;
 
+        const dataToUpdate: any = { ...unitData };
+        if (unitData.learningOutcomes) {
+            dataToUpdate.learningOutcomes = JSON.stringify(unitData.learningOutcomes);
+        }
+
         const unit = await prisma.unit.update({
             where: { id },
-            data: unitData,
+            data: dataToUpdate,
         });
 
         // Update program assignments if programIds provided
@@ -275,8 +280,8 @@ export const updateUnit = async (req: AuthRequest, res: Response): Promise<void>
                     action: 'UNIT_UPDATED',
                     resourceType: 'Unit',
                     resourceId: unit.id,
-                    beforeData: existing,
-                    afterData: unit,
+                    beforeData: JSON.stringify(existing),
+                    afterData: JSON.stringify(unit),
                     ipAddress: req.ip,
                     userAgent: req.get('user-agent'),
                 },
@@ -371,7 +376,7 @@ export const deleteUnit = async (req: AuthRequest, res: Response): Promise<void>
                     action: 'UNIT_DELETED',
                     resourceType: 'Unit',
                     resourceId: id,
-                    beforeData: unit,
+                    beforeData: JSON.stringify(unit),
                     ipAddress: req.ip,
                     userAgent: req.get('user-agent'),
                 },

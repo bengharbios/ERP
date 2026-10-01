@@ -38,8 +38,8 @@ export const createAssignment = async (req: AuthRequest, res: Response): Promise
                 passThreshold: validatedData.passThreshold,
                 meritThreshold: validatedData.meritThreshold,
                 distinctionThreshold: validatedData.distinctionThreshold,
-                learningOutcomes: validatedData.learningOutcomes || [],
-                attachments: validatedData.attachments || [],
+                learningOutcomes: JSON.stringify(validatedData.learningOutcomes || []),
+                attachments: JSON.stringify(validatedData.attachments || []),
             },
             include: {
                 unit: {
@@ -61,11 +61,11 @@ export const createAssignment = async (req: AuthRequest, res: Response): Promise
                     action: 'ASSIGNMENT_CREATED',
                     resourceType: 'Assignment',
                     resourceId: assignment.id,
-                    afterData: {
+                    afterData: JSON.stringify({
                         title: assignment.title,
                         unitId: assignment.unitId,
                         submissionDeadline: assignment.submissionDeadline,
-                    },
+                    }),
                     ipAddress: req.ip,
                     userAgent: req.get('user-agent'),
                 },
@@ -265,9 +265,9 @@ export const updateAssignment = async (req: AuthRequest, res: Response): Promise
             passThreshold: validatedData.passThreshold,
             meritThreshold: validatedData.meritThreshold,
             distinctionThreshold: validatedData.distinctionThreshold,
-            learningOutcomes: validatedData.learningOutcomes,
-            attachments: validatedData.attachments,
-            status: validatedData.status, // Allow status update if in schema
+            learningOutcomes: validatedData.learningOutcomes ? JSON.stringify(validatedData.learningOutcomes) : undefined,
+            attachments: validatedData.attachments ? JSON.stringify(validatedData.attachments) : undefined,
+            status: (validatedData as any).status,
         };
         if (validatedData.dueDate) {
             updateData.submissionDeadline = new Date(validatedData.dueDate);
@@ -296,8 +296,8 @@ export const updateAssignment = async (req: AuthRequest, res: Response): Promise
                     action: 'ASSIGNMENT_UPDATED',
                     resourceType: 'Assignment',
                     resourceId: assignment.id,
-                    beforeData: existing,
-                    afterData: assignment,
+                    beforeData: JSON.stringify(existing),
+                    afterData: JSON.stringify(assignment),
                     ipAddress: req.ip,
                     userAgent: req.get('user-agent'),
                 },
@@ -384,7 +384,7 @@ export const deleteAssignment = async (req: AuthRequest, res: Response): Promise
                     action: 'ASSIGNMENT_DELETED',
                     resourceType: 'Assignment',
                     resourceId: id,
-                    beforeData: assignment,
+                    beforeData: JSON.stringify(assignment),
                     ipAddress: req.ip,
                     userAgent: req.get('user-agent'),
                 },

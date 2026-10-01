@@ -1,6 +1,5 @@
 import prisma from '../common/db/prisma';
 import { CreateInvoiceInput } from '../validation/invoice.validation';
-import { Decimal } from '@prisma/client/runtime/library';
 
 class InvoiceService {
     /**

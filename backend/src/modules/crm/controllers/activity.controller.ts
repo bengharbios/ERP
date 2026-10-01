@@ -23,7 +23,8 @@ export async function getActivityById(req: Request, res: Response) {
         const activity = await activityService.getActivityById(req.params.id);
 
         if (!activity) {
-            return res.status(404).json({ success: false, error: { message: 'Activity not found' } });
+            res.status(404).json({ success: false, error: { message: 'Activity not found' } });
+            return;
         }
 
         res.json({ success: true, data: activity });
@@ -74,7 +75,7 @@ export async function deleteActivity(req: Request, res: Response) {
     }
 }
 
-export async function getActivityTypes(req: Request, res: Response) {
+export async function getActivityTypes(_req: Request, res: Response) {
     try {
         const types = await activityService.getActivityTypes();
         res.json({ success: true, data: types });
@@ -111,7 +112,7 @@ export async function deleteActivityType(req: Request, res: Response) {
 }
 
 // ─── Activity Plans ───────────────────────────────────────
-export async function getActivityPlans(req: Request, res: Response) {
+export async function getActivityPlans(_req: Request, res: Response) {
     try {
         const plans = await activityService.getActivityPlans();
         res.json({ success: true, data: plans });

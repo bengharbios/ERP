@@ -34,7 +34,7 @@ export class AccountController {
      * GET /api/accounting/accounts/tree
      * Get accounts in hierarchical tree structure
      */
-    async getAccountTree(req: Request, res: Response) {
+    async getAccountTree(_req: Request, res: Response) {
         try {
             const tree = await accountService.getAccountTree();
 

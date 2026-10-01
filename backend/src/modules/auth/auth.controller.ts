@@ -80,7 +80,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
                 action: 'USER_REGISTERED',
                 resourceType: 'User',
                 resourceId: user.id,
-                afterData: { username: user.username, email: user.email },
+                afterData: JSON.stringify({ username: user.username, email: user.email }),
                 ipAddress: req.ip,
                 userAgent: req.get('user-agent'),
             },
@@ -173,11 +173,40 @@ export const login = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        // Generate tokens
+        // Load roles and permissions, including tenant
+        const userWithRoles = await prisma.user.findUnique({
+            where: { id: user.id },
+            include: {
+                tenant: true,
+                userRoles: {
+                    include: {
+                        role: {
+                            include: {
+                                rolePermissions: {
+                                    include: {
+                                        permission: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        const roles = userWithRoles?.userRoles.map((ur) => ur.role.name) || [];
+        const primaryRole = roles[0] || 'User';
+        const permissions = userWithRoles?.userRoles.flatMap((ur) =>
+            ur.role.rolePermissions.map((rp) => `${rp.permission.action}_${rp.permission.resource}`)
+        ) || [];
+
+        // Generate tokens with tenantId & role
         const tokenPayload = {
             userId: user.id,
             username: user.username,
             email: user.email,
+            tenantId: user.tenantId,
+            role: primaryRole,
         };
 
         const accessToken = generateAccessToken(tokenPayload);
@@ -201,31 +230,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
             },
         });
 
-        // Load roles and permissions
-        const userWithRoles = await prisma.user.findUnique({
-            where: { id: user.id },
-            include: {
-                userRoles: {
-                    include: {
-                        role: {
-                            include: {
-                                rolePermissions: {
-                                    include: {
-                                        permission: true
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        const roles = userWithRoles?.userRoles.map((ur) => ur.role.name) || [];
-        const permissions = userWithRoles?.userRoles.flatMap((ur) =>
-            ur.role.rolePermissions.map((rp) => `${rp.permission.action}_${rp.permission.resource}`)
-        ) || [];
-
         res.json({
             success: true,
             data: {
@@ -235,8 +239,12 @@ export const login = async (req: Request, res: Response): Promise<void> => {
                     email: user.email,
                     firstName: user.firstName,
                     lastName: user.lastName,
+                    role: primaryRole,
                     roles,
                     permissions,
+                    tenantId: user.tenantId,
+                    tenantName: userWithRoles?.tenant?.name,
+                    tenantSlug: userWithRoles?.tenant?.slug,
                 },
                 accessToken,
                 refreshToken,
@@ -280,11 +288,13 @@ export const refreshAccessToken = async (req: Request, res: Response): Promise<v
         // Verify refresh token
         const payload = verifyToken(validatedData.refreshToken);
 
-        // Generate new access token
+        // Generate new access token preserving tenantId and role
         const accessToken = generateAccessToken({
             userId: payload.userId,
             username: payload.username,
             email: payload.email,
+            tenantId: payload.tenantId,
+            role: payload.role,
         });
 
         res.json({
@@ -320,36 +330,8 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
 
         const user = await prisma.user.findUnique({
             where: { id: req.user.id },
-            select: {
-                id: true,
-                username: true,
-                email: true,
-                firstName: true,
-                lastName: true,
-                phone: true,
-                profilePicture: true,
-                isActive: true,
-                emailVerified: true,
-                lastLogin: true,
-                createdAt: true,
-            },
-        });
-
-        if (!user) {
-            res.status(404).json({
-                success: false,
-                error: {
-                    code: 'USER_NOT_FOUND',
-                    message: 'User not found',
-                },
-            });
-            return;
-        }
-
-        // Fetch user roles and permissions
-        const userWithRoles = await prisma.user.findUnique({
-            where: { id: user.id },
             include: {
+                tenant: true,
                 userRoles: {
                     include: {
                         role: {
@@ -366,8 +348,20 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
             }
         });
 
-        const roles = userWithRoles?.userRoles.map((ur) => ur.role.name) || [];
-        const permissions = userWithRoles?.userRoles.flatMap((ur) =>
+        if (!user) {
+            res.status(404).json({
+                success: false,
+                error: {
+                    code: 'USER_NOT_FOUND',
+                    message: 'User not found',
+                },
+            });
+            return;
+        }
+
+        const roles = user.userRoles.map((ur) => ur.role.name) || [];
+        const primaryRole = roles[0] || req.user.role || 'User';
+        const permissions = user.userRoles.flatMap((ur) =>
             ur.role.rolePermissions.map((rp) => `${rp.permission.action}_${rp.permission.resource}`)
         ) || [];
 
@@ -375,9 +369,23 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
             success: true,
             data: { 
                 user: {
-                    ...user,
+                    id: user.id,
+                    username: user.username,
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    phone: user.phone,
+                    profilePicture: user.profilePicture,
+                    isActive: user.isActive,
+                    emailVerified: user.emailVerified,
+                    lastLogin: user.lastLogin,
+                    createdAt: user.createdAt,
+                    role: primaryRole,
                     roles,
-                    permissions
+                    permissions,
+                    tenantId: user.tenantId,
+                    tenantName: user.tenant?.name,
+                    tenantSlug: user.tenant?.slug,
                 }
             },
         });

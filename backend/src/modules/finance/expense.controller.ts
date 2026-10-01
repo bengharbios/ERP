@@ -100,11 +100,11 @@ export const createExpense = async (req: AuthRequest, res: Response) => {
                     action: 'EXPENSE_CREATED',
                     resourceType: 'Expense',
                     resourceId: expense.id,
-                    afterData: {
+                    afterData: JSON.stringify({
                         amount: expense.amount,
                         categoryId: expense.categoryId,
                         description: expense.description,
-                    },
+                    }),
                     ipAddress: req.ip,
                     userAgent: req.get('user-agent'),
                 },

@@ -4,7 +4,7 @@ import biometricService from './biometric.service';
 /**
  * Controller for Biometric Device Management
  */
-export async function getDevices(req: Request, res: Response) {
+export async function getDevices(_req: Request, res: Response) {
     try {
         const devices = await biometricService.getDevices();
         res.json(devices);
@@ -58,7 +58,7 @@ export async function syncAttendance(req: Request, res: Response) {
     }
 }
 
-export async function discoverDevices(req: Request, res: Response) {
+export async function discoverDevices(_req: Request, res: Response) {
     try {
         const result = await biometricService.discoverDevices();
         res.json(result);
@@ -76,7 +76,7 @@ export async function syncEmployees(req: Request, res: Response) {
     }
 }
 
-export async function syncAllDevices(req: Request, res: Response) {
+export async function syncAllDevices(_req: Request, res: Response) {
     try {
         const result = await biometricService.syncAllDevices();
         res.json(result);

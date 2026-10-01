@@ -421,10 +421,11 @@ export const deleteShift = async (req: Request, res: Response) => {
         // Check if shift is assigned to any employees
         const employeeCount = await prisma.employee.count({ where: { shiftId: id } });
         if (employeeCount > 0) {
-            return res.status(400).json({
+            res.status(400).json({
                 success: false,
                 error: { message: 'Cannot delete shift because it is assigned to employees. Please reassign them first.' }
             });
+            return;
         }
 
         await prisma.shift.delete({ where: { id } });

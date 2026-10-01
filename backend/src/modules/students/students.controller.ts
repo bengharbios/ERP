@@ -14,14 +14,19 @@ export const createStudent = async (req: AuthRequest, res: Response): Promise<vo
         const validatedData = createStudentSchema.parse(req.body);
         console.log('--- Creating Student Request ---', { studentNumber: validatedData.studentNumber });
 
+        const tenantId = req.user?.tenantId || 'tenant_primary_001';
+
         // Auto-generate student number if not provided
         if (!validatedData.studentNumber) {
             const currentYear = new Date().getFullYear();
-            const tenantId = req.user?.tenantId || 'tenant_primary_001';
-            const count = await prisma.student.count({
-                where: { user: { tenantId } }
-            });
-            validatedData.studentNumber = `S${currentYear}${String(count + 1).padStart(4, '0')}`; // e.g., S20260001
+            let seq = (await prisma.student.count()) + 1;
+            let candidate = `S${currentYear}${String(seq).padStart(4, '0')}`;
+            // Ensure studentNumber is completely free across all tenants
+            while (await prisma.student.findUnique({ where: { studentNumber: candidate } })) {
+                seq++;
+                candidate = `S${currentYear}${String(seq).padStart(4, '0')}`;
+            }
+            validatedData.studentNumber = candidate;
         }
 
         // Set admission date to today if not provided
@@ -47,7 +52,13 @@ export const createStudent = async (req: AuthRequest, res: Response): Promise<vo
 
         // Create student with User account
         const defaultPassword = await hashPassword('Student@123'); // Default password
-        const userEmail = validatedData.email || `${validatedData.studentNumber!.toLowerCase()}@institute.local`;
+        const tenantSuffix = tenantId.replace(/[^a-zA-Z0-9]/g, '').slice(-4) || 'tnt';
+        const userEmail = validatedData.email || `${validatedData.studentNumber!.toLowerCase()}.${tenantSuffix}@institute.local`;
+
+        const sanitizeUnique = (val: string | undefined | null) => {
+            if (!val || typeof val !== 'string' || val.trim() === '') return null;
+            return val.trim();
+        };
 
         // Sanitize data for Student model using strict whitelist
         const studentData = {
@@ -60,8 +71,8 @@ export const createStudent = async (req: AuthRequest, res: Response): Promise<vo
             certificateName: validatedData.certificateName,
             gender: validatedData.gender,
             nationality: validatedData.nationality,
-            nationalId: validatedData.nationalId,
-            passportNumber: validatedData.passportNumber,
+            nationalId: sanitizeUnique(validatedData.nationalId),
+            passportNumber: sanitizeUnique(validatedData.passportNumber),
             passportExpiryDate: validatedData.passportExpiryDate ? new Date(validatedData.passportExpiryDate) : null,
             address: validatedData.address,
             city: validatedData.city,
@@ -71,8 +82,8 @@ export const createStudent = async (req: AuthRequest, res: Response): Promise<vo
             email: validatedData.email, // Saving to Student table as well
             emergencyContactName: validatedData.emergencyContactName,
             emergencyContactPhone: validatedData.emergencyContactPhone,
-            registrationNumberPearson: validatedData.registrationNumberPearson,
-            enrolmentNumberAlsalam: validatedData.enrolmentNumberAlsalam,
+            registrationNumberPearson: sanitizeUnique(validatedData.registrationNumberPearson),
+            enrolmentNumberAlsalam: sanitizeUnique(validatedData.enrolmentNumberAlsalam),
             registrationDateAlsalam: validatedData.registrationDateAlsalam ? new Date(validatedData.registrationDateAlsalam) : null,
             specialization: validatedData.specialization,
             certificateCourseTitle: validatedData.certificateCourseTitle,
@@ -94,14 +105,14 @@ export const createStudent = async (req: AuthRequest, res: Response): Promise<vo
                 status: validatedData.status, // Normalized by Zod preprocess
                 user: {
                     create: {
-                        username: validatedData.studentNumber!,
+                        username: `${validatedData.studentNumber!}_${tenantSuffix}`,
                         email: userEmail,
                         passwordHash: defaultPassword,
                         firstName: validatedData.firstNameEn,
                         lastName: validatedData.lastNameEn,
                         phone: validatedData.phone, // Pass phone from validatedData
                         isActive: true,
-                        tenantId: req.user?.tenantId || 'tenant_primary_001',
+                        tenantId: tenantId,
                     }
                 }
             },
@@ -1075,8 +1086,8 @@ export const updateStudent = async (req: AuthRequest, res: Response): Promise<vo
                         action: 'STUDENT_UPDATED',
                         resourceType: 'Student',
                         resourceId: student.id,
-                        beforeData: existing,
-                        afterData: student,
+                        beforeData: JSON.stringify(existing),
+                        afterData: JSON.stringify(student),
                         ipAddress: req.ip,
                         userAgent: req.get('user-agent'),
                     },
@@ -1178,7 +1189,7 @@ export const deleteStudent = async (req: AuthRequest, res: Response): Promise<vo
                     action: 'STUDENT_DELETED',
                     resourceType: 'Student',
                     resourceId: id,
-                    beforeData: student,
+                    beforeData: JSON.stringify(student),
                     ipAddress: req.ip,
                     userAgent: req.get('user-agent'),
                 },

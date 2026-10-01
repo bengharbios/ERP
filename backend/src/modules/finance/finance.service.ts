@@ -1,5 +1,5 @@
 import prisma from '../../common/db/prisma';
-import { PaymentStatus, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import journalService from '../../services/journal.service';
 const Decimal = Prisma.Decimal;
 
@@ -917,8 +917,8 @@ export const paymentService = {
             await tx.studentFeeCalculation.update({
                 where: { id: calculationId },
                 data: {
-                    paidAmount: newPaidAmount,
-                    balance: newBalance,
+                    paidAmount: newPaidAmount.toNumber(),
+                    balance: newBalance.toNumber(),
                     status: newStatus,
                 },
             });
@@ -947,8 +947,8 @@ export const paymentService = {
                     await tx.installment.update({
                         where: { id: installmentId },
                         data: {
-                            paidAmount: instNewPaidAmount,
-                            balance: instNewBalance,
+                            paidAmount: instNewPaidAmount.toNumber(),
+                            balance: instNewBalance.toNumber(),
                             status: instStatus as any,
                             paidDate: instNewBalance.equals(0) ? (paymentDate ? new Date(paymentDate) : new Date()) : installment.paidDate,
                         },
@@ -990,8 +990,8 @@ export const paymentService = {
                     await tx.installment.update({
                         where: { id: inst.id },
                         data: {
-                            paidAmount: instNewPaidAmount,
-                            balance: finalBalance,
+                            paidAmount: instNewPaidAmount.toNumber(),
+                            balance: finalBalance.toNumber(),
                             status: instStatus as any,
                             paidDate: finalBalance.equals(0) ? (paymentDate ? new Date(paymentDate) : new Date()) : inst.paidDate,
                         },
@@ -1077,21 +1077,21 @@ export const paymentService = {
                         invoiceNumber,
                         studentId: calculation.studentId,
                         date: paymentDate ? new Date(paymentDate) : new Date(),
-                        subtotal: new Decimal(subtotal.toFixed(2)),
-                        vatAmount: new Decimal(vatAmount.toFixed(2)),
-                        totalAmount: new Decimal(payAmountNum.toFixed(2)),
+                        subtotal: Number(subtotal.toFixed(2)),
+                        vatAmount: Number(vatAmount.toFixed(2)),
+                        totalAmount: Number(payAmountNum.toFixed(2)),
                         status: 'PAID',
                         trnSnapshot: settings?.trn || finSettings?.trn,
-                        vatRateSnapshot: new Decimal(vatRate),
+                        vatRateSnapshot: vatRate,
                         paymentId: paymentId,
                         items: {
                             create: [{
                                 description,
                                 quantity: 1,
-                                unitPrice: new Decimal(subtotal.toFixed(2)),
-                                taxableAmount: new Decimal(subtotal.toFixed(2)),
-                                vatAmount: new Decimal(vatAmount.toFixed(2)),
-                                totalAmount: new Decimal(payAmountNum.toFixed(2)),
+                                unitPrice: Number(subtotal.toFixed(2)),
+                                taxableAmount: Number(subtotal.toFixed(2)),
+                                vatAmount: Number(vatAmount.toFixed(2)),
+                                totalAmount: Number(payAmountNum.toFixed(2)),
                             }]
                         }
                     }

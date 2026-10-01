@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../../common/db/prisma';
 import { AuthRequest } from '../../common/utils/jwt';
-import { Decimal } from '@prisma/client/runtime/library';
 import journalService from '../../services/journal.service';
 
 // --- DEPARTMENTS ---
@@ -36,9 +35,9 @@ export const getEmployees = async (req: Request, res: Response) => {
                 ...(departmentId ? { departmentId: String(departmentId) } : {}),
                 ...(search ? {
                     OR: [
-                        { employeeCode: { contains: String(search), mode: 'insensitive' } },
-                        { user: { firstName: { contains: String(search), mode: 'insensitive' } } },
-                        { user: { lastName: { contains: String(search), mode: 'insensitive' } } }
+                        { employeeCode: { contains: String(search) } },
+                        { user: { firstName: { contains: String(search) } } },
+                        { user: { lastName: { contains: String(search) } } }
                     ]
                 } : {})
             },
@@ -101,7 +100,8 @@ export const getEmployeeById = async (req: Request, res: Response) => {
         });
 
         if (!employee) {
-            return res.status(404).json({ success: false, error: { message: 'Employee not found' } });
+            res.status(404).json({ success: false, error: { message: 'Employee not found' } });
+            return;
         }
 
         res.json({ success: true, data: employee });
@@ -174,8 +174,8 @@ export const createEmployee = async (req: Request, res: Response) => {
         }
 
         // Helper for safe decimal
-        const safeDecimal = (val: any) => (val === '' || val === null || val === undefined) ? new Decimal(0) : new Decimal(val);
-        const safeNullableDecimal = (val: any) => (val === '' || val === null || val === undefined) ? null : new Decimal(val);
+        const safeDecimal = (val: any): number => (val === '' || val === null || val === undefined || isNaN(Number(val))) ? 0 : Number(val);
+        const safeNullableDecimal = (val: any): number | null => (val === '' || val === null || val === undefined || isNaN(Number(val))) ? null : Number(val);
 
         // Helper for safe date
         const safeDate = (val: any) => (val && val !== '') ? new Date(val) : null;
@@ -229,7 +229,6 @@ export const createEmployee = async (req: Request, res: Response) => {
                 emergencyContactPhone,
                 emergencyContactRelation,
                 shiftId: shiftId || null,
-                status: 'active',
                 // Tiers Relation
                 commissionTiers: (commissionTiers && Array.isArray(commissionTiers) && commissionTiers.length > 0) ? {
                     create: commissionTiers.map((tier: any) => ({
@@ -305,8 +304,8 @@ export const updateEmployee = async (req: Request, res: Response) => {
         delete dataToUpdate.updatedAt;
 
         // Helpers (Same as create)
-        const safeDecimal = (val: any) => (val === '' || val === null || val === undefined) ? new Decimal(0) : new Decimal(val);
-        const safeNullableDecimal = (val: any) => (val === '' || val === null || val === undefined) ? null : new Decimal(val);
+        const safeDecimal = (val: any): number => (val === '' || val === null || val === undefined || isNaN(Number(val))) ? 0 : Number(val);
+        const safeNullableDecimal = (val: any): number | null => (val === '' || val === null || val === undefined || isNaN(Number(val))) ? null : Number(val);
         const safeDate = (val: any) => (val && val !== '') ? new Date(val) : null;
 
         // Apply safe conversions
@@ -477,10 +476,9 @@ export const markAttendance = async (req: AuthRequest, res: Response) => {
             await (prisma as any).staffAttendance.delete({
                 where: { employeeId_date: { employeeId, date: attendanceDate } }
             }).catch(() => { });
-            return res.json({ success: true, message: 'Attendance record reset' });
+            res.json({ success: true, message: 'Attendance record reset' });
+            return;
         }
-
-        let totalWorkMinutes = undefined;
 
         // 1. Get existing attendance to check for changes and notes
         const existing = await prisma.staffAttendance.findUnique({
@@ -674,29 +672,28 @@ export const processPayroll = async (req: Request, res: Response) => {
             achievedTarget, hoursWorked
         } = req.body;
 
-        const totalAllowances = new Decimal(housingAllowance || 0)
-            .add(new Decimal(transportAllowance || 0))
-            .add(new Decimal(otherAllowances || 0));
-
-        const netSalary = new Decimal(basicSalary || 0)
-            .add(totalAllowances)
-            .add(new Decimal(commission || 0))
-            .sub(new Decimal(deductions || 0));
+        const bSal = Number(basicSalary) || 0;
+        const hAllow = Number(housingAllowance) || 0;
+        const tAllow = Number(transportAllowance) || 0;
+        const oAllow = Number(otherAllowances) || 0;
+        const ded = Number(deductions) || 0;
+        const comm = Number(commission) || 0;
+        const netSal = bSal + hAllow + tAllow + oAllow + comm - ded;
 
         const payrollData = {
-            basicSalary: new Decimal(basicSalary || 0),
-            housingAllowance: new Decimal(housingAllowance || 0),
-            transportAllowance: new Decimal(transportAllowance || 0),
-            otherAllowances: new Decimal(otherAllowances || 0),
-            deductions: new Decimal(deductions || 0),
-            commission: new Decimal(commission || 0),
-            netSalary,
+            basicSalary: bSal,
+            housingAllowance: hAllow,
+            transportAllowance: tAllow,
+            otherAllowances: oAllow,
+            deductions: ded,
+            commission: comm,
+            netSalary: netSal,
             notes,
-            achievedTarget: achievedTarget ? new Decimal(achievedTarget) : null,
-            hoursWorked: hoursWorked ? new Decimal(hoursWorked) : null,
+            achievedTarget: achievedTarget ? Number(achievedTarget) : null,
+            hoursWorked: hoursWorked ? Number(hoursWorked) : null,
         };
 
-        const payroll = await prisma.payroll.upsert({
+        const payroll: any = await (prisma.payroll as any).upsert({
             where: {
                 employeeId_month_year: { employeeId, month, year }
             },
@@ -733,14 +730,14 @@ export const processPayroll = async (req: Request, res: Response) => {
                     lines: [
                         {
                             accountId: finSettings.defaultPayrollExpenseAccountId,
-                            debit: netSalary.toNumber(),
+                            debit: netSal,
                             credit: 0,
                             description: `مصروفات رواتب وأجور - شهر ${month}/${year}`
                         },
                         {
                             accountId: finSettings.defaultPayrollPayableAccountId,
                             debit: 0,
-                            credit: netSalary.toNumber(),
+                            credit: netSal,
                             description: `رواتب مستحقة غير مدفوعة - شهر ${month}/${year}`
                         }
                     ]

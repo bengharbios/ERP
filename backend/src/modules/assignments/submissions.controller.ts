@@ -70,7 +70,7 @@ export const createSubmission = async (req: AuthRequest, res: Response): Promise
                 studentId: enrollment.studentId,
                 studentEnrollmentId: validatedData.studentEnrollmentId,
                 content: validatedData.content,
-                attachments: validatedData.attachments || [],
+                attachments: JSON.stringify(validatedData.attachments || []),
                 remarks: validatedData.remarks,
                 submittedAt: new Date(),
                 finalStatus: 'submitted',
@@ -106,10 +106,10 @@ export const createSubmission = async (req: AuthRequest, res: Response): Promise
                     action: 'SUBMISSION_CREATED',
                     resourceType: 'AssignmentSubmission',
                     resourceId: submission.id,
-                    afterData: {
+                    afterData: JSON.stringify({
                         assignmentId: submission.assignmentId,
                         studentId: enrollment.studentId,
-                    },
+                    }),
                     ipAddress: req.ip,
                     userAgent: req.get('user-agent'),
                 },
@@ -291,9 +291,14 @@ export const updateSubmission = async (req: AuthRequest, res: Response): Promise
             return;
         }
 
+        const dataToUpdate: any = { ...validatedData };
+        if (validatedData.attachments) {
+            dataToUpdate.attachments = JSON.stringify(validatedData.attachments);
+        }
+
         const submission = await prisma.studentAssignment.update({
             where: { id },
-            data: validatedData,
+            data: dataToUpdate,
             include: {
                 assignment: {
                     select: {
@@ -321,8 +326,8 @@ export const updateSubmission = async (req: AuthRequest, res: Response): Promise
                     action: 'SUBMISSION_UPDATED',
                     resourceType: 'AssignmentSubmission',
                     resourceId: submission.id,
-                    beforeData: existing,
-                    afterData: submission,
+                    beforeData: JSON.stringify(existing),
+                    afterData: JSON.stringify(submission),
                     ipAddress: req.ip,
                     userAgent: req.get('user-agent'),
                 },
@@ -422,8 +427,8 @@ export const gradeSubmission = async (req: AuthRequest, res: Response): Promise<
                     action: 'SUBMISSION_GRADED',
                     resourceType: 'AssignmentSubmission',
                     resourceId: submission.id,
-                    beforeData: existing,
-                    afterData: submission,
+                    beforeData: JSON.stringify(existing),
+                    afterData: JSON.stringify(submission),
                     ipAddress: req.ip,
                     userAgent: req.get('user-agent'),
                 },
@@ -491,7 +496,7 @@ export const deleteSubmission = async (req: AuthRequest, res: Response): Promise
                     action: 'SUBMISSION_DELETED',
                     resourceType: 'AssignmentSubmission',
                     resourceId: id,
-                    beforeData: submission,
+                    beforeData: JSON.stringify(submission),
                     ipAddress: req.ip,
                     userAgent: req.get('user-agent'),
                 },

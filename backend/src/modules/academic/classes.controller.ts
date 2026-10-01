@@ -97,7 +97,7 @@ export const createClass = async (req: AuthRequest, res: Response): Promise<void
                 startDate,
                 durationMonths: validatedData.durationMonths,
                 expectedEndDate: initialExpectedEndDate,
-                studyDays: validatedData.studyDays || [],
+                studyDays: JSON.stringify(validatedData.studyDays || []),
                 studyDaysPerWeek: validatedData.studyDays ? validatedData.studyDays.length : 0,
                 lectureStartTime: validatedData.lectureStartTime ? new Date(`1970-01-01T${validatedData.lectureStartTime}:00Z`) : null,
                 lectureEndTime: validatedData.lectureEndTime ? new Date(`1970-01-01T${validatedData.lectureEndTime}:00Z`) : null,
@@ -649,7 +649,7 @@ export const updateClass = async (req: AuthRequest, res: Response): Promise<void
                 const schedule = generateLectureSchedule({
                     startDate: classData.startDate,
                     durationMonths: classData.durationMonths,
-                    studyDays: classData.studyDays,
+                    studyDays: typeof classData.studyDays === 'string' ? JSON.parse(classData.studyDays || '[]') : (classData.studyDays || []),
                     lectureStartTime: classData.lectureStartTime ?
                         classData.lectureStartTime.getUTCHours().toString().padStart(2, '0') + ':' +
                         classData.lectureStartTime.getUTCMinutes().toString().padStart(2, '0') :
@@ -1390,7 +1390,7 @@ export const autoScheduleClass = async (req: AuthRequest, res: Response): Promis
         const schedule = generateLectureSchedule({
             startDate: classData.startDate,
             durationMonths: classData.durationMonths,
-            studyDays: classData.studyDays,
+            studyDays: typeof classData.studyDays === 'string' ? JSON.parse(classData.studyDays || '[]') : (classData.studyDays || []),
             lectureStartTime: classData.lectureStartTime ?
                 classData.lectureStartTime.getUTCHours().toString().padStart(2, '0') + ':' +
                 classData.lectureStartTime.getUTCMinutes().toString().padStart(2, '0') :
