@@ -112,22 +112,113 @@ model AuditLog {
 }
 
 model Tenant {
-  id           String   @id @default(uuid())
-  name         String
-  slug         String   @unique
-  logo         String?
-  domain       String?  @unique
-  country      String   @default("SA")
-  currency     String   @default("SAR")
-  timezone     String   @default("Asia/Riyadh")
-  language     String   @default("ar")
-  isActive     Boolean  @default(true) @map("is_active")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id              String   @id @default(uuid())
+  name            String
+  slug            String   @unique
+  logo            String?
+  domain          String?  @unique
+  country         String   @default("SA")
+  currency        String   @default("SAR")
+  timezone        String   @default("Asia/Riyadh")
+  language        String   @default("ar")
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
-  users        User[]
+  // Subscription fields
+  planId          String?  @map("plan_id")
+  subscriptionStatus String @default("TRIAL") @map("subscription_status")
+  trialEndsAt     DateTime? @map("trial_ends_at")
+  subscriptionEndsAt DateTime? @map("subscription_ends_at")
+  isPaywalled     Boolean  @default(false) @map("is_paywalled")
+
+  users           User[]
+  subscriptions   Subscription[]
+  bankReceipts    BankTransferReceipt[]
+  plan            SubscriptionPlan? @relation(fields: [planId], references: [id])
   
   @@map("tenants")
+}
+
+model SubscriptionPlan {
+  id              String   @id @default(uuid())
+  name            String
+  nameAr          String   @map("name_ar")
+  slug            String   @unique
+  description     String?
+  descriptionAr   String?  @map("description_ar")
+  priceMonthly    Float    @map("price_monthly")
+  priceYearly     Float    @map("price_yearly")
+  currency        String   @default("USD")
+  maxStudents     Int?     @map("max_students")
+  maxUsers        Int?     @map("max_users")
+  features        String   @default("[]")
+  isActive        Boolean  @default(true) @map("is_active")
+  isPopular       Boolean  @default(false) @map("is_popular")
+  sortOrder       Int      @default(0) @map("sort_order")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  tenants         Tenant[]
+  subscriptions   Subscription[]
+
+  @@map("subscription_plans")
+}
+
+model Subscription {
+  id              String   @id @default(uuid())
+  tenantId        String   @map("tenant_id")
+  planId          String   @map("plan_id")
+  status          String   @default("ACTIVE")
+  billingCycle    String   @default("MONTHLY") @map("billing_cycle")
+  amount          Float
+  currency        String   @default("USD")
+  startDate       DateTime @default(now()) @map("start_date")
+  endDate         DateTime @map("end_date")
+  renewalDate     DateTime? @map("renewal_date")
+  canceledAt      DateTime? @map("canceled_at")
+  cancelReason    String?  @map("cancel_reason")
+  paymentMethod   String?  @map("payment_method")
+  paymentRef      String?  @map("payment_ref")
+  invoiceUrl      String?  @map("invoice_url")
+  notes           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plan            SubscriptionPlan @relation(fields: [planId], references: [id])
+  bankReceipts    BankTransferReceipt[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+model BankTransferReceipt {
+  id              String   @id @default(uuid())
+  tenantId        String   @map("tenant_id")
+  subscriptionId  String?  @map("subscription_id")
+  amount          Float
+  currency        String   @default("USD")
+  senderName      String   @map("sender_name")
+  senderBank      String?  @map("sender_bank")
+  transferRef     String?  @map("transfer_ref")
+  transferDate    DateTime? @map("transfer_date")
+  receiptUrl      String?  @map("receipt_url")
+  notes           String?
+  status          String   @default("PENDING")
+  reviewedBy      String?  @map("reviewed_by")
+  reviewedAt      DateTime? @map("reviewed_at")
+  reviewNotes     String?  @map("review_notes")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  subscription    Subscription? @relation(fields: [subscriptionId], references: [id])
+
+  @@index([tenantId])
+  @@index([status])
+  @@map("bank_transfer_receipts")
 }
 
 model SuperAdmin {

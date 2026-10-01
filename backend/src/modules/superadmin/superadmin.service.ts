@@ -489,29 +489,142 @@ export class SuperAdminService {
 
   async getSubscriptions() {
     const data = this.loadData();
-    return {
-      tenants: data.tenants,
-      receipts: data.receipts,
-      plans: data.plans,
-    };
+
+    // Query live receipts from DB
+    try {
+      const dbReceipts = await prisma.bankTransferReceipt.findMany({
+        include: { tenant: true },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      const formattedDbReceipts = dbReceipts.map(r => ({
+        id: r.id,
+        tenantId: r.tenantId,
+        tenantName: r.tenant?.name || 'معهد غير محدد',
+        plan: 'PRO',
+        amount: r.amount,
+        currency: r.currency || 'USD',
+        senderName: r.senderName,
+        senderBank: r.senderBank || 'تحويل بنكي',
+        referenceNumber: r.transferRef || '',
+        receiptUrl: r.receiptUrl || 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&auto=format&fit=crop',
+        status: r.status as any,
+        createdAt: r.createdAt.toISOString(),
+      }));
+
+      // Combine DB receipts with any unique local mock receipts
+      const mergedReceipts = [
+        ...formattedDbReceipts,
+        ...data.receipts.filter(lr => !formattedDbReceipts.some(dr => dr.id === lr.id))
+      ];
+
+      // Also get real tenants from DB
+      const dbTenants = await prisma.tenant.findMany({
+        include: { plan: true, users: true }
+      });
+      const formattedTenants = dbTenants.map(t => ({
+        id: t.id,
+        name: t.name,
+        slug: t.slug,
+        logo: t.logo || '',
+        adminName: t.users[0] ? `${t.users[0].firstName} ${t.users[0].lastName}` : 'مدير المعهد',
+        adminEmail: t.users[0]?.email || '',
+        phone: t.users[0]?.phone || '',
+        plan: t.plan?.slug?.toUpperCase() || 'STARTER',
+        status: t.subscriptionStatus || (t.isActive ? 'ACTIVE' : 'SUSPENDED'),
+        billingCycle: 'MONTHLY',
+        studentCount: 0,
+        userCount: t.users.length,
+        createdAt: t.createdAt.toISOString().split('T')[0],
+        renewDate: t.subscriptionEndsAt ? t.subscriptionEndsAt.toISOString().split('T')[0] : '2026-12-31',
+      }));
+
+      return {
+        tenants: formattedTenants.length > 0 ? formattedTenants : data.tenants,
+        receipts: mergedReceipts,
+        plans: data.plans,
+      };
+    } catch (e) {
+      console.warn('Could not fetch DB receipts/tenants, falling back to local data:', e);
+      return {
+        tenants: data.tenants,
+        receipts: data.receipts,
+        plans: data.plans,
+      };
+    }
   }
 
   async reviewReceipt(receiptId: string, status: 'APPROVED' | 'REJECTED', note?: string) {
     const data = this.loadData();
+    const noteText = note || (status === 'APPROVED' ? 'تم تأكيد وصول الحوالة واعتماد الباقة' : 'تعذر مطابقة الحوالة');
+
+    // 1. Try to find and update in Prisma DB
+    try {
+      const dbReceipt = await prisma.bankTransferReceipt.findUnique({
+        where: { id: receiptId },
+        include: { tenant: true }
+      });
+
+      if (dbReceipt) {
+        const updated = await prisma.bankTransferReceipt.update({
+          where: { id: receiptId },
+          data: {
+            status,
+            reviewedAt: new Date(),
+            reviewNotes: noteText,
+          }
+        });
+
+        if (status === 'APPROVED') {
+          // Extend subscription for tenant
+          const newEndDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+          await prisma.tenant.update({
+            where: { id: dbReceipt.tenantId },
+            data: {
+              subscriptionStatus: 'ACTIVE',
+              subscriptionEndsAt: newEndDate,
+              isPaywalled: false,
+            }
+          });
+
+          // Create active subscription entry
+          const defaultPlan = await prisma.subscriptionPlan.findFirst();
+          if (defaultPlan) {
+            await prisma.subscription.create({
+              data: {
+                tenantId: dbReceipt.tenantId,
+                planId: defaultPlan.id,
+                status: 'ACTIVE',
+                amount: dbReceipt.amount,
+                currency: dbReceipt.currency || 'USD',
+                endDate: newEndDate,
+                paymentMethod: 'BANK_TRANSFER',
+                paymentRef: dbReceipt.transferRef,
+                notes: noteText,
+              }
+            });
+          }
+        }
+
+        return updated;
+      }
+    } catch (e) {
+      console.warn('DB update failed in reviewReceipt, checking local storage:', e);
+    }
+
+    // 2. Fallback to local storage
     const receipt = data.receipts.find((r) => r.id === receiptId);
     if (!receipt) throw new Error('Receipt not found');
 
     receipt.status = status;
     receipt.reviewedAt = new Date().toISOString();
-    receipt.reviewNote = note || (status === 'APPROVED' ? 'تم تأكيد وصول الحوالة واعتماد الباقة' : 'تعذر مطابقة الحوالة');
+    receipt.reviewNote = noteText;
 
-    // If approved, update the tenant's plan & status
     if (status === 'APPROVED') {
       const tenant = data.tenants.find((t) => t.id === receipt.tenantId);
       if (tenant) {
         tenant.status = 'ACTIVE';
         tenant.plan = receipt.plan;
-        // Extend renewal date by 1 month or 1 year
         const renew = new Date();
         renew.setDate(renew.getDate() + 30);
         tenant.renewDate = renew.toISOString().split('T')[0];

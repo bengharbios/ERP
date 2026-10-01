@@ -84,7 +84,9 @@ import SuperAdminPlans from './pages/superadmin/SuperAdminPlans';
 import SuperAdminSettings from './pages/superadmin/SuperAdminSettings';
 import InstituteLogin from './pages/InstituteLogin';
 import InstituteDashboard from './pages/InstituteDashboard';
+import InstituteBilling from './pages/InstituteBilling';
 import LandingPage from './pages/LandingPage';
+import PaywallBanner from './components/PaywallBanner';
 
 // Switches Dashboard based on active template — auto, zero-config
 function DashboardSwitcher() {
@@ -253,6 +255,7 @@ function App() {
 
     return (
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <PaywallBanner />
             <Routes>
                 {/* Public Routes */}
                 <Route
@@ -817,6 +820,26 @@ function App() {
                 {/* Institute Portal Routes */}
                 <Route path="/institute/login" element={<InstituteLogin />} />
                 <Route path="/institute/dashboard" element={<InstituteDashboard />} />
+                <Route
+                    path="/institute/billing"
+                    element={
+                        <ProtectedRoute>
+                            <LayoutProvider>
+                                <InstituteBilling />
+                            </LayoutProvider>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/billing"
+                    element={
+                        <ProtectedRoute>
+                            <LayoutProvider>
+                                <InstituteBilling />
+                            </LayoutProvider>
+                        </ProtectedRoute>
+                    }
+                />
                 <Route path="/institute" element={<Navigate to="/institute/login" replace />} />
 
                 {/* Public & Landing Routes */}

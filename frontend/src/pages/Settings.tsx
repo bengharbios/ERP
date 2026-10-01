@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { settingsService, AwardingBodyConfig, UpdateSystemSettingsRequest } from '../services/settings.service';
 import { databaseService } from '../services/database.service';
 import accountService from '../services/account.service';
@@ -8,6 +9,7 @@ import { useSettingsStore } from '../store/settingsStore';
 import { COUNTRIES } from '../utils/countries';
 
 export default function Settings() {
+    const navigate = useNavigate();
     const { settings, fetchSettings, updateSettings } = useSettingsStore();
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -442,6 +444,18 @@ export default function Settings() {
                 { value: formData.reportFont || 'Tajawal', label: 'الخط' },
                 { value: formData.reportWatermarkType === 'none' ? 'لا يوجد' : 'نشط', label: 'العلامة', highlight: true }
             ]
+        },
+        {
+            id: 'billing',
+            code: 'اشتراكات',
+            icon: '💳',
+            title: 'الاشتراك والفوترة السحابية',
+            subtitle: 'ترقية الباقة، التحويل البنكي، وتحميل الفواتير الرسمية',
+            stats: [
+                { value: 'SaaS', label: 'النوع' },
+                { value: 'إدارة', label: 'الحالة', highlight: true }
+            ],
+            onClick: () => navigate('/institute/billing')
         }
     ];
 

@@ -67,7 +67,7 @@ export const getSettings = async (req: Request, res: Response): Promise<void> =>
 /**
  * Update system settings
  */
-export const updateSettings = async (req: Request, res: Response): Promise<void> => {
+export const updateSettings = async (req: Request, res: Response): Promise<any> => {
     try {
         const data = req.body;
 
