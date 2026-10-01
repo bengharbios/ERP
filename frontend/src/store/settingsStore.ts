@@ -6,9 +6,12 @@ const TEMPLATE_CACHE_KEY = 'rd_active_template';
 const THEME_KEY = 'rd_theme';
 
 const getInitialTheme = (): 'dark' | 'light' => {
-    const stored = localStorage.getItem(THEME_KEY) as 'dark' | 'light';
-    if (stored) return stored;
-    return 'dark'; // Default to dark as per Rapid Horizon 2030 design
+    const stored = (typeof localStorage !== 'undefined' ? localStorage.getItem(THEME_KEY) : null) as 'dark' | 'light';
+    const initial = stored || 'dark';
+    if (typeof document !== 'undefined') {
+        document.documentElement.setAttribute('data-theme', initial);
+    }
+    return initial;
 };
 
 interface SettingsState {

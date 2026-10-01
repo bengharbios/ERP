@@ -90,12 +90,19 @@ export function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
     setDropdownOpen(false);
   }, [pathname]);
 
+  // Ensure data-theme attribute is strictly synchronized on documentElement and container
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+  }, [theme]);
+
   const activeItem = SUPER_ADMIN_LINKS.find(
     (item) => pathname === item.path || pathname.startsWith(item.path + '/')
   );
 
   return (
-    <div className="hz-root sa-root">
+    <div className="hz-root sa-root" data-theme={theme}>
       <div className="hz-app">
         {/* Topbar matching Rapidos Horizon style */}
         <header className="hz-topbar">
