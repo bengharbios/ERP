@@ -163,4 +163,24 @@ export const superAdminService = {
     const res = await apiClient.put<PlatformSettingsData>('/superadmin/settings', settings);
     return res.data;
   },
+
+  impersonateTenant: async (tenantId: string): Promise<{
+    token: string;
+    user: {
+      id: string;
+      username: string;
+      email: string;
+      firstName: string | null;
+      lastName: string | null;
+      tenantId: string;
+      tenantName: string;
+      tenantSlug: string;
+      role: string;
+      impersonated: boolean;
+    };
+    tenant: { id: string; name: string; slug: string };
+  }> => {
+    const res = await apiClient.post(`/superadmin/tenants/${tenantId}/impersonate`, {});
+    return (res as any).data;
+  },
 };

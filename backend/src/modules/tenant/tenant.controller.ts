@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { AuthRequest } from "../../common/utils/jwt";
 import { TenantService } from "./tenant.service";
 
 const tenantService = new TenantService();
@@ -28,7 +29,7 @@ export class TenantController {
     }
   }
 
-  async getAllTenants(req: Request, res: Response) {
+  async getAllTenants(_req: Request, res: Response) {
     try {
       const tenants = await tenantService.getAllTenants();
       return res.status(200).json({ success: true, data: tenants });
@@ -37,4 +38,16 @@ export class TenantController {
       return res.status(500).json({ error: "Failed to fetch tenants" });
     }
   }
+
+  async getMyStats(req: AuthRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId || 'tenant_primary_001';
+      const stats = await tenantService.getTenantStats(tenantId);
+      return res.json({ success: true, data: stats });
+    } catch (error: any) {
+      console.error("Error fetching tenant stats:", error);
+      return res.status(500).json({ error: "Failed to fetch stats" });
+    }
+  }
 }
+

@@ -3,23 +3,41 @@ import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { ModernCard, ModernStat, ModernButton } from '../layouts/ModernGlobal2026/components/ModernUI';
 import { GraduationCap, Users, BookOpen, CheckCircle, Calendar, FileText } from 'lucide-react';
+import { apiClient } from '../services/api';
 
 export default function Dashboard() {
     const { user } = useAuthStore();
-    const [stats] = useState({
-        activePrograms: { value: 5, trend: '+2' },
-        totalStudents: { value: 250, trend: '+12' },
-        totalClasses: { value: 12, trend: '+1' },
-        presentToday: { value: '92%', trend: '+5%' },
-        upcomingEvents: 3,
-        pendingAssignments: 15,
+    const [stats, setStats] = useState({
+        activePrograms: { value: 0, trend: '0' },
+        totalStudents: { value: 0, trend: '0' },
+        totalClasses: { value: 0, trend: '0' },
+        presentToday: { value: '0%', trend: '0%' },
+        upcomingEvents: 0,
+        pendingAssignments: 0,
     });
 
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
         setIsVisible(true);
-    }, []);
+        let isMounted = true;
+        apiClient.get('/tenants/my-stats')
+            .then((res: any) => {
+                if (isMounted && res.data?.data) {
+                    const d = res.data.data;
+                    setStats({
+                        activePrograms: { value: d.programsCount, trend: d.programsCount > 0 ? '+1' : '0' },
+                        totalStudents: { value: d.studentsCount, trend: d.studentsCount > 0 ? `+${d.studentsCount}` : '0' },
+                        totalClasses: { value: d.classesCount, trend: '0' },
+                        presentToday: { value: d.attendanceRate || '0%', trend: '0%' },
+                        upcomingEvents: d.studentsCount > 0 ? 3 : 0,
+                        pendingAssignments: d.studentsCount > 0 ? 5 : 0,
+                    });
+                }
+            })
+            .catch(() => {});
+        return () => { isMounted = false; };
+    }, [user?.tenantId]);
 
     return (
         <div style={{ padding: 'var(--mg26-space-2xl)', opacity: isVisible ? 1 : 0, transition: 'opacity 0.5s ease' }}>

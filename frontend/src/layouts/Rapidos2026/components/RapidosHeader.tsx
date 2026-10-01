@@ -179,7 +179,12 @@ export function HorizonTopbar() {
     const { settings, theme, toggleTheme } = useSettingsStore();
     const user = useAuthStore((state) => state.user);
     const logout = useAuthStore((state) => state.logout);
-    const instituteName = settings?.instituteName || 'معهد سلام';
+    const isImpersonating = useAuthStore((state) => state.isImpersonating);
+    const restoreSuperAdmin = useAuthStore((state) => state.restoreSuperAdmin);
+    // When impersonating, show the tenant name instead of institute settings name
+    const instituteName = isImpersonating && user?.tenantName
+        ? user.tenantName
+        : (settings?.instituteName || 'معهد سلام');
     const [openSection, setOpenSection] = useState<string | null>(null);
     const [searchVal, setSearchVal] = useState('');
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -208,6 +213,57 @@ export function HorizonTopbar() {
 
     return (
         <>
+            {/* ══ Impersonation Banner ══ */}
+            {isImpersonating && (
+                <div style={{
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 600,
+                    background: 'linear-gradient(90deg, #F59E0B 0%, #D97706 100%)',
+                    color: '#1C1917',
+                    padding: '8px 24px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    fontFamily: 'Cairo, Inter, sans-serif',
+                    boxShadow: '0 2px 12px rgba(245, 158, 11, 0.5)',
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '1.1rem' }}>👁️‍🗨️</span>
+                        <span>
+                            أنت تتصفح الآن بصفتك مدير معهد:
+                            <strong style={{ marginRight: '6px', marginLeft: '6px' }}>
+                                {user?.tenantName || user?.username}
+                            </strong>
+                            — جلسة الدخول بالنيابة نشطة
+                        </span>
+                    </div>
+                    <button
+                        onClick={restoreSuperAdmin}
+                        style={{
+                            background: '#1C1917',
+                            color: '#FCD34D',
+                            border: 'none',
+                            padding: '5px 14px',
+                            borderRadius: '8px',
+                            fontWeight: 700,
+                            fontSize: '0.82rem',
+                            cursor: 'pointer',
+                            fontFamily: 'inherit',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            whiteSpace: 'nowrap',
+                        }}
+                    >
+                        <span>👑</span>
+                        <span>العودة لسوبر أدمن</span>
+                    </button>
+                </div>
+            )}
             <header className="hz-topbar">
                 <button className="hz-hamburger" onClick={() => setMobileOpen(v => !v)} aria-label="القائمة">
                     {mobileOpen ? <X size={20} /> : <Menu size={20} />}

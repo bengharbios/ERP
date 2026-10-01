@@ -17,7 +17,10 @@ export const createStudent = async (req: AuthRequest, res: Response): Promise<vo
         // Auto-generate student number if not provided
         if (!validatedData.studentNumber) {
             const currentYear = new Date().getFullYear();
-            const count = await prisma.student.count();
+            const tenantId = req.user?.tenantId || 'tenant_primary_001';
+            const count = await prisma.student.count({
+                where: { user: { tenantId } }
+            });
             validatedData.studentNumber = `S${currentYear}${String(count + 1).padStart(4, '0')}`; // e.g., S20260001
         }
 
@@ -43,8 +46,6 @@ export const createStudent = async (req: AuthRequest, res: Response): Promise<vo
         }
 
         // Create student with User account
-        // Create student with User account
-
         const defaultPassword = await hashPassword('Student@123'); // Default password
         const userEmail = validatedData.email || `${validatedData.studentNumber!.toLowerCase()}@institute.local`;
 
@@ -100,6 +101,7 @@ export const createStudent = async (req: AuthRequest, res: Response): Promise<vo
                         lastName: validatedData.lastNameEn,
                         phone: validatedData.phone, // Pass phone from validatedData
                         isActive: true,
+                        tenantId: req.user?.tenantId || 'tenant_primary_001',
                     }
                 }
             },
@@ -417,8 +419,12 @@ export const createStudent = async (req: AuthRequest, res: Response): Promise<vo
 export const getStudents = async (req: Request, res: Response): Promise<void> => {
     try {
         const { status, search, classId } = req.query;
+        const tenantId = (req as AuthRequest).user?.tenantId;
 
         const where: any = {};
+        if (tenantId) {
+            where.user = { tenantId };
+        }
         if (status) where.status = (status as string).toLowerCase();
 
         // Search by name or student number

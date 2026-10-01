@@ -9,6 +9,12 @@ export interface User {
     phone?: string;
     profilePicture?: string;
     role?: string;
+    roles?: string[];
+    permissions?: string[];
+    tenantId?: string | null;
+    tenantName?: string;
+    tenantSlug?: string;
+    impersonated?: boolean;
 }
 
 export interface LoginRequest {

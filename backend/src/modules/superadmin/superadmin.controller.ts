@@ -47,6 +47,15 @@ export class SuperAdminController {
     }
   }
 
+  async impersonateTenant(req: Request, res: Response) {
+    try {
+      const result = await superAdminService.impersonateTenant(req.params.id);
+      return res.json({ success: true, data: result });
+    } catch (err: any) {
+      return res.status(400).json({ success: false, error: err.message });
+    }
+  }
+
   async getSubscriptions(_req: Request, res: Response) {
     try {
       const data = await superAdminService.getSubscriptions();

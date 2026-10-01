@@ -10,6 +10,8 @@ import {
     HzStatsGrid, HzStat, HzBadge, HzBtn, HzSectionLabel
 } from '../layouts/Rapidos2026/components/RapidosUI';
 import { useNavigate } from 'react-router-dom';
+import { apiClient } from '../services/api';
+import { useAuthStore } from '../store/authStore';
 
 /* ══════════════════════════════════════════
    QUICK ACTIONS
@@ -79,9 +81,41 @@ function MetricCard({ icon, value, label, sub, color, glow, delay = 0 }: any) {
 ══════════════════════════════════════════ */
 export default function Dashboard() {
     const navigate = useNavigate();
+    const user = useAuthStore((s) => s.user);
     const now = new Date();
     const hour = now.getHours();
     const greeting = hour < 12 ? 'صباح الخير' : hour < 17 ? 'مساء الخير' : 'مساء النور';
+
+    const [stats, setStats] = useState({
+        studentsCount: 0,
+        programsCount: 0,
+        employeesCount: 0,
+        monthlyRevenue: 0,
+        classesCount: 0,
+        attendanceRate: '0%',
+        regularityRate: '0%',
+        loading: true,
+    });
+
+    useEffect(() => {
+        let isMounted = true;
+        apiClient.get('/tenants/my-stats')
+            .then((res: any) => {
+                if (isMounted && res.data?.data) {
+                    setStats({
+                        ...res.data.data,
+                        loading: false,
+                    });
+                }
+            })
+            .catch((err) => {
+                console.warn('Could not fetch tenant stats, using fallback:', err);
+                if (isMounted) setStats((s) => ({ ...s, loading: false }));
+            });
+        return () => { isMounted = false; };
+    }, [user?.tenantId]);
+
+    const instituteTitle = user?.tenantName || 'المعهد';
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
@@ -92,10 +126,10 @@ export default function Dashboard() {
                     <div className="hz-welcome-greeting">
                         <span className="hz-welcome-icon">⚡</span>
                         <div>
-                            <h1 className="hz-welcome-title">{greeting}، مرحباً بك</h1>
+                            <h1 className="hz-welcome-title">{greeting}، مرحباً بك في {instituteTitle}</h1>
                             <p className="hz-welcome-sub">
                                 {now.toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                                {' · '}نظام Horizon ERP 2030
+                                {' · '}نظام Horizon ERP السحابي
                             </p>
                         </div>
                     </div>
@@ -118,10 +152,42 @@ export default function Dashboard() {
             <section>
                 <HzSectionLabel>المؤشرات الرئيسية</HzSectionLabel>
                 <div className="hz-metrics-grid">
-                    <MetricCard icon={<GraduationCap size={22} />} value={847} label="إجمالي الطلاب" sub="↑ 12% الشهر الماضي" color="var(--hz-cyan)" glow="var(--hz-cyan-glow)" delay={0} />
-                    <MetricCard icon={<BookOpen size={22} />} value={24} label="البرامج النشطة" color="var(--hz-gold)" glow="var(--hz-gold-glow)" delay={80} />
-                    <MetricCard icon={<Wallet size={22} />} value={284500} label="الإيرادات الشهرية (ر.س)" color="var(--hz-neon)" glow="var(--hz-neon-glow)" delay={160} />
-                    <MetricCard icon={<Users size={22} />} value={63} label="الموظفون الفعليون" color="var(--hz-plasma)" glow="var(--hz-plasma-glow)" delay={240} />
+                    <MetricCard 
+                        icon={<GraduationCap size={22} />} 
+                        value={stats.studentsCount} 
+                        label="إجمالي الطلاب" 
+                        sub={stats.studentsCount > 0 ? "طلاب مقيدون بالنظام" : "لا يوجد طلاب مسجلون حتى الآن"} 
+                        color="var(--hz-cyan)" 
+                        glow="var(--hz-cyan-glow)" 
+                        delay={0} 
+                    />
+                    <MetricCard 
+                        icon={<BookOpen size={22} />} 
+                        value={stats.programsCount} 
+                        label="البرامج النشطة" 
+                        sub={stats.programsCount > 0 ? "برامج تدريبية نشطة" : "لم يتم إضافة برامج بعد"} 
+                        color="var(--hz-gold)" 
+                        glow="var(--hz-gold-glow)" 
+                        delay={80} 
+                    />
+                    <MetricCard 
+                        icon={<Wallet size={22} />} 
+                        value={stats.monthlyRevenue} 
+                        label="إجمالي الإيرادات (ر.س)" 
+                        sub={stats.monthlyRevenue > 0 ? "إجمالي الدفعات المسجلة" : "0 ر.س محصلة"} 
+                        color="var(--hz-neon)" 
+                        glow="var(--hz-neon-glow)" 
+                        delay={160} 
+                    />
+                    <MetricCard 
+                        icon={<Users size={22} />} 
+                        value={stats.employeesCount} 
+                        label="الموظفون الفعليون" 
+                        sub={stats.employeesCount > 0 ? "طاقم العمل" : "لا يوجد موظفين مسجلين"} 
+                        color="var(--hz-plasma)" 
+                        glow="var(--hz-plasma-glow)" 
+                        delay={240} 
+                    />
                 </div>
             </section>
 
@@ -175,10 +241,10 @@ export default function Dashboard() {
                 <HzSectionLabel>نظرة عامة على الأقسام</HzSectionLabel>
                 <div className="hz-sections-grid">
                     {[
-                        { label: 'الأكاديمية', sub: '847 طالب · 24 برنامج · 63 فصل', color: 'var(--hz-cyan)', path: '/programs', icon: GraduationCap, stat: '94%', statLabel: 'نسبة الحضور' },
-                        { label: 'المالية', sub: 'إيرادات · رواتب · مصروفات', color: 'var(--hz-neon)', path: '/fees', icon: Wallet, stat: '284K', statLabel: 'إيرادات الشهر' },
-                        { label: 'الموارد البشرية', sub: '63 موظف · 5 أقسام · حضور يومي', color: 'var(--hz-gold)', path: '/hr-dashboard', icon: UserCheck, stat: '97%', statLabel: 'نسبة الانتظام' },
-                        { label: 'التسويق والتواصل', sub: 'عملاء · عروض · حملات · واتساب', color: 'var(--hz-plasma)', path: '/crm', icon: TrendingUp, stat: '38', statLabel: 'عميل محتمل' },
+                        { label: 'الأكاديمية', sub: `${stats.studentsCount} طالب · ${stats.programsCount} برنامج · ${stats.classesCount} فصل`, color: 'var(--hz-cyan)', path: '/programs', icon: GraduationCap, stat: stats.attendanceRate, statLabel: 'نسبة الحضور' },
+                        { label: 'المالية', sub: 'إيرادات · رسوم · متحصلات', color: 'var(--hz-neon)', path: '/fees', icon: Wallet, stat: `${stats.monthlyRevenue.toLocaleString()} ر.س`, statLabel: 'المحصل' },
+                        { label: 'الموارد البشرية', sub: `${stats.employeesCount} موظف`, color: 'var(--hz-gold)', path: '/hr-dashboard', icon: UserCheck, stat: stats.regularityRate, statLabel: 'نسبة الانتظام' },
+                        { label: 'التسويق والتواصل', sub: 'عملاء · عروض · استقطاب', color: 'var(--hz-plasma)', path: '/crm', icon: TrendingUp, stat: 'نشط', statLabel: 'حالة الاستقطاب' },
                     ].map((sec, i) => (
                         <div
                             key={sec.label}

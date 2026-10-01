@@ -11,6 +11,7 @@ router.get('/tenants', (req, res) => superAdminController.getTenants(req, res));
 router.post('/tenants', (req, res) => superAdminController.addTenant(req, res));
 router.patch('/tenants/:id', (req, res) => superAdminController.updateTenant(req, res));
 router.delete('/tenants/:id', (req, res) => superAdminController.deleteTenant(req, res));
+router.post('/tenants/:id/impersonate', (req, res) => superAdminController.impersonateTenant(req, res));
 
 // Subscriptions & Bank Receipts
 router.get('/subscriptions', (req, res) => superAdminController.getSubscriptions(req, res));

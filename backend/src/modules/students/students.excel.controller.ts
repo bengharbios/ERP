@@ -6,7 +6,14 @@ import { hashPassword } from '../../common/utils/password';
 
 export const exportStudentsToExcel = async (req: Request, res: Response): Promise<void> => {
     try {
+        const tenantId = (req as AuthRequest).user?.tenantId;
+        const where: any = {};
+        if (tenantId) {
+            where.user = { tenantId };
+        }
+
         const students = await prisma.student.findMany({
+            where,
             include: {
                 user: {
                     select: {

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { superAdminService, TenantItem } from '../../services/superAdminService';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../../store/authStore';
 
 export default function SuperAdminTenants() {
   const [tenants, setTenants] = useState<TenantItem[]>([]);
@@ -23,7 +24,38 @@ export default function SuperAdminTenants() {
   const [showCredentials, setShowCredentials] = useState<null | { username: string; email: string; password: string; name: string }>(null);
   const [copied, setCopied] = useState('');
 
+  const [impersonatingId, setImpersonatingId] = useState<string | null>(null);
   const navigate = useNavigate();
+  const impersonate = useAuthStore((state) => state.impersonate);
+
+  const handleEnterTenant = async (tenant: TenantItem) => {
+    try {
+      setImpersonatingId(tenant.id);
+      const result = await superAdminService.impersonateTenant(tenant.id);
+      // Switch session to tenant admin
+      impersonate(
+        {
+          id: result.user.id,
+          username: result.user.username,
+          email: result.user.email,
+          firstName: result.user.firstName || undefined,
+          lastName: result.user.lastName || undefined,
+          role: result.user.role,
+          tenantId: result.user.tenantId,
+          tenantName: result.user.tenantName,
+          tenantSlug: result.user.tenantSlug,
+          impersonated: true,
+        },
+        result.token
+      );
+      // Navigate to tenant dashboard
+      navigate('/dashboard');
+    } catch (err: any) {
+      alert('حدث خطأ أثناء الدخول للمعهد: ' + (err?.message || err));
+    } finally {
+      setImpersonatingId(null);
+    }
+  };
 
   useEffect(() => {
     loadTenants();

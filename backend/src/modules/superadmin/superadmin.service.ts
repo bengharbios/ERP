@@ -2,6 +2,7 @@ import prisma from '../../common/db/prisma';
 import * as bcrypt from 'bcrypt';
 import * as fs from 'fs';
 import * as path from 'path';
+import { generateAccessToken } from '../../common/utils/jwt';
 import {
   TenantData,
   BankReceiptData,
@@ -384,6 +385,89 @@ export class SuperAdminService {
       status: 'ACTIVE',
       plan: tenantInput.plan || 'FREE',
       createdAt: result.tenant.createdAt.toISOString()
+    };
+  }
+
+  async impersonateTenant(tenantId: string) {
+    // 1. Find tenant in DB or fallback in storage
+    let tenant = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+      include: { users: true }
+    });
+
+    if (!tenant) {
+      const data = this.loadData();
+      const localTenant = data.tenants.find(t => t.id === tenantId);
+      if (localTenant) {
+        tenant = await prisma.tenant.create({
+          data: {
+            id: localTenant.id,
+            name: localTenant.name,
+            slug: localTenant.slug,
+            isActive: true,
+          },
+          include: { users: true }
+        });
+      }
+    }
+
+    if (!tenant) {
+      throw new Error('المعهد المحدد غير موجود');
+    }
+
+    // 2. Find or create admin user for this tenant
+    let adminUser = tenant.users && tenant.users.length > 0 ? tenant.users[0] : null;
+
+    if (!adminUser) {
+      adminUser = await prisma.user.findFirst({
+        where: { tenantId: tenant.id }
+      });
+    }
+
+    if (!adminUser) {
+      const saltRounds = 10;
+      const passwordHash = await bcrypt.hash('12345678', saltRounds);
+      adminUser = await prisma.user.create({
+        data: {
+          username: `admin_${tenant.slug}`,
+          email: `admin@${tenant.slug}.edu`,
+          passwordHash,
+          firstName: 'مدير',
+          lastName: tenant.name,
+          tenantId: tenant.id,
+          isActive: true
+        }
+      });
+    }
+
+    // 3. Generate access token with tenantId and Admin role
+    const token = generateAccessToken({
+      userId: adminUser.id,
+      username: adminUser.username,
+      email: adminUser.email,
+      tenantId: tenant.id,
+      role: 'Admin'
+    });
+
+    return {
+      token,
+      user: {
+        id: adminUser.id,
+        username: adminUser.username,
+        email: adminUser.email,
+        firstName: adminUser.firstName,
+        lastName: adminUser.lastName,
+        tenantId: tenant.id,
+        tenantName: tenant.name,
+        tenantSlug: tenant.slug,
+        role: 'Admin',
+        impersonated: true
+      },
+      tenant: {
+        id: tenant.id,
+        name: tenant.name,
+        slug: tenant.slug
+      }
     };
   }
 
