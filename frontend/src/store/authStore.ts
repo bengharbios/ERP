@@ -92,6 +92,10 @@ export const useAuthStore = create<AuthState>()(
                                 impersonated: state.isImpersonating,
                                 tenantName: res.data.user.tenantName || state.user?.tenantName,
                                 tenantSlug: res.data.user.tenantSlug || state.user?.tenantSlug,
+                                // Keep tenantModules from login response unless server sends fresh ones
+                                tenantModules: res.data.user.tenantModules?.length
+                                    ? res.data.user.tenantModules
+                                    : state.user?.tenantModules,
                             }
                         });
                     }

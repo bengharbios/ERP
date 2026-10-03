@@ -177,7 +177,16 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         const userWithRoles = await prisma.user.findUnique({
             where: { id: user.id },
             include: {
-                tenant: true,
+                tenant: {
+                    select: {
+                        id: true,
+                        name: true,
+                        slug: true,
+                        isActive: true,
+                        activeModules: true,
+                        plan: { select: { features: true } }
+                    }
+                },
                 userRoles: {
                     include: {
                         role: {
@@ -200,13 +209,25 @@ export const login = async (req: Request, res: Response): Promise<void> => {
             ur.role.rolePermissions.map((rp) => `${rp.permission.action}_${rp.permission.resource}`)
         ) || [];
 
-        // Generate tokens with tenantId & role
+        // Resolve tenant modules
+        let tenantModules: string[] = [];
+        if (userWithRoles?.tenant?.activeModules) {
+            try { tenantModules = (JSON.parse(userWithRoles.tenant.activeModules) as string[]).map(m => m.toLowerCase()); } catch {}
+        } else if (userWithRoles?.tenant?.plan?.features) {
+            try {
+                const pf = JSON.parse(userWithRoles.tenant.plan.features);
+                if (Array.isArray(pf)) tenantModules = pf;
+            } catch {}
+        }
+
+        // Generate tokens with tenantId, role & modules
         const tokenPayload = {
             userId: user.id,
             username: user.username,
             email: user.email,
             tenantId: user.tenantId,
             role: primaryRole,
+            tenantModules,
         };
 
         const accessToken = generateAccessToken(tokenPayload);
@@ -243,6 +264,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
                     roles,
                     permissions,
                     tenantId: user.tenantId,
+                    tenantModules,
                     tenantName: userWithRoles?.tenant?.name,
                     tenantSlug: userWithRoles?.tenant?.slug,
                 },
@@ -331,7 +353,15 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
         const user = await prisma.user.findUnique({
             where: { id: req.user.id },
             include: {
-                tenant: true,
+                tenant: {
+                    select: {
+                        id: true,
+                        name: true,
+                        slug: true,
+                        activeModules: true,
+                        plan: { select: { features: true } }
+                    }
+                },
                 userRoles: {
                     include: {
                         role: {
@@ -365,6 +395,17 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
             ur.role.rolePermissions.map((rp) => `${rp.permission.action}_${rp.permission.resource}`)
         ) || [];
 
+        // Resolve tenant modules
+        let tenantModules: string[] = [];
+        if (user.tenant?.activeModules) {
+            try { tenantModules = (JSON.parse(user.tenant.activeModules) as string[]).map(m => m.toLowerCase()); } catch {}
+        } else if (user.tenant?.plan?.features) {
+            try {
+                const pf = JSON.parse(user.tenant.plan.features);
+                if (Array.isArray(pf)) tenantModules = (pf as string[]).map(m => m.toLowerCase());
+            } catch {}
+        }
+
         res.json({
             success: true,
             data: { 
@@ -384,6 +425,7 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
                     roles,
                     permissions,
                     tenantId: user.tenantId,
+                    tenantModules,
                     tenantName: user.tenant?.name,
                     tenantSlug: user.tenant?.slug,
                 }
@@ -531,7 +573,16 @@ export const instituteLogin = async (req: Request, res: Response): Promise<void>
                 ]
             },
             include: {
-                tenant: { select: { id: true, name: true, slug: true, isActive: true } },
+                tenant: {
+                    select: {
+                        id: true,
+                        name: true,
+                        slug: true,
+                        isActive: true,
+                        activeModules: true,
+                        plan: { select: { features: true } }
+                    }
+                },
                 userRoles: {
                     include: {
                         role: {
@@ -582,13 +633,27 @@ export const instituteLogin = async (req: Request, res: Response): Promise<void>
             ur.role.rolePermissions.map(rp => `${rp.permission.action}_${rp.permission.resource}`)
         );
 
-        // Build token payload WITH tenantId
+        // Resolve active modules:
+        // Priority: tenant.activeModules (custom override) → plan.features → empty
+        let tenantModules: string[] = [];
+        if (user.tenant?.activeModules) {
+            try { tenantModules = (JSON.parse(user.tenant.activeModules) as string[]).map(m => m.toLowerCase()); } catch {}
+        } else if (user.tenant?.plan?.features) {
+            try {
+                const planFeatures = JSON.parse(user.tenant.plan.features);
+                // planFeatures may be string[] of module IDs e.g. ["academic","finance"]
+                if (Array.isArray(planFeatures)) tenantModules = (planFeatures as string[]).map(m => m.toLowerCase());
+            } catch {}
+        }
+
+        // Build token payload WITH tenantId + modules
         const tokenPayload = {
             userId: user.id,
             username: user.username,
             email: user.email,
             tenantId: user.tenantId,
             role: primaryRole,
+            tenantModules,
         };
 
         const accessToken = generateAccessToken(tokenPayload);
@@ -613,6 +678,7 @@ export const instituteLogin = async (req: Request, res: Response): Promise<void>
                     roles,
                     permissions,
                     tenantId: user.tenantId,
+                    tenantModules,   // ← Feature Gating modules
                     tenant: user.tenant ? {
                         id: user.tenant.id,
                         name: user.tenant.name,

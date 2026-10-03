@@ -9,7 +9,9 @@
         ".wwebjs_cache",
         "dist",
         "*.test.ts",
-        "prisma/migrations"
+        "prisma/migrations",
+        "src/modules/superadmin/superadmin_storage.json",
+        "**/*.json"
     ],
     "exec": "tsx src/index.ts"
 }

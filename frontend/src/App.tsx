@@ -74,16 +74,17 @@ import AccountingGuide from './pages/AccountingGuide';
 import { useSettingsStore } from './store/settingsStore';
 
 import ProtectedRoute from './components/ProtectedRoute';
+import ModuleGuard from './components/ModuleGuard';
 
 import LayoutProvider from './layouts/LayoutProvider';
 import SuperAdminLayout from './layouts/SuperAdmin/SuperAdminLayout';
+import SuperAdminRoute from './components/SuperAdminRoute';
+import SuperAdminLogin from './pages/superadmin/SuperAdminLogin';
 import SuperAdminOverview from './pages/superadmin/SuperAdminOverview';
 import SuperAdminTenants from './pages/superadmin/SuperAdminTenants';
 import SuperAdminSubscriptions from './pages/superadmin/SuperAdminSubscriptions';
 import SuperAdminPlans from './pages/superadmin/SuperAdminPlans';
 import SuperAdminSettings from './pages/superadmin/SuperAdminSettings';
-import InstituteLogin from './pages/InstituteLogin';
-import InstituteDashboard from './pages/InstituteDashboard';
 import InstituteBilling from './pages/InstituteBilling';
 import LandingPage from './pages/LandingPage';
 import PaywallBanner from './components/PaywallBanner';
@@ -281,9 +282,11 @@ function App() {
                     path="/academic-assessor-ai"
                     element={
                         <ProtectedRoute>
-                            <LayoutProvider>
-                                <AcademicAssessorAI />
-                            </LayoutProvider>
+                            <ModuleGuard module="ai">
+                                <LayoutProvider>
+                                    <AcademicAssessorAI />
+                                </LayoutProvider>
+                            </ModuleGuard>
                         </ProtectedRoute>
                     }
                 />
@@ -314,9 +317,11 @@ function App() {
                     path="/programs"
                     element={
                         <ProtectedRoute requiredPermission="view_academic_programs">
-                            <LayoutProvider>
-                                <ProgramsSwitcher />
-                            </LayoutProvider>
+                            <ModuleGuard module="academic">
+                                <LayoutProvider>
+                                    <ProgramsSwitcher />
+                                </LayoutProvider>
+                            </ModuleGuard>
                         </ProtectedRoute>
                     }
                 />
@@ -357,9 +362,11 @@ function App() {
                     path="/fees"
                     element={
                         <ProtectedRoute requiredPermission="view_finance_fees">
-                            <LayoutProvider>
-                                <FeesSwitcher />
-                            </LayoutProvider>
+                            <ModuleGuard module="finance">
+                                <LayoutProvider>
+                                    <FeesSwitcher />
+                                </LayoutProvider>
+                            </ModuleGuard>
                         </ProtectedRoute>
                     }
                 />
@@ -467,9 +474,11 @@ function App() {
                     path="/crm-customers"
                     element={
                         <ProtectedRoute requiredPermission="view_crm_customers">
-                            <LayoutProvider>
-                                <CRMCustomers2026 />
-                            </LayoutProvider>
+                            <ModuleGuard module="crm">
+                                <LayoutProvider>
+                                    <CRMCustomers2026 />
+                                </LayoutProvider>
+                            </ModuleGuard>
                         </ProtectedRoute>
                     }
                 />
@@ -548,9 +557,11 @@ function App() {
                     path="/departments"
                     element={
                         <ProtectedRoute requiredPermission="view_hr_departments">
-                            <LayoutProvider>
-                                <DepartmentsSwitcher />
-                            </LayoutProvider>
+                            <ModuleGuard module="hr">
+                                <LayoutProvider>
+                                    <DepartmentsSwitcher />
+                                </LayoutProvider>
+                            </ModuleGuard>
                         </ProtectedRoute>
                     }
                 />
@@ -771,7 +782,13 @@ function App() {
                     }
                 />
 
-                {/* 👑 Super Admin Platform Console Routes */}
+                {/* 👑 Super Admin Platform Console Routes (Strictly Isolated & Guarded) */}
+                <Route path="/superadmin/login" element={<SuperAdminLogin />} />
+                <Route path="/super-admin/login" element={<SuperAdminLogin />} />
+                <Route
+                    path="/superadmin"
+                    element={<Navigate to="/super-admin/overview" replace />}
+                />
                 <Route
                     path="/super-admin"
                     element={<Navigate to="/super-admin/overview" replace />}
@@ -779,57 +796,55 @@ function App() {
                 <Route
                     path="/super-admin/overview"
                     element={
-                        <SuperAdminLayout>
-                            <SuperAdminOverview />
-                        </SuperAdminLayout>
+                        <SuperAdminRoute>
+                            <SuperAdminLayout>
+                                <SuperAdminOverview />
+                            </SuperAdminLayout>
+                        </SuperAdminRoute>
                     }
                 />
                 <Route
                     path="/super-admin/tenants"
                     element={
-                        <SuperAdminLayout>
-                            <SuperAdminTenants />
-                        </SuperAdminLayout>
+                        <SuperAdminRoute>
+                            <SuperAdminLayout>
+                                <SuperAdminTenants />
+                            </SuperAdminLayout>
+                        </SuperAdminRoute>
                     }
                 />
                 <Route
                     path="/super-admin/subscriptions"
                     element={
-                        <SuperAdminLayout>
-                            <SuperAdminSubscriptions />
-                        </SuperAdminLayout>
+                        <SuperAdminRoute>
+                            <SuperAdminLayout>
+                                <SuperAdminSubscriptions />
+                            </SuperAdminLayout>
+                        </SuperAdminRoute>
                     }
                 />
                 <Route
                     path="/super-admin/plans"
                     element={
-                        <SuperAdminLayout>
-                            <SuperAdminPlans />
-                        </SuperAdminLayout>
+                        <SuperAdminRoute>
+                            <SuperAdminLayout>
+                                <SuperAdminPlans />
+                            </SuperAdminLayout>
+                        </SuperAdminRoute>
                     }
                 />
                 <Route
                     path="/super-admin/settings"
                     element={
-                        <SuperAdminLayout>
-                            <SuperAdminSettings />
-                        </SuperAdminLayout>
+                        <SuperAdminRoute>
+                            <SuperAdminLayout>
+                                <SuperAdminSettings />
+                            </SuperAdminLayout>
+                        </SuperAdminRoute>
                     }
                 />
 
-                {/* Institute Portal Routes */}
-                <Route path="/institute/login" element={<InstituteLogin />} />
-                <Route path="/institute/dashboard" element={<InstituteDashboard />} />
-                <Route
-                    path="/institute/billing"
-                    element={
-                        <ProtectedRoute>
-                            <LayoutProvider>
-                                <InstituteBilling />
-                            </LayoutProvider>
-                        </ProtectedRoute>
-                    }
-                />
+                {/* 💎 Unified Institute In-Dashboard Billing & Subscriptions */}
                 <Route
                     path="/billing"
                     element={
@@ -840,7 +855,11 @@ function App() {
                         </ProtectedRoute>
                     }
                 />
-                <Route path="/institute" element={<Navigate to="/institute/login" replace />} />
+                {/* Legacy redirects to clean unified dashboard */}
+                <Route path="/institute/billing" element={<Navigate to="/billing" replace />} />
+                <Route path="/institute/login" element={<Navigate to="/login" replace />} />
+                <Route path="/institute/dashboard" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/institute" element={<Navigate to="/dashboard" replace />} />
 
                 {/* Public & Landing Routes */}
                 <Route path="/welcome" element={<LandingPage />} />

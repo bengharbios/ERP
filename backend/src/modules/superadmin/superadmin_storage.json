@@ -1,0 +1,163 @@
+{
+  "tenants": [
+    {
+      "id": "tenant_primary_001",
+      "name": "معهد السلام الدولي للغات والتدريب",
+      "slug": "alsalam-institute",
+      "logo": "",
+      "adminName": "إدارة معهد السلام",
+      "adminEmail": "admin@alsalam.edu",
+      "phone": "+971 50 123 4567",
+      "plan": "BUSINESS",
+      "status": "ACTIVE",
+      "billingCycle": "ANNUAL",
+      "studentCount": 26,
+      "userCount": 29,
+      "createdAt": "2026-01-01",
+      "renewDate": "2027-01-01"
+    },
+    {
+      "id": "tenant_sample_002",
+      "name": "أكاديمية المستقبل التقني",
+      "slug": "future-tech-academy",
+      "logo": "",
+      "adminName": "د. خالد المنصوري",
+      "adminEmail": "info@future-tech.edu",
+      "phone": "+966 54 876 5432",
+      "plan": "PRO",
+      "status": "ACTIVE",
+      "billingCycle": "MONTHLY",
+      "studentCount": 142,
+      "userCount": 12,
+      "createdAt": "2026-03-15",
+      "renewDate": "2026-10-15"
+    },
+    {
+      "id": "tenant_sample_003",
+      "name": "معهد الآفاق للعلوم الصحية",
+      "slug": "alafaq-health",
+      "logo": "",
+      "adminName": "أ. سارة العتيبي",
+      "adminEmail": "contact@alafaq.org",
+      "phone": "+966 56 333 4455",
+      "plan": "STARTER",
+      "status": "TRIAL",
+      "billingCycle": "MONTHLY",
+      "studentCount": 38,
+      "userCount": 5,
+      "createdAt": "2026-09-20",
+      "renewDate": "2026-10-05"
+    }
+  ],
+  "receipts": [
+    {
+      "id": "rec_1001",
+      "tenantId": "tenant_sample_002",
+      "tenantName": "أكاديمية المستقبل التقني",
+      "plan": "PRO",
+      "amount": 249,
+      "currency": "USD",
+      "senderName": "خالد المنصوري",
+      "senderBank": "مصرف الراجحي",
+      "referenceNumber": "TXN-98471203",
+      "receiptUrl": "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&auto=format&fit=crop",
+      "status": "PENDING",
+      "createdAt": "2026-09-29T10:14:00Z"
+    },
+    {
+      "id": "rec_1002",
+      "tenantId": "tenant_sample_003",
+      "tenantName": "معهد الآفاق للعلوم الصحية",
+      "plan": "STARTER",
+      "amount": 99,
+      "currency": "USD",
+      "senderName": "سارة العتيبي",
+      "senderBank": "البنك الأهلي السعودي",
+      "referenceNumber": "NCB-4412908",
+      "receiptUrl": "https://images.unsplash.com/photo-1554224154-26032ffc0d07?w=600&auto=format&fit=crop",
+      "status": "PENDING",
+      "createdAt": "2026-09-30T08:30:00Z"
+    }
+  ],
+  "plans": [
+    {
+      "id": "plan_free",
+      "type": "FREE",
+      "nameAr": "الباقة التجريبية (مجاناً)",
+      "nameEn": "Free Trial",
+      "monthlyPriceUSD": 0,
+      "annualPriceUSD": 0,
+      "maxStudents": 50,
+      "maxUsers": 3,
+      "features": ["إدارة الطلاب الأساسية", "الحضور والغياب", "الجدول الدراسي"],
+      "modules": ["academic"]
+    },
+    {
+      "id": "plan_starter",
+      "type": "STARTER",
+      "nameAr": "باقة المبتدئين (Starter)",
+      "nameEn": "Starter Plan",
+      "monthlyPriceUSD": 99,
+      "annualPriceUSD": 990,
+      "maxStudents": 200,
+      "maxUsers": 10,
+      "features": ["كل ميزات المجاني", "المالية والفواتير", "التقارير الأكاديمية", "الدعم الفني عبر البريد"],
+      "modules": ["academic", "finance"]
+    },
+    {
+      "id": "plan_pro",
+      "type": "PRO",
+      "nameAr": "الباقة المتقدمة (Pro)",
+      "nameEn": "Pro Plan",
+      "monthlyPriceUSD": 249,
+      "annualPriceUSD": 2490,
+      "maxStudents": 500,
+      "maxUsers": 25,
+      "isPopular": true,
+      "features": ["كل ميزات المبتدئين", "نظام إدارة علاقات العملاء CRM", "إشعارات تيليجرام وتنبيهات فورية", "إدارة شؤون الموظفين HR", "أولية في الدعم الفني"],
+      "modules": ["academic", "finance", "hr", "crm"]
+    },
+    {
+      "id": "plan_business",
+      "type": "BUSINESS",
+      "nameAr": "باقة الأعمال (Business)",
+      "nameEn": "Business Plan",
+      "monthlyPriceUSD": 499,
+      "annualPriceUSD": 4990,
+      "maxStudents": 2000,
+      "maxUsers": 100,
+      "features": ["كل ميزات Pro", "أجهزة البصمة والبيومترية الحية", "المساعد الذكي AI", "العلامة البيضاء وتخصيص الهوية", "تقارير مالية تفصيلية"],
+      "modules": ["academic", "finance", "hr", "crm", "ai", "biometrics", "whitelabel"]
+    }
+  ],
+  "platform": {
+    "platformName": "EduCloud SaaS ERP",
+    "supportEmail": "support@educloud-erp.com",
+    "supportPhone": "+971 4 000 0000",
+    "defaultCurrency": "USD",
+    "defaultTimezone": "Asia/Dubai",
+    "logoUrl": "",
+    "maintenanceMode": false
+  },
+  "payment": {
+    "enableBankTransfer": true,
+    "bankName": "بنك دبي الإسلامي (DIB) / مصرف الراجحي",
+    "accountHolderName": "مؤسسة السحاب الذكي لتقنية المعلومات",
+    "accountNumber": "1029384756",
+    "iban": "AE090240000001029384756",
+    "transferInstructions": "يرجى كتابة اسم المعهد ورقم الطلب في خانة الملاحظات أثناء التحويل ورفع إيصال العملية.",
+    "enableOnlinePayment": false,
+    "onlineProvider": "STRIPE",
+    "isTestMode": true,
+    "publicKey": "pk_test_sample_key_erp_2026"
+  },
+  "profile": {
+    "id": "super_admin_master",
+    "fullName": "المدير العام للمنصة (Super Admin)",
+    "email": "admin@platform-saas.com",
+    "phone": "+971 50 999 8888",
+    "role": "SUPER_ADMIN",
+    "twoFactorEnabled": false,
+    "lastLogin": "2026-10-03T09:16:57.994Z"
+  }
+}

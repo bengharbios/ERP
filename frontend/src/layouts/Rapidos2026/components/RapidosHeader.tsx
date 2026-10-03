@@ -110,7 +110,6 @@ export const NAV_SECTIONS = [
             { label: 'إعدادات الموارد البشرية', icon: UserCircle, path: '/hr-settings', permission: 'view_hr_settings' },
             { label: 'أجهزة البصمة', icon: Hash, path: '/biometric-devices', permission: 'view_biometric_devices' },
             { label: 'التقارير الإحصائية', icon: FileText, path: '/reports', permission: 'view_academic_reports' },
-            { label: '👑 لوحة السوبر أدمن (SaaS)', icon: ShieldAlert, path: '/super-admin/overview' },
         ],
     },
 ];
@@ -279,6 +278,21 @@ export function HorizonTopbar() {
 
                 <nav className="hz-topnav" ref={navRef}>
                     {NAV_SECTIONS.map(section => {
+                        // ── Feature Gating ─────────────────────────────────────────
+                        // If the user has tenantModules defined, only show sections
+                        // whose module ID is included. SUPER_ADMIN always sees all.
+                        const tenantModules = user?.tenantModules;
+                        if (
+                            tenantModules &&
+                            tenantModules.length > 0 &&
+                            user?.role !== 'SUPER_ADMIN' &&
+                            section.id !== 'settings' && // settings always visible
+                            !tenantModules.includes(section.id)
+                        ) {
+                            return null;
+                        }
+                        // ───────────────────────────────────────────────────────────
+
                         const hasPermission = (permissionCode?: string) => {
                             if (!permissionCode) return true;
                             if (!user) return false;
@@ -383,7 +397,7 @@ export function HorizonTopbar() {
                                     <Settings size={14} />
                                     <span>إعدادات النظام</span>
                                 </NavLink>
-                                <NavLink to="/super-admin/overview" onClick={() => setDropdownOpen(false)} style={{
+                                <NavLink to="/billing" onClick={() => setDropdownOpen(false)} style={{
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: '10px',
@@ -393,15 +407,12 @@ export function HorizonTopbar() {
                                     fontSize: '0.85rem',
                                     fontWeight: 'bold',
                                     borderRadius: '8px',
-                                    background: 'rgba(56, 189, 248, 0.1)',
-                                    border: '1px solid rgba(56, 189, 248, 0.25)',
+                                    background: 'rgba(56, 189, 248, 0.08)',
+                                    border: '1px solid rgba(56, 189, 248, 0.2)',
                                     transition: 'background 0.2s'
-                                }} 
-                                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(56, 189, 248, 0.2)'}
-                                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(56, 189, 248, 0.1)'}
-                                >
-                                    <span>👑</span>
-                                    <span>لوحة السوبر أدمن (SaaS)</span>
+                                }}>
+                                    <span>💎</span>
+                                    <span>باقة الاشتراك والترقية</span>
                                 </NavLink>
                                 <button onClick={() => { setDropdownOpen(false); logout(); }} style={{
                                     display: 'flex',
@@ -462,7 +473,13 @@ export function HorizonTopbar() {
             {mobileOpen && (
                 <div className="hz-mobile-drawer">
                     <div className="hz-mobile-drawer-inner">
-                        {NAV_SECTIONS.map(section => (
+                        {NAV_SECTIONS.filter(section => {
+                            const mods = user?.tenantModules;
+                            if (!mods || mods.length === 0) return true;
+                            if (user?.role === 'SUPER_ADMIN') return true;
+                            if (section.id === 'settings') return true;
+                            return mods.includes(section.id);
+                        }).map(section => (
                             <div key={section.id} className="hz-drawer-section">
                                 <div className="hz-drawer-section-title" style={{ color: section.color }}>
                                     <section.icon size={14} />

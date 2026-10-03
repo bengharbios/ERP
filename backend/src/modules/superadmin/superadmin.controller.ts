@@ -119,6 +119,16 @@ export class SuperAdminController {
       return res.status(400).json({ success: false, error: err.message });
     }
   }
+
+  async login(req: Request, res: Response) {
+    try {
+      const { username, password } = req.body;
+      const result = await superAdminService.login(username, password);
+      return res.json({ success: true, data: result });
+    } catch (err: any) {
+      return res.status(401).json({ success: false, error: err.message });
+    }
+  }
 }
 
 export const superAdminController = new SuperAdminController();

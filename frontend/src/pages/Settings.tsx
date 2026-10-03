@@ -455,7 +455,7 @@ export default function Settings() {
                 { value: 'SaaS', label: 'النوع' },
                 { value: 'إدارة', label: 'الحالة', highlight: true }
             ],
-            onClick: () => navigate('/institute/billing')
+            onClick: () => navigate('/billing')
         }
     ];
 

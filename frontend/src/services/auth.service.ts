@@ -14,6 +14,8 @@ export interface User {
     tenantId?: string | null;
     tenantName?: string;
     tenantSlug?: string;
+    tenantPlan?: string;
+    tenantModules?: string[];
     impersonated?: boolean;
 }
 

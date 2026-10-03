@@ -75,6 +75,7 @@ export interface PlanItem {
   maxStudents: number;
   maxUsers: number;
   features: string[];
+  modules?: string[];
   isPopular?: boolean;
 }
 
@@ -194,5 +195,13 @@ export const superAdminService = {
   }> => {
     const res = await apiClient.post(`/superadmin/tenants/${tenantId}/impersonate`, {});
     return (res as any).data;
+  },
+
+  login: async (username: string, password: string): Promise<{
+    token: string;
+    user: any;
+  }> => {
+    const res = await apiClient.post<any>('/superadmin/login', { username, password });
+    return res.data;
   },
 };

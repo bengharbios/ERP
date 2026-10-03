@@ -3,6 +3,9 @@ import { superAdminController } from './superadmin.controller';
 
 const router = Router();
 
+// Authentication
+router.post('/login', (req, res) => superAdminController.login(req, res));
+
 // Overview
 router.get('/overview', (req, res) => superAdminController.getOverview(req, res));
 

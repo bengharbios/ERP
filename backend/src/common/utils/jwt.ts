@@ -9,6 +9,7 @@ export interface AuthRequest extends Request {
         email: string;
         tenantId?: string | null;
         role?: string;
+        tenantModules?: string[];
     };
 }
 
@@ -18,6 +19,7 @@ export interface TokenPayload {
     email: string;
     tenantId?: string | null;
     role?: string; // e.g. 'INSTITUTE_ADMIN', 'TEACHER', 'SUPER_ADMIN'
+    tenantModules?: string[]; // e.g. ['academic','finance','hr']
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';

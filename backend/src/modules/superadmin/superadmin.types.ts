@@ -16,6 +16,7 @@ export interface PlanConfig {
   maxStudents: number;
   maxUsers: number;
   features: string[];
+  modules: string[]; // e.g. ['academic', 'finance', 'hr', 'crm', 'ai', 'biometrics', 'whitelabel']
   isPopular?: boolean;
 }
 
@@ -32,6 +33,7 @@ export interface TenantData {
   billingCycle: BillingCycle;
   studentCount: number;
   userCount: number;
+  activeModules?: string[];
   createdAt: string;
   renewDate: string;
 }
@@ -78,6 +80,8 @@ export interface PaymentGatewaysConfig {
 
 export interface SuperAdminProfile {
   id: string;
+  username?: string;
+  passwordHash?: string;
   fullName: string;
   email: string;
   phone?: string;
