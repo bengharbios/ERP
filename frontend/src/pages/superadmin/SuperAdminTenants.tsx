@@ -1,661 +1,450 @@
 import React, { useEffect, useState } from 'react';
-import { superAdminService, TenantItem } from '../../services/superAdminService';
 import { useNavigate } from 'react-router-dom';
+import { superAdminService, TenantItem } from '../../services/superAdminService';
 import { useAuthStore } from '../../store/authStore';
 
+// ─── ERP Module Definitions ────────────────────────────────────────────────
+const ALL_MODULES = [
+  { key: 'ACADEMIC',  label: 'الأكاديمية',         icon: '🎓', desc: 'البرامج، الفصول، الطلاب، الجداول، الواجبات' },
+  { key: 'FINANCE',   label: 'المالية',             icon: '💰', desc: 'الرسوم، الفواتير، سندات القبض، التقارير' },
+  { key: 'HR',        label: 'الموارد البشرية',     icon: '👥', desc: 'الموظفون، الرواتب، الإجازات، الحضور' },
+  { key: 'CRM',       label: 'إدارة المبيعات CRM', icon: '🎯', desc: 'العملاء المحتملون، خطوط المبيعات' },
+  { key: 'MARKETING', label: 'التسويق',            icon: '📢', desc: 'الحملات الإعلانية، تتبع المصادر' },
+  { key: 'SETTINGS',  label: 'الإعدادات',           icon: '⚙️', desc: 'المستخدمون، الأدوار، الإعدادات العامة' },
+];
+const DEFAULT_MODULES = ALL_MODULES.map(m => m.key);
+
+const statusLabel = (s: string) =>
+  ({ ACTIVE: 'نشط', TRIAL: 'تجريبي', SUSPENDED: 'معلق', EXPIRED: 'منتهي' }[s] ?? s);
+const statusColor = (s: string) =>
+  ({ ACTIVE: '#34d399', TRIAL: '#fbbf24', SUSPENDED: '#f87171', EXPIRED: '#64748b' }[s] ?? '#64748b');
+const statusBg = (s: string) =>
+  ({ ACTIVE: 'rgba(52,211,153,0.12)', TRIAL: 'rgba(251,191,36,0.12)', SUSPENDED: 'rgba(248,113,113,0.12)', EXPIRED: 'rgba(100,116,139,0.12)' }[s] ?? 'transparent');
+
+type ModalType = 'details' | 'edit' | 'delete' | 'add' | 'credentials' | null;
+
+interface NewTenantForm { name: string; slug: string; adminName: string; adminEmail: string; adminPassword: string; phone: string; plan: string; billingCycle: string; status: string; renewDate: string; }
+
+const EMPTY_NEW: NewTenantForm = { name: '', slug: '', adminName: '', adminEmail: '', adminPassword: '', phone: '', plan: 'PRO', billingCycle: 'MONTHLY', status: 'ACTIVE', renewDate: new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0] };
+
 export default function SuperAdminTenants() {
+  const navigate = useNavigate();
+  const { impersonate } = useAuthStore();
+
   const [tenants, setTenants] = useState<TenantItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newTenant, setNewTenant] = useState({
-    name: '',
-    slug: '',
-    adminName: '',
-    adminEmail: '',
-    adminPassword: '',
-    phone: '',
-    plan: 'PRO' as const,
-    billingCycle: 'MONTHLY' as const,
-    status: 'ACTIVE' as const,
-    renewDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-  });
-  const [showCredentials, setShowCredentials] = useState<null | { username: string; email: string; password: string; name: string }>(null);
-  const [copied, setCopied] = useState('');
-
+  const [modalType, setModalType] = useState<ModalType>(null);
+  const [activeTenant, setActiveTenant] = useState<TenantItem | null>(null);
+  const [detailTenant, setDetailTenant] = useState<TenantItem | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [impersonatingId, setImpersonatingId] = useState<string | null>(null);
-  const navigate = useNavigate();
-  const impersonate = useAuthStore((state) => state.impersonate);
+  const [saving, setSaving] = useState(false);
+  const [editForm, setEditForm] = useState<{name: string; status: string}>({ name: '', status: '' });
+  const [modulesDraft, setModulesDraft] = useState<string[]>(DEFAULT_MODULES);
+  const [newTenant, setNewTenant] = useState<NewTenantForm>(EMPTY_NEW);
+  const [credentials, setCredentials] = useState<{name:string;username:string;email:string;password:string}|null>(null);
+  const [copied, setCopied] = useState('');
+  const [toast, setToast] = useState<{msg:string;ok:boolean}|null>(null);
 
-  const handleEnterTenant = async (tenant: TenantItem) => {
-    try {
-      setImpersonatingId(tenant.id);
-      const result = await superAdminService.impersonateTenant(tenant.id);
-      // Switch session to tenant admin
-      impersonate(
-        {
-          id: result.user.id,
-          username: result.user.username,
-          email: result.user.email,
-          firstName: result.user.firstName || undefined,
-          lastName: result.user.lastName || undefined,
-          role: result.user.role,
-          tenantId: result.user.tenantId,
-          tenantName: result.user.tenantName,
-          tenantSlug: result.user.tenantSlug,
-          impersonated: true,
-        },
-        result.token
-      );
-      // Navigate to tenant dashboard
-      navigate('/dashboard');
-    } catch (err: any) {
-      alert('حدث خطأ أثناء الدخول للمعهد: ' + (err?.message || err));
-    } finally {
-      setImpersonatingId(null);
-    }
-  };
+  useEffect(() => { loadTenants(); }, []);
 
-  useEffect(() => {
-    loadTenants();
-  }, []);
+  const showToast = (msg: string, ok = true) => { setToast({msg,ok}); setTimeout(() => setToast(null), 3500); };
 
   const loadTenants = async () => {
     try {
       setLoading(true);
       const res = await superAdminService.getTenants();
-      setTenants(res);
-    } catch (err) {
-      console.error('Failed to load tenants:', err);
-    } finally {
-      setLoading(false);
-    }
+      setTenants(Array.isArray(res) ? res : (res as any)?.data || []);
+    } catch { showToast('فشل تحميل قائمة المعاهد', false); }
+    finally { setLoading(false); }
   };
 
-  const handleStatusToggle = async (tenant: TenantItem) => {
-    const newStatus = tenant.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
+  const openDetails = async (t: TenantItem) => {
+    setActiveTenant(t); setModalType('details');
+    setDetailLoading(true); setDetailTenant(null);
     try {
-      await superAdminService.updateTenant(tenant.id, { status: newStatus });
-      await loadTenants();
-    } catch (err) {
-      alert('حدث خطأ أثناء تعديل حالة المعهد');
-    }
+      const full = await superAdminService.getTenantById(t.id);
+      setDetailTenant(full);
+      setModulesDraft(full.activeModules || DEFAULT_MODULES);
+    } catch { setDetailTenant(t); setModulesDraft(t.activeModules || DEFAULT_MODULES); }
+    finally { setDetailLoading(false); }
   };
 
-  const handlePlanChange = async (tenantId: string, newPlan: any) => {
+  const openEdit = (t: TenantItem) => {
+    setEditForm({ name: t.name, status: t.status });
+    setModulesDraft(t.activeModules || DEFAULT_MODULES);
+    setActiveTenant(t); setModalType('edit');
+  };
+
+  const closeModal = () => { setModalType(null); };
+
+  const handleEnterTenant = async (t: TenantItem) => {
     try {
-      await superAdminService.updateTenant(tenantId, { plan: newPlan });
-      await loadTenants();
-    } catch (err) {
-      alert('حدث خطأ أثناء تغيير الباقة');
-    }
+      setImpersonatingId(t.id);
+      const result = await superAdminService.impersonateTenant(t.id);
+      impersonate({ id: result.user.id, username: result.user.username, email: result.user.email, firstName: result.user.firstName || undefined, lastName: result.user.lastName || undefined, role: result.user.role, tenantId: result.user.tenantId, tenantName: result.user.tenantName, tenantSlug: result.user.tenantSlug, impersonated: true }, result.token);
+      navigate('/dashboard');
+    } catch (e: any) { showToast('فشل الدخول: ' + (e?.message || ''), false); }
+    finally { setImpersonatingId(null); }
+  };
+
+  const handleStatusToggle = async (t: TenantItem) => {
+    const ns: 'ACTIVE' | 'SUSPENDED' = t.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
+    try { await superAdminService.updateTenant(t.id, { status: ns }); showToast(ns === 'ACTIVE' ? 'تم تفعيل المعهد ✅' : 'تم تعليق المعهد ⏸️'); await loadTenants(); }
+    catch { showToast('فشل تعديل الحالة', false); }
+  };
+
+  const saveEdit = async () => {
+    if (!activeTenant) return; setSaving(true);
+    try { await superAdminService.updateTenant(activeTenant.id, { name: editForm.name, status: editForm.status as TenantItem['status'], activeModules: modulesDraft }); showToast('تم الحفظ ✅'); closeModal(); await loadTenants(); }
+    catch (e: any) { showToast(e?.message || 'فشل التعديل', false); }
+    finally { setSaving(false); }
+  };
+
+  const saveModules = async () => {
+    if (!detailTenant) return; setSaving(true);
+    try { await superAdminService.updateTenant(detailTenant.id, { activeModules: modulesDraft }); setDetailTenant(p => p ? {...p, activeModules: modulesDraft} : p); showToast('تم تحديث الوحدات ✅'); }
+    catch (e: any) { showToast(e?.message || 'فشل التحديث', false); }
+    finally { setSaving(false); }
+  };
+
+  const confirmDelete = async () => {
+    if (!activeTenant) return; setSaving(true);
+    try { await superAdminService.deleteTenant(activeTenant.id); showToast('تم الحذف النهائي 🗑️'); closeModal(); await loadTenants(); }
+    catch (e: any) { showToast(e?.message || 'فشل الحذف', false); }
+    finally { setSaving(false); }
   };
 
   const handleCreateTenant = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const result = await superAdminService.addTenant(newTenant);
-      const savedPassword = newTenant.adminPassword || '12345678';
-      const username = `admin_${newTenant.slug}`;
-      setShowAddModal(false);
-      // Show credentials modal
-      setShowCredentials({
+      await superAdminService.addTenant({
         name: newTenant.name,
-        username,
-        email: newTenant.adminEmail,
-        password: savedPassword,
+        slug: newTenant.slug,
+        adminName: newTenant.adminName,
+        adminEmail: newTenant.adminEmail,
+        phone: newTenant.phone,
+        plan: newTenant.plan as TenantItem['plan'],
+        status: newTenant.status as TenantItem['status'],
+        billingCycle: newTenant.billingCycle as TenantItem['billingCycle'],
+        renewDate: newTenant.renewDate,
       });
-      setNewTenant({
-        name: '',
-        slug: '',
-        adminName: '',
-        adminEmail: '',
-        adminPassword: '',
-        phone: '',
-        plan: 'PRO',
-        billingCycle: 'MONTHLY',
-        status: 'ACTIVE',
-        renewDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      });
-      await loadTenants();
-    } catch (err: any) {
-      alert('حدث خطأ أثناء إضافة المعهد: ' + (err?.message || err));
-    }
+      const pwd = newTenant.adminPassword || '12345678';
+      setCredentials({ name: newTenant.name, username: `admin_${newTenant.slug}`, email: newTenant.adminEmail, password: pwd });
+      setNewTenant(EMPTY_NEW); setModalType('credentials'); await loadTenants();
+    } catch (e: any) { showToast('فشل الإنشاء: ' + (e?.message || ''), false); }
   };
 
-  const handleCopy = (text: string, key: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(key);
-    setTimeout(() => setCopied(''), 2000);
-  };
+  const toggleModule = (key: string) => setModulesDraft(p => p.includes(key) ? p.filter(m => m !== key) : [...p, key]);
+  const copy = (val: string, key: string) => { navigator.clipboard.writeText(val); setCopied(key); setTimeout(() => setCopied(''), 2000); };
 
-  const filteredTenants = tenants.filter((t) => {
-    const matchesSearch =
-      t.name.toLowerCase().includes(search.toLowerCase()) ||
-      t.adminEmail.toLowerCase().includes(search.toLowerCase()) ||
-      t.slug.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === 'ALL' || t.status === statusFilter;
-    return matchesSearch && matchesStatus;
+  const filtered = tenants.filter(t => {
+    const q = search.toLowerCase();
+    return (t.name.toLowerCase().includes(q) || t.adminEmail.toLowerCase().includes(q) || t.slug.toLowerCase().includes(q))
+      && (statusFilter === 'ALL' || t.status === statusFilter);
   });
 
+  // ── Shared styles ──
+  const input: React.CSSProperties = { width: '100%', padding: '0.6rem 0.85rem', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#f1f5f9', fontSize: '0.875rem', outline: 'none', direction: 'rtl', boxSizing: 'border-box' };
+  const btn = (c: string): React.CSSProperties => ({ padding: '0.4rem 0.75rem', borderRadius: '8px', cursor: 'pointer', background: `${c}20`, border: `1px solid ${c}50`, color: c, fontWeight: 600, fontSize: '0.8rem', fontFamily: 'inherit', whiteSpace: 'nowrap' as const, transition: 'all 0.2s' });
+  const bigBtn = (c: string): React.CSSProperties => ({ ...btn(c), padding: '0.6rem 1.25rem', fontWeight: 700 });
+
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', direction: 'rtl' }}>
+
+      {/* Toast */}
+      {toast && (
+        <div style={{ position: 'fixed', top: '1.5rem', right: '50%', transform: 'translateX(50%)', padding: '0.75rem 1.5rem', borderRadius: '10px', fontWeight: 600, fontSize: '0.9rem', background: toast.ok ? '#065f46' : '#7f1d1d', color: toast.ok ? '#34d399' : '#fca5a5', border: `1px solid ${toast.ok ? '#34d399' : '#f87171'}`, zIndex: 9999, boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
+          {toast.msg}
+        </div>
+      )}
+
       {/* Header */}
-      <div className="sa-page-header">
-        <div className="sa-page-title-wrap">
-          <h1>
-            <span>إدارة المعاهد المشتركة</span>
-            <span style={{ fontSize: '1.2rem' }}>🏫</span>
-          </h1>
-          <p className="sa-page-subtitle">
-            التحكم الشامل في حسابات المعاهد، الباقات، الصلاحيات، وحالة الاشتراكات
-          </p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#f1f5f9', margin: 0 }}>🏫 إدارة المعاهد المشتركة</h1>
+          <p style={{ color: '#64748b', margin: '0.25rem 0 0', fontSize: '0.9rem' }}>التحكم الكامل في المعاهد: التفاصيل، وحدات ERP، الصلاحيات، والحالة</p>
         </div>
-
-        <button onClick={() => setShowAddModal(true)} className="sa-btn-primary">
-          <span>➕</span>
-          <span>تسجيل معهد جديد</span>
-        </button>
+        <button onClick={() => setModalType('add')} className="sa-btn-primary">➕ تسجيل معهد جديد</button>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="sa-card" style={{ marginBottom: '1.5rem', padding: '1.25rem' }}>
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
-          <div style={{ flex: 1, minWidth: '240px' }}>
-            <input
-              type="text"
-              placeholder="🔍 بحث باسم المعهد، البريد، أو الرمز..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.65rem 1rem',
-                borderRadius: '10px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                color: '#ffffff',
-                fontFamily: 'inherit',
-                fontSize: '0.9rem',
-              }}
-            />
-          </div>
-
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            {['ALL', 'ACTIVE', 'TRIAL', 'SUSPENDED'].map((st) => (
-              <button
-                key={st}
-                onClick={() => setStatusFilter(st)}
-                style={{
-                  padding: '0.5rem 1rem',
-                  borderRadius: '8px',
-                  border: statusFilter === st ? '1px solid #38bdf8' : '1px solid rgba(255,255,255,0.08)',
-                  background: statusFilter === st ? 'rgba(56, 189, 248, 0.15)' : 'transparent',
-                  color: statusFilter === st ? '#38bdf8' : '#94a3b8',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  fontSize: '0.85rem',
-                  fontFamily: 'inherit',
-                }}
-              >
-                {st === 'ALL' ? 'الكل' : st === 'ACTIVE' ? 'النشطة' : st === 'TRIAL' ? 'التجريبية' : 'المعلقة'}
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* Filters */}
+      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <input placeholder="🔍 بحث..." value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1, minWidth: '200px', ...input }} />
+        {['ALL','ACTIVE','TRIAL','SUSPENDED'].map(s => (
+          <button key={s} onClick={() => setStatusFilter(s)} style={{ padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer', border: '1px solid', borderColor: statusFilter === s ? statusColor(s === 'ALL' ? 'ACTIVE' : s) : 'rgba(255,255,255,0.1)', background: statusFilter === s ? statusBg(s === 'ALL' ? 'ACTIVE' : s) : 'transparent', color: statusFilter === s ? statusColor(s === 'ALL' ? 'ACTIVE' : s) : '#64748b' }}>
+            {s === 'ALL' ? 'الكل' : statusLabel(s)}
+          </button>
+        ))}
       </div>
 
-      {/* Tenants Table */}
-      <div className="sa-card" style={{ padding: 0, overflow: 'hidden' }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table className="sa-table">
-            <thead>
-              <tr>
-                <th>اسم المعهد / المسؤول</th>
-                <th>الباقة الحالية</th>
-                <th>دورة الفوترة</th>
-                <th>عدد الطلاب</th>
-                <th>المستخدمين</th>
-                <th>تاريخ التجديد</th>
-                <th>الحالة</th>
-                <th style={{ textAlign: 'center' }}>الإجراءات والتحكم</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTenants.map((tenant) => (
-                <tr key={tenant.id}>
-                  <td>
-                    <div style={{ fontWeight: 700, color: '#f8fafc', fontSize: '0.95rem' }}>
-                      {tenant.name}
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '0.2rem' }}>
-                      {tenant.adminName} • {tenant.adminEmail}
-                    </div>
-                  </td>
-                  <td>
-                    <select
-                      value={tenant.plan}
-                      onChange={(e) => handlePlanChange(tenant.id, e.target.value)}
-                      style={{
-                        padding: '0.35rem 0.65rem',
-                        borderRadius: '6px',
-                        background: 'rgba(255, 255, 255, 0.08)',
-                        border: '1px solid rgba(255, 255, 255, 0.15)',
-                        color: '#38bdf8',
-                        fontFamily: 'inherit',
-                        fontWeight: 700,
-                        fontSize: '0.82rem',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <option value="FREE">FREE</option>
-                      <option value="STARTER">STARTER</option>
-                      <option value="PRO">PRO</option>
-                      <option value="BUSINESS">BUSINESS</option>
-                      <option value="ENTERPRISE">ENTERPRISE</option>
-                    </select>
-                  </td>
-                  <td>
-                    <span style={{ fontSize: '0.85rem', color: '#cbd5e1' }}>
-                      {tenant.billingCycle === 'ANNUAL' ? 'سنوي (وفر 20%)' : 'شهري'}
-                    </span>
-                  </td>
-                  <td>
-                    <span style={{ fontWeight: 700, color: '#34d399' }}>{tenant.studentCount}</span>
-                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}> طالب</span>
-                  </td>
-                  <td>
-                    <span style={{ fontWeight: 700, color: '#a78bfa' }}>{tenant.userCount}</span>
-                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}> موظف</span>
-                  </td>
-                  <td>
-                    <span style={{ fontSize: '0.82rem', color: '#94a3b8' }}>{tenant.renewDate}</span>
-                  </td>
-                  <td>
-                    <span
-                      className={`sa-badge ${
-                        tenant.status === 'ACTIVE'
-                          ? 'sa-badge-active'
-                          : tenant.status === 'TRIAL'
-                          ? 'sa-badge-trial'
-                          : 'sa-badge-suspended'
-                      }`}
-                    >
-                      {tenant.status === 'ACTIVE' ? 'نشط' : tenant.status === 'TRIAL' ? 'تجريبي' : 'معلق'}
-                    </span>
-                  </td>
-                  <td style={{ textAlign: 'center' }}>
-                    <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
-                      <button
-                        onClick={() => navigate('/dashboard')}
-                        title="الدخول إلى لوحة المعهد (Impersonate)"
-                        style={{
-                          padding: '0.4rem 0.75rem',
-                          borderRadius: '8px',
-                          background: 'rgba(56, 189, 248, 0.15)',
-                          border: '1px solid rgba(56, 189, 248, 0.3)',
-                          color: '#38bdf8',
-                          cursor: 'pointer',
-                          fontWeight: 600,
-                          fontSize: '0.8rem',
-                          fontFamily: 'inherit',
-                        }}
-                      >
-                        👁️ دخول المعهد
-                      </button>
-                      <button
-                        onClick={() => handleStatusToggle(tenant)}
-                        title={tenant.status === 'ACTIVE' ? 'تعليق الحساب' : 'تفعيل الحساب'}
-                        style={{
-                          padding: '0.4rem 0.75rem',
-                          borderRadius: '8px',
-                          background: tenant.status === 'ACTIVE' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-                          border: tenant.status === 'ACTIVE' ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(16, 185, 129, 0.3)',
-                          color: tenant.status === 'ACTIVE' ? '#f87171' : '#34d399',
-                          cursor: 'pointer',
-                          fontWeight: 600,
-                          fontSize: '0.8rem',
-                          fontFamily: 'inherit',
-                        }}
-                      >
-                        {tenant.status === 'ACTIVE' ? '⏸️ تعليق' : '▶️ تفعيل'}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+      {/* Table */}
+      <div style={{ overflowX: 'auto', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem', direction: 'rtl' }}>
+          <thead>
+            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+              {['المعهد','البريد','الطلاب','الحالة','الإجراءات'].map(h => (
+                <th key={h} style={{ padding: '0.85rem 1rem', color: '#64748b', fontWeight: 600, textAlign: 'right', whiteSpace: 'nowrap' }}>{h}</th>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr><td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>⏳ جاري التحميل...</td></tr>
+            ) : filtered.length === 0 ? (
+              <tr><td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>لا توجد معاهد</td></tr>
+            ) : filtered.map(t => (
+              <tr key={t.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                <td style={{ padding: '0.85rem 1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', flexShrink: 0, color: '#fff' }}>{t.name.charAt(0)}</div>
+                    <div>
+                      <div style={{ fontWeight: 700, color: '#f1f5f9' }}>{t.name}</div>
+                      <div style={{ fontSize: '0.74rem', color: '#64748b' }}>/{t.slug}</div>
+                    </div>
+                  </div>
+                </td>
+                <td style={{ padding: '0.85rem 1rem', color: '#94a3b8', fontSize: '0.82rem' }}>{t.adminEmail}</td>
+                <td style={{ padding: '0.85rem 1rem' }}>
+                  <span style={{ fontWeight: 700, color: '#34d399' }}>{t.studentCount ?? 0}</span>
+                  <span style={{ fontSize: '0.74rem', color: '#64748b' }}> طالب</span>
+                </td>
+                <td style={{ padding: '0.85rem 1rem' }}>
+                  <span style={{ padding: '0.25rem 0.65rem', borderRadius: '20px', fontWeight: 600, fontSize: '0.75rem', color: statusColor(t.status), background: statusBg(t.status), border: `1px solid ${statusColor(t.status)}40` }}>
+                    {statusLabel(t.status)}
+                  </span>
+                </td>
+                <td style={{ padding: '0.85rem 1rem' }}>
+                  <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                    <button onClick={() => openDetails(t)} style={btn('#6366f1')}>📋 تفاصيل</button>
+                    <button onClick={() => handleEnterTenant(t)} disabled={impersonatingId === t.id} style={{ ...btn('#38bdf8'), opacity: impersonatingId === t.id ? 0.6 : 1 }}>
+                      {impersonatingId === t.id ? '⏳' : '👁️'} دخول
+                    </button>
+                    <button onClick={() => handleStatusToggle(t)} style={btn(t.status === 'ACTIVE' ? '#f87171' : '#34d399')}>
+                      {t.status === 'ACTIVE' ? '⏸️ تعليق' : '▶️ تفعيل'}
+                    </button>
+                    <button onClick={() => { setActiveTenant(t); setModalType('delete'); }} style={btn('#f87171')}>🗑️</button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
-      {/* Add Tenant Modal */}
-      {showAddModal && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0, 0, 0, 0.75)',
-            backdropFilter: 'blur(8px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '1rem',
-          }}
-        >
-          <div
-            className="sa-card"
-            style={{
-              width: '100%',
-              maxWidth: '540px',
-              background: '#0a1320',
-              border: '1px solid rgba(56, 189, 248, 0.3)',
-            }}
-          >
+      {/* ═══ MODALS ═══ */}
+
+      {/* DETAILS */}
+      {modalType === 'details' && (
+        <div onClick={e => { if (e.target === e.currentTarget) closeModal(); }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div style={{ width: '100%', maxWidth: '820px', maxHeight: '90vh', overflow: 'auto', background: '#0a1320', border: '1px solid rgba(99,102,241,0.3)', borderRadius: '16px', padding: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
-                ➕ تسجيل معهد جديد في المنصة
-              </h3>
-              <button
-                onClick={() => setShowAddModal(false)}
-                style={{ background: 'transparent', border: 'none', color: '#94a3b8', fontSize: '1.5rem', cursor: 'pointer' }}
-              >
-                ✕
-              </button>
+              <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#f1f5f9' }}>📋 {activeTenant?.name}</h3>
+              <button onClick={closeModal} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: '1.3rem' }}>✕</button>
             </div>
+            {detailLoading ? (
+              <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>⏳ جاري تحميل التفاصيل...</div>
+            ) : detailTenant ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                {/* Info Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: '0.75rem' }}>
+                  {[
+                    ['اسم المعهد', detailTenant.name], ['Slug', `/${detailTenant.slug}`],
+                    ['المدير', detailTenant.adminName], ['البريد', detailTenant.adminEmail],
+                    ['الهاتف', detailTenant.phone || '—'], ['الحالة', statusLabel(detailTenant.status)],
+                    ['الطلاب', String(detailTenant.studentCount ?? 0)], ['الموظفون', String(detailTenant.userCount ?? 0)],
+                    ['تاريخ الإنشاء', detailTenant.createdAt ? new Date(detailTenant.createdAt).toLocaleDateString('ar-SA') : '—'],
+                    ['الدولة', detailTenant.country || '—'], ['العملة', detailTenant.currency || '—'],
+                    ['حالة الاشتراك', detailTenant.subscriptionStatus || '—'],
+                  ].map(([label, value]) => (
+                    <div key={label} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid rgba(255,255,255,0.07)' }}>
+                      <div style={{ fontSize: '0.74rem', color: '#64748b', marginBottom: '0.2rem' }}>{label}</div>
+                      <div style={{ fontWeight: 600, color: '#f1f5f9', fontSize: '0.9rem' }}>{value}</div>
+                    </div>
+                  ))}
+                </div>
 
-            <form onSubmit={handleCreateTenant}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {/* Module Toggler */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 600 }}>
-                    اسم المعهد أو الأكاديمية:
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={newTenant.name}
-                    onChange={(e) => setNewTenant({ ...newTenant, name: e.target.value })}
-                    style={{
-                      width: '100%',
-                      padding: '0.65rem 0.85rem',
-                      borderRadius: '8px',
-                      background: 'rgba(255,255,255,0.06)',
-                      border: '1px solid rgba(255,255,255,0.12)',
-                      color: '#ffffff',
-                      fontFamily: 'inherit',
-                    }}
-                  />
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 600 }}>
-                      الرمز الفريد (Slug):
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="institute-xyz"
-                      value={newTenant.slug}
-                      onChange={(e) => setNewTenant({ ...newTenant, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
-                      style={{
-                        width: '100%',
-                        padding: '0.65rem 0.85rem',
-                        borderRadius: '8px',
-                        background: 'rgba(255,255,255,0.06)',
-                        border: '1px solid rgba(255,255,255,0.12)',
-                        color: '#ffffff',
-                        fontFamily: 'inherit',
-                      }}
-                    />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h4 style={{ margin: 0, color: '#f1f5f9', fontSize: '1rem' }}>⚙️ وحدات ERP النشطة</h4>
+                    <button onClick={saveModules} disabled={saving} style={btn('#6366f1')}>{saving ? '...' : '💾 حفظ التغييرات'}</button>
                   </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 600 }}>
-                      اسم مدير المعهد:
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={newTenant.adminName}
-                      onChange={(e) => setNewTenant({ ...newTenant, adminName: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '0.65rem 0.85rem',
-                        borderRadius: '8px',
-                        background: 'rgba(255,255,255,0.06)',
-                        border: '1px solid rgba(255,255,255,0.12)',
-                        color: '#ffffff',
-                        fontFamily: 'inherit',
-                      }}
-                    />
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.75rem' }}>
+                    {ALL_MODULES.map(mod => {
+                      const active = modulesDraft.includes(mod.key);
+                      return (
+                        <div key={mod.key} onClick={() => toggleModule(mod.key)} style={{ padding: '0.85rem 1rem', borderRadius: '12px', cursor: 'pointer', border: `1px solid ${active ? '#6366f1' : 'rgba(255,255,255,0.08)'}`, background: active ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'flex-start', gap: '0.75rem', transition: 'all 0.2s' }}>
+                          <div style={{ fontSize: '1.4rem' }}>{mod.icon}</div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 700, color: active ? '#a5b4fc' : '#94a3b8', fontSize: '0.87rem' }}>{mod.label}</div>
+                            <div style={{ fontSize: '0.73rem', color: '#64748b', marginTop: '0.2rem', lineHeight: 1.4 }}>{mod.desc}</div>
+                          </div>
+                          <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: active ? '#6366f1' : 'transparent', border: `2px solid ${active ? '#6366f1' : '#475569'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}>
+                            {active && <span style={{ fontSize: '0.6rem', color: '#fff' }}>✓</span>}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 600 }}>
-                      البريد الإلكتروني للإدارة:
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      value={newTenant.adminEmail}
-                      onChange={(e) => setNewTenant({ ...newTenant, adminEmail: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '0.65rem 0.85rem',
-                        borderRadius: '8px',
-                        background: 'rgba(255,255,255,0.06)',
-                        border: '1px solid rgba(255,255,255,0.12)',
-                        color: '#ffffff',
-                        fontFamily: 'inherit',
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 600 }}>
-                      رقم الهاتف / الواتساب:
-                    </label>
-                    <input
-                      type="text"
-                      value={newTenant.phone}
-                      onChange={(e) => setNewTenant({ ...newTenant, phone: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '0.65rem 0.85rem',
-                        borderRadius: '8px',
-                        background: 'rgba(255,255,255,0.06)',
-                        border: '1px solid rgba(255,255,255,0.12)',
-                        color: '#ffffff',
-                        fontFamily: 'inherit',
-                      }}
-                    />
-                  </div>
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <button onClick={() => openEdit(detailTenant)} style={bigBtn('#6366f1')}>✏️ تعديل البيانات</button>
+                  <button onClick={() => handleEnterTenant(detailTenant)} disabled={impersonatingId === detailTenant.id} style={{ ...bigBtn('#38bdf8'), opacity: impersonatingId === detailTenant.id ? 0.6 : 1 }}>
+                    {impersonatingId === detailTenant.id ? '⏳ جاري الدخول...' : '👁️ دخول المعهد'}
+                  </button>
+                  <button onClick={() => handleStatusToggle(detailTenant)} style={bigBtn(detailTenant.status === 'ACTIVE' ? '#f87171' : '#34d399')}>
+                    {detailTenant.status === 'ACTIVE' ? '⏸️ تعليق الحساب' : '▶️ تفعيل الحساب'}
+                  </button>
+                  <button onClick={() => { setActiveTenant(detailTenant); setModalType('delete'); }} style={bigBtn('#f87171')}>🗑️ حذف نهائي</button>
                 </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      )}
 
-                {/* Password Field */}
+      {/* EDIT */}
+      {modalType === 'edit' && activeTenant && (
+        <div onClick={e => { if (e.target === e.currentTarget) closeModal(); }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div style={{ width: '100%', maxWidth: '560px', background: '#0a1320', border: '1px solid rgba(99,102,241,0.3)', borderRadius: '16px', padding: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#f1f5f9' }}>✏️ تعديل بيانات المعهد</h3>
+              <button onClick={closeModal} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: '1.3rem' }}>✕</button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#64748b', marginBottom: '0.35rem' }}>اسم المعهد</label>
+                <input value={editForm.name} onChange={e => setEditForm(f => ({...f, name: e.target.value}))} style={input} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#64748b', marginBottom: '0.35rem' }}>الحالة</label>
+                <select value={editForm.status} onChange={e => setEditForm(f => ({...f, status: e.target.value}))} style={input}>
+                  <option value="ACTIVE">نشط</option>
+                  <option value="SUSPENDED">معلق</option>
+                  <option value="TRIAL">تجريبي</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#64748b', marginBottom: '0.5rem' }}>وحدات ERP النشطة</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                  {ALL_MODULES.map(mod => {
+                    const active = modulesDraft.includes(mod.key);
+                    return (
+                      <label key={mod.key} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '0.6rem 0.75rem', borderRadius: '8px', border: `1px solid ${active ? '#6366f1' : 'rgba(255,255,255,0.08)'}`, background: active ? 'rgba(99,102,241,0.12)' : 'rgba(255,255,255,0.03)' }}>
+                        <input type="checkbox" checked={active} onChange={() => toggleModule(mod.key)} style={{ accentColor: '#6366f1' }} />
+                        <span style={{ fontSize: '0.85rem', color: active ? '#a5b4fc' : '#94a3b8', fontWeight: 600 }}>{mod.icon} {mod.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                <button onClick={closeModal} style={btn('#64748b')}>إلغاء</button>
+                <button onClick={saveEdit} disabled={saving} style={bigBtn('#6366f1')}>{saving ? '⏳ جاري الحفظ...' : '💾 حفظ التعديلات'}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE */}
+      {modalType === 'delete' && activeTenant && (
+        <div onClick={e => { if (e.target === e.currentTarget) closeModal(); }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div style={{ width: '100%', maxWidth: '440px', background: '#0a1320', border: '1px solid rgba(239,68,68,0.4)', borderRadius: '16px', padding: '1.5rem', textAlign: 'center' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
+            <div style={{ fontSize: '1rem', fontWeight: 700, color: '#f1f5f9', marginBottom: '0.5rem' }}>تأكيد الحذف النهائي</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#f87171', marginBottom: '1rem' }}>{activeTenant.name}</div>
+            <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '10px', padding: '0.75rem', color: '#fca5a5', fontSize: '0.85rem', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+              هذا الإجراء لا يمكن التراجع عنه. سيتم حذف المعهد وجميع مستخدميه نهائياً.
+            </div>
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+              <button onClick={closeModal} style={bigBtn('#64748b')}>إلغاء</button>
+              <button onClick={confirmDelete} disabled={saving} style={bigBtn('#f87171')}>{saving ? '⏳...' : '🗑️ نعم، احذف نهائياً'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ADD TENANT */}
+      {modalType === 'add' && (
+        <div onClick={e => { if (e.target === e.currentTarget) closeModal(); }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div style={{ width: '100%', maxWidth: '560px', maxHeight: '90vh', overflow: 'auto', background: '#0a1320', border: '1px solid rgba(99,102,241,0.3)', borderRadius: '16px', padding: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#f1f5f9' }}>➕ تسجيل معهد جديد</h3>
+              <button onClick={closeModal} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: '1.3rem' }}>✕</button>
+            </div>
+            <form onSubmit={handleCreateTenant} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                {([
+                  ['اسم المعهد *', 'name', 'text', 'معهد الأمل', true],
+                  ['Slug (رابط فريد) *', 'slug', 'text', 'amal-institute', true],
+                  ['اسم المدير', 'adminName', 'text', 'محمد أحمد', false],
+                  ['بريد المدير *', 'adminEmail', 'email', 'admin@institute.com', true],
+                  ['كلمة المرور', 'adminPassword', 'password', 'افتراضي: 12345678', false],
+                  ['رقم الهاتف', 'phone', 'text', '+971 50 000 0000', false],
+                ] as [string,keyof NewTenantForm,string,string,boolean][]).map(([label,field,type,ph,req]) => (
+                  <div key={field}>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#64748b', marginBottom: '0.35rem' }}>{label}</label>
+                    <input required={req} type={type} value={newTenant[field]} placeholder={ph}
+                      onChange={e => setNewTenant(f => ({...f, [field]: field === 'slug' ? e.target.value.toLowerCase().replace(/\s+/g,'-') : e.target.value}))}
+                      style={input} />
+                  </div>
+                ))}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 600 }}>
-                    🔑 كلمة مرور مدير المعهد:
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="اتركه فارغاً للاستخدام الافتراضي: 12345678"
-                    value={newTenant.adminPassword}
-                    onChange={(e) => setNewTenant({ ...newTenant, adminPassword: e.target.value })}
-                    style={{
-                      width: '100%',
-                      padding: '0.65rem 0.85rem',
-                      borderRadius: '8px',
-                      background: 'rgba(255,255,255,0.06)',
-                      border: '1px solid rgba(99,102,241,0.5)',
-                      color: '#ffffff',
-                      fontFamily: 'inherit',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                  <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem', marginBottom: 0 }}>
-                    💡 سيتم إنشاء اسم المستخدم تلقائياً: <strong style={{ color: '#38bdf8' }}>admin_{newTenant.slug || 'slug-المعهد'}</strong>
-                  </p>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#64748b', marginBottom: '0.35rem' }}>الباقة</label>
+                  <select value={newTenant.plan} onChange={e => setNewTenant(f => ({...f, plan: e.target.value}))} style={input}>
+                    {['FREE','STARTER','PRO','BUSINESS','ENTERPRISE'].map(p => <option key={p} value={p}>{p}</option>)}
+                  </select>
                 </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 600 }}>
-                      الباقة المختارة:
-                    </label>
-                    <select
-                      value={newTenant.plan}
-                      onChange={(e) => setNewTenant({ ...newTenant, plan: e.target.value as any })}
-                      style={{
-                        width: '100%',
-                        padding: '0.65rem 0.85rem',
-                        borderRadius: '8px',
-                        background: 'rgba(255,255,255,0.06)',
-                        border: '1px solid rgba(255,255,255,0.12)',
-                        color: '#ffffff',
-                        fontFamily: 'inherit',
-                      }}
-                    >
-                      <option value="FREE">FREE (تجريبي)</option>
-                      <option value="STARTER">STARTER ($99)</option>
-                      <option value="PRO">PRO ($249)</option>
-                      <option value="BUSINESS">BUSINESS ($499)</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.35rem', fontWeight: 600 }}>
-                      دورة الدفع:
-                    </label>
-                    <select
-                      value={newTenant.billingCycle}
-                      onChange={(e) => setNewTenant({ ...newTenant, billingCycle: e.target.value as any })}
-                      style={{
-                        width: '100%',
-                        padding: '0.65rem 0.85rem',
-                        borderRadius: '8px',
-                        background: 'rgba(255,255,255,0.06)',
-                        border: '1px solid rgba(255,255,255,0.12)',
-                        color: '#ffffff',
-                        fontFamily: 'inherit',
-                      }}
-                    >
-                      <option value="MONTHLY">شهري</option>
-                      <option value="ANNUAL">سنوي (مع خصم)</option>
-                    </select>
-                  </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#64748b', marginBottom: '0.35rem' }}>الحالة</label>
+                  <select value={newTenant.status} onChange={e => setNewTenant(f => ({...f, status: e.target.value}))} style={input}>
+                    <option value="ACTIVE">نشط</option>
+                    <option value="TRIAL">تجريبي</option>
+                  </select>
                 </div>
-
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
-                  <button
-                    type="button"
-                    onClick={() => setShowAddModal(false)}
-                    className="sa-btn-secondary"
-                  >
-                    إلغاء
-                  </button>
-                  <button type="submit" className="sa-btn-primary">
-                    حفظ وتفعيل المعهد ✅
-                  </button>
-                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                <button type="button" onClick={closeModal} style={btn('#64748b')}>إلغاء</button>
+                <button type="submit" style={bigBtn('#6366f1')}>✅ إنشاء المعهد</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* ✅ Credentials Success Modal */}
-      {showCredentials && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 9999, padding: '1rem'
-        }}>
-          <div style={{
-            borderRadius: '16px', padding: '2rem', width: '100%', maxWidth: '480px',
-            background: 'linear-gradient(135deg, #0a1320 0%, #0d1f35 100%)',
-            border: '1px solid rgba(52,211,153,0.5)',
-            boxShadow: '0 0 40px rgba(52,211,153,0.15)'
-          }}>
+      {/* CREDENTIALS */}
+      {modalType === 'credentials' && credentials && (
+        <div onClick={e => { if (e.target === e.currentTarget) closeModal(); }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div style={{ width: '100%', maxWidth: '460px', background: '#0a1320', border: '1px solid rgba(52,211,153,0.3)', borderRadius: '16px', padding: '1.5rem' }}>
             <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-              <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🎉</div>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#34d399', margin: 0 }}>
-                تم إنشاء المعهد بنجاح!
-              </h3>
-              <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: '0.5rem' }}>
-                {showCredentials.name}
-              </p>
+              <div style={{ fontSize: '2.5rem' }}>✅</div>
+              <h3 style={{ margin: '0.5rem 0 0.25rem', fontSize: '1.1rem', fontWeight: 800, color: '#f1f5f9' }}>تم إنشاء المعهد بنجاح!</h3>
+              <p style={{ color: '#64748b', fontSize: '0.85rem', margin: 0 }}>احفظ بيانات الدخول وأرسلها لمدير المعهد</p>
             </div>
-
-            <div style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '12px', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-              <p style={{ color: '#fbbf24', fontSize: '0.8rem', fontWeight: 700, margin: 0, textAlign: 'center' }}>
-                ⚠️ احفظ بيانات الدخول الآن — لن تظهر مرة أخرى!
-              </p>
-
-              {/* Username */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '0.65rem 1rem' }}>
-                <div>
-                  <p style={{ color: '#64748b', fontSize: '0.72rem', margin: 0 }}>اسم المستخدم</p>
-                  <p style={{ color: '#38bdf8', fontSize: '1rem', fontWeight: 700, margin: 0, fontFamily: 'monospace' }}>{showCredentials.username}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
+              {([['اسم المعهد', credentials.name,'name'], ['اسم المستخدم', credentials.username,'user'], ['البريد', credentials.email,'email'], ['كلمة المرور', credentials.password,'pwd']] as [string,string,string][]).map(([label,val,key]) => (
+                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', padding: '0.75rem 1rem', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '0.74rem', color: '#64748b' }}>{label}</div>
+                    <div style={{ fontWeight: 700, color: '#f1f5f9', fontFamily: 'monospace' }}>{val}</div>
+                  </div>
+                  <button onClick={() => copy(val, key)} style={btn('#6366f1')}>{copied === key ? '✅' : '📋'}</button>
                 </div>
-                <button
-                  onClick={() => handleCopy(showCredentials.username, 'username')}
-                  style={{ background: copied === 'username' ? 'rgba(52,211,153,0.2)' : 'rgba(56,189,248,0.15)', border: '1px solid rgba(56,189,248,0.3)', borderRadius: '6px', color: copied === 'username' ? '#34d399' : '#38bdf8', padding: '0.3rem 0.7rem', cursor: 'pointer', fontSize: '0.8rem' }}
-                >
-                  {copied === 'username' ? '✅ تم النسخ' : '📋 نسخ'}
-                </button>
-              </div>
-
-              {/* Email */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '0.65rem 1rem' }}>
-                <div>
-                  <p style={{ color: '#64748b', fontSize: '0.72rem', margin: 0 }}>البريد الإلكتروني</p>
-                  <p style={{ color: '#e2e8f0', fontSize: '0.95rem', fontWeight: 600, margin: 0, fontFamily: 'monospace' }}>{showCredentials.email}</p>
-                </div>
-                <button
-                  onClick={() => handleCopy(showCredentials.email, 'email')}
-                  style={{ background: copied === 'email' ? 'rgba(52,211,153,0.2)' : 'rgba(56,189,248,0.15)', border: '1px solid rgba(56,189,248,0.3)', borderRadius: '6px', color: copied === 'email' ? '#34d399' : '#38bdf8', padding: '0.3rem 0.7rem', cursor: 'pointer', fontSize: '0.8rem' }}
-                >
-                  {copied === 'email' ? '✅ تم النسخ' : '📋 نسخ'}
-                </button>
-              </div>
-
-              {/* Password */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '0.65rem 1rem' }}>
-                <div>
-                  <p style={{ color: '#64748b', fontSize: '0.72rem', margin: 0 }}>كلمة المرور</p>
-                  <p style={{ color: '#f472b6', fontSize: '1rem', fontWeight: 700, margin: 0, fontFamily: 'monospace' }}>{showCredentials.password}</p>
-                </div>
-                <button
-                  onClick={() => handleCopy(showCredentials.password, 'password')}
-                  style={{ background: copied === 'password' ? 'rgba(52,211,153,0.2)' : 'rgba(56,189,248,0.15)', border: '1px solid rgba(56,189,248,0.3)', borderRadius: '6px', color: copied === 'password' ? '#34d399' : '#f472b6', padding: '0.3rem 0.7rem', cursor: 'pointer', fontSize: '0.8rem' }}
-                >
-                  {copied === 'password' ? '✅ تم النسخ' : '📋 نسخ'}
-                </button>
-              </div>
-
-              {/* Copy All */}
-              <button
-                onClick={() => handleCopy(`اسم المستخدم: ${showCredentials.username}\nالبريد: ${showCredentials.email}\nكلمة المرور: ${showCredentials.password}`, 'all')}
-                style={{ background: copied === 'all' ? 'rgba(52,211,153,0.3)' : 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.4)', borderRadius: '8px', color: '#34d399', padding: '0.65rem', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700, width: '100%', marginTop: '0.25rem' }}
-              >
-                {copied === 'all' ? '✅ تم نسخ الكل!' : '📋 نسخ جميع بيانات الدخول'}
-              </button>
+              ))}
             </div>
-
-            <button
-              onClick={() => setShowCredentials(null)}
-              style={{ marginTop: '1.25rem', width: '100%', padding: '0.75rem', borderRadius: '10px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#e2e8f0', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 600 }}
-            >
-              حسناً، احتفظت بالبيانات ✅
-            </button>
+            <button onClick={closeModal} style={{ ...bigBtn('#34d399'), width: '100%', textAlign: 'center' }}>إغلاق ✓</button>
           </div>
         </div>
       )}
+
     </div>
   );
 }

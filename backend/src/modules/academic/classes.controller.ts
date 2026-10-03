@@ -89,6 +89,7 @@ export const createClass = async (req: AuthRequest, res: Response): Promise<void
         });
 
         // Create class
+        const tenantId = req.user?.tenantId || 'tenant_primary_001';
         const newClass = await prisma.class.create({
             data: {
                 code: validatedData.code,
@@ -109,6 +110,7 @@ export const createClass = async (req: AuthRequest, res: Response): Promise<void
                 classroom: validatedData.classroom,
                 building: validatedData.building,
                 defaultZoomLink: validatedData.defaultZoomLink,
+                tenantId,
             },
         });
 
@@ -329,11 +331,12 @@ export const createClass = async (req: AuthRequest, res: Response): Promise<void
 };
 
 // Get All Classes
-export const getClasses = async (req: Request, res: Response): Promise<void> => {
+export const getClasses = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { status, programId } = req.query;
+        const tenantId = req.user?.tenantId || 'tenant_primary_001';
 
-        const where: any = {};
+        const where: any = { tenantId };
         if (status) where.status = status;
         if (programId) where.programId = programId;
 

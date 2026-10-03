@@ -39,6 +39,13 @@ export interface TenantItem {
   userCount: number;
   createdAt: string;
   renewDate: string;
+  // Extended details
+  country?: string;
+  currency?: string;
+  timezone?: string;
+  language?: string;
+  subscriptionStatus?: string;
+  activeModules?: string[];
 }
 
 export interface BankReceiptItem {
@@ -113,6 +120,11 @@ export const superAdminService = {
   getTenants: async () => {
     const res = await apiClient.get<TenantItem[]>('/superadmin/tenants');
     return res.data;
+  },
+
+  getTenantById: async (id: string): Promise<TenantItem> => {
+    const res = await apiClient.get<TenantItem>(`/superadmin/tenants/${id}`);
+    return (res as any).data;
   },
 
   addTenant: async (data: Partial<TenantItem>) => {

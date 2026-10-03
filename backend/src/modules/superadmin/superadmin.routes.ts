@@ -8,6 +8,7 @@ router.get('/overview', (req, res) => superAdminController.getOverview(req, res)
 
 // Tenants
 router.get('/tenants', (req, res) => superAdminController.getTenants(req, res));
+router.get('/tenants/:id', (req, res) => superAdminController.getTenantById(req, res));
 router.post('/tenants', (req, res) => superAdminController.addTenant(req, res));
 router.patch('/tenants/:id', (req, res) => superAdminController.updateTenant(req, res));
 router.delete('/tenants/:id', (req, res) => superAdminController.deleteTenant(req, res));

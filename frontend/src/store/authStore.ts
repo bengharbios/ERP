@@ -85,7 +85,15 @@ export const useAuthStore = create<AuthState>()(
                 try {
                     const res = await authService.getMe();
                     if (res.success && res.data?.user) {
-                        set({ user: res.data.user });
+                        const state = get();
+                        set({
+                            user: {
+                                ...res.data.user,
+                                impersonated: state.isImpersonating,
+                                tenantName: res.data.user.tenantName || state.user?.tenantName,
+                                tenantSlug: res.data.user.tenantSlug || state.user?.tenantSlug,
+                            }
+                        });
                     }
                 } catch (err) {
                     console.error('Error loading current user profile:', err);

@@ -132,6 +132,9 @@ model Tenant {
   subscriptionEndsAt DateTime? @map("subscription_ends_at")
   isPaywalled     Boolean  @default(false) @map("is_paywalled")
 
+  // ERP Module Toggling — stored as JSON string e.g. '["ACADEMIC","FINANCE","CRM"]'
+  activeModules   String?  @map("active_modules")
+
   users           User[]
   subscriptions   Subscription[]
   bankReceipts    BankTransferReceipt[]
@@ -281,6 +284,8 @@ model Program {
   updatedAt      DateTime      @updatedAt @map("updated_at")
   awardingBodyId String?       @map("awarding_body_id")
   levelId        String?       @map("level_id")
+  // Multi-tenancy
+  tenantId       String?       @default("tenant_primary_001") @map("tenant_id")
   classes        Class[]
   programUnits   ProgramUnit[]
   awardingBody   AwardingBody? @relation(fields: [awardingBodyId], references: [id])
@@ -361,6 +366,8 @@ model Class {
   createdAt          DateTime            @default(now()) @map("created_at")
   updatedAt          DateTime            @updatedAt @map("updated_at")
   academicYearId     String?             @map("academic_year_id")
+  // Multi-tenancy
+  tenantId           String?             @default("tenant_primary_001") @map("tenant_id")
   unitSchedules      ClassUnitSchedule[]
   academicYear       AcademicYear?       @relation(fields: [academicYearId], references: [id])
   program            Program             @relation(fields: [programId], references: [id])
@@ -1984,6 +1991,8 @@ model CrmLead {
   mobileNormalized    String?       @map("mobile_normalized")
   phoneNormalized     String?       @map("phone_normalized")
   customFields        String?         @map("custom_fields")
+  // Multi-tenancy
+  tenantId            String?         @default("tenant_primary_001") @map("tenant_id")
   activities          CrmActivity[]
   salesperson         User?         @relation("CrmSalesperson", fields: [salespersonId], references: [id])
   stage               CrmStage?     @relation(fields: [stageId], references: [id])

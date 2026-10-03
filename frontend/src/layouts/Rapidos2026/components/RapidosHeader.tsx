@@ -181,10 +181,8 @@ export function HorizonTopbar() {
     const logout = useAuthStore((state) => state.logout);
     const isImpersonating = useAuthStore((state) => state.isImpersonating);
     const restoreSuperAdmin = useAuthStore((state) => state.restoreSuperAdmin);
-    // When impersonating, show the tenant name instead of institute settings name
-    const instituteName = isImpersonating && user?.tenantName
-        ? user.tenantName
-        : (settings?.instituteName || 'معهد سلام');
+    // Show the tenant name whenever available (impersonated or direct tenant admin)
+    const instituteName = user?.tenantName || settings?.instituteName || 'معهد سلام';
     const [openSection, setOpenSection] = useState<string | null>(null);
     const [searchVal, setSearchVal] = useState('');
     const [mobileOpen, setMobileOpen] = useState(false);

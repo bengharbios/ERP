@@ -30,10 +30,12 @@ export const createProgram = async (req: AuthRequest, res: Response): Promise<vo
         }
 
         // Create program
+        const tenantId = req.user?.tenantId || 'tenant_primary_001';
         const program = await prisma.program.create({
             data: {
                 ...programData,
                 totalUnits: unitIds?.length || programData.totalUnits,
+                tenantId,
             },
         });
 
@@ -115,12 +117,16 @@ export const createProgram = async (req: AuthRequest, res: Response): Promise<vo
 };
 
 // Get All Programs
-export const getPrograms = async (req: Request, res: Response): Promise<void> => {
+export const getPrograms = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { isActive } = req.query;
+        const tenantId = req.user?.tenantId || 'tenant_primary_001';
+
+        const where: any = { tenantId };
+        if (isActive !== undefined) where.isActive = isActive === 'true';
 
         const programs = await prisma.program.findMany({
-            where: isActive !== undefined ? { isActive: isActive === 'true' } : undefined,
+            where,
             include: {
                 programLevel: true,
                 awardingBody: true,

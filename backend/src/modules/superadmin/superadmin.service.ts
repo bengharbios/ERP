@@ -471,20 +471,98 @@ export class SuperAdminService {
     };
   }
 
-  async updateTenant(id: string, updates: Partial<TenantData>) {
-    const data = this.loadData();
-    const index = data.tenants.findIndex((t) => t.id === id);
-    if (index === -1) throw new Error('Tenant not found');
-    data.tenants[index] = { ...data.tenants[index], ...updates };
-    this.saveData(data);
-    return data.tenants[index];
+  async getTenantById(id: string) {
+    const tenant = await prisma.tenant.findUnique({
+      where: { id },
+      include: { users: true }
+    });
+    if (!tenant) throw new Error('المعهد غير موجود');
+
+    // Count students for this tenant (via user tenantId)
+    const studentCount = await prisma.student.count({
+      where: { user: { tenantId: id } }
+    });
+
+    const activeModules = tenant.activeModules
+      ? JSON.parse(tenant.activeModules as string)
+      : ['ACADEMIC', 'FINANCE', 'HR', 'CRM', 'MARKETING', 'SETTINGS'];
+
+    const admin = tenant.users.find(u => u.email !== `admin@${tenant.slug}.edu`) || tenant.users[0];
+
+    return {
+      id: tenant.id,
+      name: tenant.name,
+      slug: tenant.slug,
+      logo: tenant.logo || '',
+      country: tenant.country,
+      currency: tenant.currency,
+      timezone: tenant.timezone,
+      language: tenant.language,
+      adminName: admin ? `${admin.firstName || ''} ${admin.lastName || ''}`.trim() : 'مدير المعهد',
+      adminEmail: admin?.email || '',
+      phone: admin?.phone || '',
+      status: tenant.isActive ? 'ACTIVE' : 'SUSPENDED',
+      plan: 'FREE',
+      billingCycle: 'MONTHLY',
+      studentCount,
+      userCount: tenant.users.length,
+      createdAt: tenant.createdAt.toISOString(),
+      subscriptionStatus: tenant.subscriptionStatus,
+      activeModules,
+    };
+  }
+
+  async updateTenant(id: string, updates: any) {
+    // Build DB-compatible update object
+    const dbUpdate: any = {};
+    if (updates.name !== undefined) dbUpdate.name = updates.name;
+    if (updates.status !== undefined) dbUpdate.isActive = updates.status === 'ACTIVE';
+    if (updates.activeModules !== undefined) {
+      dbUpdate.activeModules = JSON.stringify(updates.activeModules);
+    }
+
+    // Try DB update first
+    try {
+      const updated = await prisma.tenant.update({
+        where: { id },
+        data: dbUpdate,
+      });
+      return {
+        id: updated.id,
+        name: updated.name,
+        status: updated.isActive ? 'ACTIVE' : 'SUSPENDED',
+        activeModules: updated.activeModules ? JSON.parse(updated.activeModules as string) : [],
+      };
+    } catch (err) {
+      // Fallback to local JSON for legacy/sample tenants
+      const data = this.loadData();
+      const index = data.tenants.findIndex((t) => t.id === id);
+      if (index === -1) throw new Error('Tenant not found');
+      data.tenants[index] = { ...data.tenants[index], ...updates };
+      this.saveData(data);
+      return data.tenants[index];
+    }
   }
 
   async deleteTenant(id: string) {
-    const data = this.loadData();
-    data.tenants = data.tenants.filter((t) => t.id !== id);
-    this.saveData(data);
-    return { success: true };
+    // Prevent deleting the primary tenant
+    if (id === 'tenant_primary_001') {
+      throw new Error('لا يمكن حذف المعهد الرئيسي');
+    }
+
+    try {
+      // Delete all users belonging to this tenant first
+      await prisma.user.deleteMany({ where: { tenantId: id } });
+      // Then delete the tenant
+      await prisma.tenant.delete({ where: { id } });
+      return { success: true };
+    } catch (err) {
+      // Fallback for local-only tenants
+      const data = this.loadData();
+      data.tenants = data.tenants.filter((t) => t.id !== id);
+      this.saveData(data);
+      return { success: true };
+    }
   }
 
   async getSubscriptions() {

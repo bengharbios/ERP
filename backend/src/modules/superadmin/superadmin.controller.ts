@@ -20,6 +20,15 @@ export class SuperAdminController {
     }
   }
 
+  async getTenantById(req: Request, res: Response) {
+    try {
+      const tenant = await superAdminService.getTenantById(req.params.id);
+      return res.json({ success: true, data: tenant });
+    } catch (err: any) {
+      return res.status(404).json({ success: false, error: err.message });
+    }
+  }
+
   async addTenant(req: Request, res: Response) {
     try {
       const tenant = await superAdminService.addTenant(req.body);
