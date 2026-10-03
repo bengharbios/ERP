@@ -122,6 +122,23 @@ const MOBILE_SECTIONS = NAV_SECTIONS.map(s => ({
     color: s.color,
 }));
 
+export const checkPagePermission = (user: any, permissionCode?: string): boolean => {
+    if (!permissionCode) return true;
+    if (!user) return false;
+    const isBypass =
+        user.role === 'SUPER_ADMIN' ||
+        user.role === 'INSTITUTE_ADMIN' ||
+        user.role === 'Admin' ||
+        user.role === 'Super Admin' ||
+        user.username === 'superadmin' ||
+        user.username === 'admin' ||
+        user.username?.startsWith('admin_') ||
+        user.roles?.some((r: string) => ['SUPER_ADMIN', 'Super Admin', 'Admin', 'INSTITUTE_ADMIN'].includes(r)) ||
+        Boolean(user.impersonated);
+    if (isBypass) return true;
+    return user.permissions?.includes(permissionCode) || false;
+};
+
 /* ══════════════════════════════════════════
    DROPDOWN MENU COMPONENT
 ══════════════════════════════════════════ */
@@ -129,15 +146,7 @@ function SectionDropdown({ section, onClose }: { section: typeof NAV_SECTIONS[0]
     const { pathname } = useLocation();
     const user = useAuthStore((s) => s.user);
 
-    const hasPermission = (permissionCode?: string) => {
-        if (!permissionCode) return true;
-        if (!user) return false;
-        const isBypass = user.username === 'admin' || user.roles?.some(r => r === 'Super Admin' || r === 'Admin') || user.role === 'Admin';
-        if (isBypass) return true;
-        return user.permissions?.includes(permissionCode) || false;
-    };
-
-    const filteredPages = section.pages.filter(page => hasPermission(page.permission));
+    const filteredPages = section.pages.filter(page => checkPagePermission(user, page.permission));
 
     if (filteredPages.length === 0) return null;
 
@@ -282,10 +291,11 @@ export function HorizonTopbar() {
                         // If the user has tenantModules defined, only show sections
                         // whose module ID is included. SUPER_ADMIN always sees all.
                         const tenantModules = user?.tenantModules;
+                        const isSuperAdmin = user?.role === 'SUPER_ADMIN' || user?.username === 'superadmin';
                         if (
                             tenantModules &&
                             tenantModules.length > 0 &&
-                            user?.role !== 'SUPER_ADMIN' &&
+                            !isSuperAdmin &&
                             section.id !== 'settings' && // settings always visible
                             !tenantModules.includes(section.id)
                         ) {
@@ -293,15 +303,7 @@ export function HorizonTopbar() {
                         }
                         // ───────────────────────────────────────────────────────────
 
-                        const hasPermission = (permissionCode?: string) => {
-                            if (!permissionCode) return true;
-                            if (!user) return false;
-                            const isBypass = user.username === 'admin' || user.roles?.some(r => r === 'Super Admin' || r === 'Admin') || user.role === 'Admin';
-                            if (isBypass) return true;
-                            return user.permissions?.includes(permissionCode) || false;
-                        };
-
-                        const filteredPages = section.pages.filter(p => hasPermission(p.permission));
+                        const filteredPages = section.pages.filter(p => checkPagePermission(user, p.permission));
                         if (filteredPages.length === 0) return null;
 
                         const sectionActive = section.pages.some(p =>
